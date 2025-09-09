@@ -316,8 +316,10 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
   }
 
   // Transform drag position to overlay opacity and color
-  const likeOpacity = dragX ? useTransform(dragX, [0, 150], [0, 0.8]) : 0
-  const nopeOpacity = dragX ? useTransform(dragX, [-150, 0], [0.8, 0]) : 0
+  // Always call hooks - use motionValue(0) as fallback to maintain hook order
+  const fallbackX = useMotionValue(0)
+  const likeOpacity = useTransform(dragX || fallbackX, [0, 150], [0, 0.8])
+  const nopeOpacity = useTransform(dragX || fallbackX, [-150, 0], [0.8, 0])
 
   return (
     <div className="h-full glass-card overflow-hidden flex flex-col relative">
