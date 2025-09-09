@@ -300,13 +300,11 @@ interface RestaurantCardProps {
 }
 
 function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
   const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
   
-  // Reset image state when candidate changes
+  // Reset image error state when candidate changes
   useEffect(() => {
-    setImageLoaded(false)
     setImageError(false)
   }, [candidate.id])
   
@@ -314,6 +312,14 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
   if (candidate.photo_ref && !photoUrl) {
     console.warn('Photo reference found but no URL generated:', candidate.photo_ref)
   }
+  
+  // Debug: Log photo URL generation
+  console.log(`🖼️ ${candidate.name}:`, {
+    hasPhotoRef: !!candidate.photo_ref,
+    photoRef: candidate.photo_ref,
+    photoUrl: photoUrl,
+    imageError: imageError
+  })
 
   // Transform drag position to overlay opacity and color
   // Always call hooks - use motionValue(0) as fallback to maintain hook order
@@ -358,22 +364,10 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
             <img
               src={photoUrl}
               alt={candidate.name}
-              className={cn(
-                "absolute inset-0 w-full h-full object-cover transition-opacity duration-200",
-                imageLoaded ? "opacity-100" : "opacity-0"
-              )}
-              onLoad={() => setImageLoaded(true)}
+              className="absolute inset-0 w-full h-full object-cover"
               onError={() => setImageError(true)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            {/* Loading placeholder */}
-            {!imageLoaded && (
-              <div className="absolute inset-0 bg-gradient-mesh animate-gradient flex items-center justify-center">
-                <div className="text-6xl font-outfit font-bold text-white/20">
-                  {candidate.name.charAt(0)}
-                </div>
-              </div>
-            )}
           </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-mesh animate-gradient">
