@@ -326,7 +326,7 @@ export default function HostSetupPage() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="space-y-6 overflow-hidden"
+                className="space-y-5 overflow-hidden"
               >
                 {/* How Many People */}
                 <div className="flex items-center gap-4">
@@ -439,7 +439,7 @@ export default function HostSetupPage() {
                     <div>Price</div>
                     <div>range</div>
                   </div>
-                  <div className="flex gap-1 flex-1">
+                  <div className="flex gap-2 flex-1">
                     {[1, 2, 3, 4].map((level) => (
                       <button
                         key={level}

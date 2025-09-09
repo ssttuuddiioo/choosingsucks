@@ -188,62 +188,68 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
 
   return (
     <div className="h-screen flex flex-col bg-gradient-primary">
-      {/* Card Stack - flexible height */}
-      <div
-        className="flex-1 relative overflow-hidden p-2 md:p-4 pb-0"
-        style={{ paddingBottom: bottomBarHeight ? bottomBarHeight + 24 : 96 }}
-      >
-        {/* Third card (far background) - static positioning */}
-        {nextNextCandidate && (
-          <div
-            className="absolute inset-2 md:inset-4"
-            style={{ 
-              zIndex: 1,
-              transform: 'scale(0.85) translateY(20px)',
-              opacity: 0.4
-            }}
-          >
-            <RestaurantCard candidate={nextNextCandidate} />
-          </div>
-        )}
+      {/* Card Stack - flexible height with proper spacing */}
+      <div className="flex-1 relative overflow-hidden p-2 md:p-4">
+        {/* Calculate available height for cards */}
+        <div 
+          className="h-full relative"
+          style={{ 
+            paddingBottom: bottomBarHeight ? bottomBarHeight + 16 : 80,
+            minHeight: '400px' // Ensure minimum card height
+          }}
+        >
+          {/* Third card (far background) - positioned within available space */}
+          {nextNextCandidate && (
+            <div
+              className="absolute inset-0"
+              style={{ 
+                zIndex: 1,
+                transform: 'scale(0.85) translateY(20px)',
+                opacity: 0.4
+              }}
+            >
+              <RestaurantCard candidate={nextNextCandidate} />
+            </div>
+          )}
 
-        {/* Next card (background) - static positioning */}
-        {nextCandidate && (
-          <div
-            className="absolute inset-2 md:inset-4"
-            style={{ 
-              zIndex: 2,
-              transform: 'scale(0.92) translateY(10px)',
-              opacity: 0.7
-            }}
-          >
-            <RestaurantCard candidate={nextCandidate} />
-          </div>
-        )}
-        
-        {/* Current card - animated */}
-        {currentCandidate && (
-          <motion.div
-            key={currentCandidate.id}
-            className="absolute inset-2 md:inset-4 cursor-grab active:cursor-grabbing"
-            style={{ 
-              x, 
-              rotate, 
-              opacity,
-              scale,
-              zIndex: 10
-            } as any}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ 
-              duration: 0.2,
-              ease: "easeOut"
-            }}
-            {...bind() as any}
-          >
-            <RestaurantCard candidate={currentCandidate} dragX={x} />
-          </motion.div>
-        )}
+          {/* Next card (background) - positioned within available space */}
+          {nextCandidate && (
+            <div
+              className="absolute inset-0"
+              style={{ 
+                zIndex: 2,
+                transform: 'scale(0.92) translateY(10px)',
+                opacity: 0.7
+              }}
+            >
+              <RestaurantCard candidate={nextCandidate} />
+            </div>
+          )}
+          
+          {/* Current card - animated within available space */}
+          {currentCandidate && (
+            <motion.div
+              key={currentCandidate.id}
+              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+              style={{ 
+                x, 
+                rotate, 
+                opacity,
+                scale,
+                zIndex: 10
+              } as any}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ 
+                duration: 0.2,
+                ease: "easeOut"
+              }}
+              {...bind() as any}
+            >
+              <RestaurantCard candidate={currentCandidate} dragX={x} />
+            </motion.div>
+          )}
+        </div>
       </div>
 
       {/* Action Buttons - pinned to bottom and safe-area aware */}
@@ -263,8 +269,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
               clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 50%)'
             }}
           >
-            <X className="h-6 w-6" />
             NAH
+            <X className="h-6 w-6" />
           </button>
           
           <button
@@ -277,7 +283,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
             }}
           >
             <Heart className="h-6 w-6 fill-current" />
-            YEAH
+            YEA
           </button>
         </div>
         
@@ -326,8 +332,15 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
         </>
       )}
 
-      {/* Image */}
-      <div className="flex-1 relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20">
+      {/* Image - takes available space but leaves room for info */}
+      <div 
+        className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20"
+        style={{ 
+          flex: '1 1 0',
+          minHeight: '200px', // Ensure minimum image height
+          maxHeight: 'calc(100% - 180px)' // Reserve space for info section
+        }}
+      >
         {photoUrl ? (
           <>
             <img
@@ -348,32 +361,38 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-6 space-y-3 bg-gradient-to-t from-black/90 via-black/60 to-black/40 backdrop-blur-sm">
-        <h2 className="text-2xl font-outfit font-bold text-white line-clamp-2 drop-shadow-lg">
+      {/* Info - fixed height to ensure visibility */}
+      <div 
+        className="flex-shrink-0 p-4 md:p-6 space-y-3 bg-gradient-to-t from-black/95 via-black/80 to-black/60 backdrop-blur-sm"
+        style={{ 
+          minHeight: '140px', // Ensure minimum space for content
+          maxHeight: '180px'  // Prevent info from taking too much space
+        }}
+      >
+        <h2 className="text-xl md:text-2xl font-outfit font-bold text-white line-clamp-2 drop-shadow-lg">
           {candidate.name}
         </h2>
 
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-3 text-sm">
           {/* Rating */}
           {candidate.rating && (
-            <div className="flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full">
-              <Star className="h-4 w-4 text-yellow-400 fill-current" />
-              <span className="font-bold text-white">{candidate.rating}</span>
+            <div className="flex items-center gap-1 bg-white/10 px-2 md:px-3 py-1 rounded-full">
+              <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-400 fill-current" />
+              <span className="font-bold text-white text-xs md:text-sm">{candidate.rating}</span>
               {candidate.user_ratings_total && (
-                <span className="text-white/50">({candidate.user_ratings_total})</span>
+                <span className="text-white/50 text-xs">({candidate.user_ratings_total})</span>
               )}
             </div>
           )}
 
           {/* Price Level */}
           {candidate.price_level && (
-            <div className="flex items-center bg-white/10 px-3 py-1 rounded-full">
+            <div className="flex items-center bg-white/10 px-2 md:px-3 py-1 rounded-full">
               {Array.from({ length: 4 }).map((_, i) => (
                 <DollarSign
                   key={i}
                   className={cn(
-                    "h-4 w-4",
+                    "h-3 w-3 md:h-4 md:w-4",
                     i < (candidate.price_level || 0)
                       ? "text-lime-green"
                       : "text-white/30"
@@ -384,13 +403,13 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
           )}
         </div>
 
-        {/* Cuisines */}
+        {/* Cuisines - limited to prevent overflow */}
         {candidate.cuisines && candidate.cuisines.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1 md:gap-2 overflow-hidden" style={{ maxHeight: '60px' }}>
             {candidate.cuisines.slice(0, 3).map((cuisine, i) => (
               <span
                 key={i}
-                className="px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold"
+                className="px-2 md:px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold whitespace-nowrap"
               >
                 {cuisine.replace(/_/g, ' ')}
               </span>
