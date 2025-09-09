@@ -90,8 +90,8 @@ export default function CategoryLandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-2 md:p-4">
-      <div className="max-w-md w-full space-y-6 md:space-y-8">
+    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="max-w-md w-full space-y-6 md:space-y-8 flex-shrink-0">
         {/* Header */}
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
@@ -153,16 +153,13 @@ export default function CategoryLandingPage() {
                     : 'bg-gradient-electric text-white shadow-lg hover:scale-105 active:scale-95 cursor-pointer'
                   }
                 `}
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ 
-                  delay: 0.8 + (index * 0.1),
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 20
+                  delay: 0.8 + (index * 0.05),
+                  duration: 0.3,
+                  ease: "easeOut"
                 }}
-                whileHover={category.isActive ? { scale: 1.05 } : {}}
-                whileTap={category.isActive ? { scale: 0.95 } : {}}
               >
                 {/* Icon */}
                 <IconComponent className="h-8 w-8" />
@@ -184,20 +181,6 @@ export default function CategoryLandingPage() {
           })}
         </motion.div>
 
-        {/* Footer */}
-        <motion.div 
-          className="text-center space-y-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-        >
-          <p className="text-white/50 text-sm">
-            Tap a category to start choosing
-          </p>
-          <p className="text-white/30 text-xs">
-            More categories coming soon
-          </p>
-        </motion.div>
       </div>
     </div>
   )

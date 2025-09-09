@@ -535,7 +535,6 @@ export default function HostSetupPage() {
               {error}
             </motion.p>
           )}
-        </div>
 
         {/* Pinned Bottom Button */}
         <div className="mt-auto pt-6">
