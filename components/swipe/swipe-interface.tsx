@@ -222,26 +222,28 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         )}
         
         {/* Current card - animated */}
-        <motion.div
-          key={currentCandidate.id}
-          className="absolute inset-2 md:inset-4 cursor-grab active:cursor-grabbing"
-          style={{ 
-            x, 
-            rotate, 
-            opacity,
-            scale,
-            zIndex: 10
-          } as any}
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ 
-            duration: 0.2,
-            ease: "easeOut"
-          }}
-          {...bind() as any}
-        >
-          <RestaurantCard candidate={currentCandidate} dragX={x} />
-        </motion.div>
+        {currentCandidate && (
+          <motion.div
+            key={currentCandidate.id}
+            className="absolute inset-2 md:inset-4 cursor-grab active:cursor-grabbing"
+            style={{ 
+              x, 
+              rotate, 
+              opacity,
+              scale,
+              zIndex: 10
+            } as any}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ 
+              duration: 0.2,
+              ease: "easeOut"
+            }}
+            {...bind() as any}
+          >
+            <RestaurantCard candidate={currentCandidate} dragX={x} />
+          </motion.div>
+        )}
       </div>
 
       {/* Action Buttons - pinned to bottom and safe-area aware */}

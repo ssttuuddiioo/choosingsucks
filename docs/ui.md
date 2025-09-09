@@ -1,16 +1,16 @@
-# UI Overhaul Plan: "choosing.sucks"
+# UI Documentation: "choosing.sucks"
 
-## Brand Identity & Design Philosophy
+## Current Brand Identity & Design Philosophy
 
-**New Brand**: `choosing.sucks` - playful, irreverent, anti-choice-paralysis  
+**Brand**: `choosing.sucks` - playful, irreverent, anti-choice-paralysis  
 **Tone**: Casual, fun, slightly sarcastic, acknowledges that choosing where to eat is annoying  
 **Target**: Gen Z/Millennial mobile-first users who hate the endless debate of picking restaurants  
 **Core Principle**: Bold, colorful, zero-friction mobile experience
 
-### Design Constraints
-- **ZERO emojis** - rely on typography, color, and animation for personality
-- **ZERO dropdown menus** - everything should be tappable buttons or cards
-- **Mobile-first** - thumb-friendly interactions only
+### Design Constraints (Implemented)
+- ✅ **ZERO emojis** - rely on typography, color, and animation for personality (mostly achieved, some legacy emojis remain)
+- ✅ **ZERO dropdown menus** - everything is tappable buttons or cards
+- ✅ **Mobile-first** - thumb-friendly interactions with safe area support
 
 ## Visual Design System
 
