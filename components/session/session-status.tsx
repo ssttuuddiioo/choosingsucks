@@ -99,7 +99,7 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
         {/* Waiting message - brand voice */}
         {invitedCount > 0 && joinedCount < invitedCount && (
           <div className="text-sm text-white/60 text-center font-medium mt-3">
-            Waiting for {invitedCount - joinedCount} more indecisive humans
+            Waiting for {invitedCount - joinedCount} more indecisive {invitedCount - joinedCount === 1 ? 'human' : 'humans'}
           </div>
         )}
       </div>

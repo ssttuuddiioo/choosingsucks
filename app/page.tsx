@@ -1,571 +1,204 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Input } from '@/components/ui/input'
-import { Copy, Loader2, MapPin, ChevronDown } from 'lucide-react'
-import { createBrowserClient } from '@/lib/utils/supabase-client'
-import { formatZipCode, isValidZipCode, generateShareToken } from '@/lib/utils/session'
-import { analytics } from '@/lib/utils/analytics'
-import { cn } from '@/lib/utils/cn'
-import { useGeolocation } from '@/lib/hooks/use-geolocation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  Utensils, 
+  Truck, 
+  Tv, 
+  Film, 
+  Music, 
+  Gift, 
+  Calendar,
+  Heart
+} from 'lucide-react'
 
-export default function HostSetupPage() {
+interface Category {
+  id: string
+  name: string
+  icon: React.ComponentType<{ className?: string }>
+  isActive: boolean
+  comingSoon?: boolean
+}
+
+const categories: Category[] = [
+  {
+    id: 'restaurants',
+    name: 'Restaurants',
+    icon: Utensils,
+    isActive: true,
+  },
+  {
+    id: 'delivery',
+    name: 'Food Delivery',
+    icon: Truck,
+    isActive: true,
+    comingSoon: true,
+  },
+  {
+    id: 'streaming',
+    name: 'TV Shows',
+    icon: Tv,
+    isActive: true,
+    comingSoon: true,
+  },
+  {
+    id: 'movies',
+    name: 'Movies',
+    icon: Film,
+    isActive: true,
+    comingSoon: true,
+  },
+  {
+    id: 'music',
+    name: 'Music',
+    icon: Music,
+    isActive: true,
+    comingSoon: true,
+  },
+  {
+    id: 'gifts',
+    name: 'Gift Ideas',
+    icon: Gift,
+    isActive: true,
+    comingSoon: true,
+  },
+  {
+    id: 'activities',
+    name: 'Activities',
+    icon: Calendar,
+    isActive: true,
+    comingSoon: true,
+  },
+  {
+    id: 'dates',
+    name: 'Date Ideas',
+    icon: Heart,
+    isActive: true,
+    comingSoon: true,
+  },
+]
+
+export default function CategoryLandingPage() {
   const router = useRouter()
-  const [zipCode, setZipCode] = useState('')
-  const [showCustomize, setShowCustomize] = useState(false)
-  const [requireNames, setRequireNames] = useState(false)
-  const [inviteCount, setInviteCount] = useState('2')
-  const [customCount, setCustomCount] = useState('')
-  const [showCustomInput, setShowCustomInput] = useState(false)
-  const [notifyEmail, setNotifyEmail] = useState('')
-  const [notifyPhone, setNotifyPhone] = useState('')
-  const [matchRequirement, setMatchRequirement] = useState<'all' | 'majority'>('all')
-  const [multipleMatches, setMultipleMatches] = useState(false)
-  const [selectedPriceLevels, setSelectedPriceLevels] = useState<number[]>([1, 2, 3, 4]) // Default: all price levels selected
-  const [loading, setLoading] = useState(false)
 
-  const togglePriceLevel = (level: number) => {
-    setSelectedPriceLevels(prev => 
-      prev.includes(level) 
-        ? prev.filter(l => l !== level)
-        : [...prev, level].sort()
-    )
-  }
-  const [error, setError] = useState('')
-  const [sessionCreated, setSessionCreated] = useState(false)
-  const [sessionId, setSessionId] = useState('')
-  const [shareLink, setShareLink] = useState('')
-  const [linkCopied, setLinkCopied] = useState(false)
-  
-  const geolocation = useGeolocation()
-
-  // Auto-detect location on component mount
-  useEffect(() => {
-    if (!zipCode) {
-      geolocation.getCurrentLocation()
+  const handleCategoryClick = (category: Category) => {
+    if (category.isActive) {
+      // Route to the category page
+      router.push(`/${category.id}`)
     }
-  }, [])
-
-  // Update ZIP code when geolocation succeeds
-  useEffect(() => {
-    if (geolocation.zipCode && !zipCode) {
-      setZipCode(geolocation.zipCode)
-    }
-  }, [geolocation.zipCode, zipCode])
-
-  const handleCreateSession = async () => {
-    if (!isValidZipCode(zipCode)) {
-      setError('Please enter a valid 5-digit ZIP code')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      const supabase = createBrowserClient()
-      
-      // Get coordinates for ZIP code
-      const geoResponse = await fetch('/api/geocode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zipCode })
-      })
-      
-      if (!geoResponse.ok) {
-        throw new Error('Failed to get location data')
-      }
-      
-      const { lat, lng } = await geoResponse.json()
-      
-      // Create session
-      const { data: session, error: sessionError } = await supabase
-        .from('sessions')
-        .insert({
-          zip_code: zipCode,
-          place_search_center: `POINT(${lng} ${lat})`,
-          require_names: requireNames,
-          invite_count_hint: inviteCount ? parseInt(inviteCount) : null,
-          host_notify_email: notifyEmail || null,
-          host_notify_phone: notifyPhone || null,
-          match_requirement: matchRequirement,
-          allow_multiple_matches: multipleMatches,
-        })
-        .select()
-        .single()
-
-      if (sessionError) throw sessionError
-
-      // Create host participant
-      const { error: participantError } = await supabase
-        .from('participants')
-        .insert({
-          session_id: session.id,
-          is_host: true,
-        })
-
-      if (participantError) throw participantError
-
-      // Generate share token
-      const shareToken = generateShareToken()
-      const fullShareLink = `${window.location.origin}/session/${session.id}?t=${shareToken}`
-      
-      setSessionId(session.id)
-      setShareLink(fullShareLink)
-      setSessionCreated(true)
-
-      // Track analytics
-      analytics.sessionCreated(session.id, zipCode)
-
-      // Trigger places search
-      const placesResponse = await fetch('/api/places-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: session.id,
-          lat,
-          lng,
-          selectedPriceLevels, // Pass the selected price levels
-        })
-      })
-
-      if (!placesResponse.ok) {
-        console.error('Failed to fetch places')
-      }
-
-      // Don't auto-redirect - let host manually join after sharing
-
-    } catch (err) {
-      console.error('Error creating session:', err)
-      setError('Failed to create session. Please try again.')
-      setLoading(false)
-    }
-  }
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareLink)
-      setLinkCopied(true)
-      // Reset after 2 seconds
-      setTimeout(() => setLinkCopied(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy:', err)
-    }
-  }
-
-  if (sessionCreated) {
-    return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="glass-card p-8 max-w-md w-full text-center space-y-6"
-        >
-          <div className="space-y-2">
-            <h1 className="text-3xl font-outfit font-bold">Session Created!</h1>
-            <p className="text-white/70">Share this link with your group</p>
-          </div>
-
-          <button
-            onClick={handleCopyLink}
-            className={cn(
-              "w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all",
-              linkCopied
-                ? "bg-gradient-lime text-white shadow-lg"
-                : "btn-gradient"
-            )}
-          >
-            <Copy className="h-5 w-5" />
-            {linkCopied ? "Link Copied!" : "Copy Link"}
-          </button>
-
-          <button
-            onClick={() => router.push(`/session/${sessionId}`)}
-            className="btn-gradient-pink w-full text-xl py-4"
-          >
-            Join Session
-          </button>
-          
-          <p className="text-xs text-white/30">
-            choosing.sucks
-          </p>
-        </motion.div>
-      </div>
-    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="glass-card p-8 max-w-md w-full space-y-8"
-      >
+    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <div className="text-left">
+        <motion.div 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-center space-y-2"
+        >
           {/* Logo */}
-          <div>
-            <h1 className="text-6xl font-outfit font-black leading-[0.9] tracking-tight logo-chunky">
-              <motion.div 
-                className="gradient-text"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-              >
-                CHOOSING
-              </motion.div>
-              <motion.div 
-                className="gradient-text"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                SUCKS
-              </motion.div>
-            </h1>
-          </div>
-          
-          <div className="flex items-center gap-2 mt-1">
-            <motion.p 
-              className="text-white/70 text-xl font-semibold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+          <h1 className="text-5xl font-outfit font-black leading-[0.9] tracking-tight">
+            <motion.div 
+              className="gradient-text"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
             >
-              Shut up and swipe
-            </motion.p>
-            
-            {/* Upside-down smiley after tagline */}
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.6, type: "spring", stiffness: 300 }}
-            >
-              <svg 
-                viewBox="0 0 100 100"
-                className="h-[1.2em] w-auto text-white/70"
-                style={{ transform: 'rotate(180deg)' }}
-              >
-                {/* Inverted mouth - frown curve */}
-                <path 
-                  d="M20 45 Q50 75 80 45" 
-                  stroke="currentColor" 
-                  strokeWidth="8" 
-                  strokeLinecap="round" 
-                  fill="none"
-                />
-                {/* Left eye - rescaled */}
-                <circle cx="35" cy="25" r="8" fill="currentColor" />
-                {/* Right eye - rescaled */}
-                <circle cx="65" cy="25" r="8" fill="currentColor" />
-              </svg>
+              CHOOSING
             </motion.div>
-          </div>
-        </div>
-
-        {/* Form Grid - Consistent Layout */}
-        <div className="space-y-6">
-          {/* ZIP Code */}
-          <div className="flex items-center gap-4">
-            <div className="text-lg font-black text-white/90 leading-tight w-20">
-              ZIP
-            </div>
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder={geolocation.loading ? "Detecting..." : "Enter ZIP"}
-                value={zipCode}
-                onChange={(e) => setZipCode(formatZipCode(e.target.value))}
-                maxLength={5}
-                className="input-gradient w-full text-center text-xl font-bold pr-12"
-                disabled={geolocation.loading}
-              />
-              <button
-                onClick={() => geolocation.getCurrentLocation()}
-                disabled={geolocation.loading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-all hover:scale-105 active:scale-95"
-              >
-                {geolocation.loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <MapPin className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-          </div>
-        
-          {/* Error Message */}
-          {geolocation.error && (
-            <div className="flex items-center gap-4">
-              <div className="w-20"></div>
-              <p className="text-xs text-orange-burst flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {geolocation.error}
-              </p>
-            </div>
-          )}
-
-          {/* Details Toggle */}
-          <div className="flex items-center gap-4">
-            <div className="text-lg font-black text-white/90 leading-tight w-20">
-              Details
-            </div>
-            <div className="flex-1">
-              <button
-                onClick={() => setShowCustomize(!showCustomize)}
-                className={cn(
-                  "w-full py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center",
-                  showCustomize
-                    ? "bg-gradient-electric text-white shadow-lg"
-                    : "bg-white/10 text-white/70 hover:bg-white/20"
-                )}
-              >
-                <motion.div
-                  animate={{ rotate: showCustomize ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ChevronDown className="h-5 w-5" />
-                </motion.div>
-              </button>
-            </div>
-          </div>
-
-          {/* Expandable Customize Section */}
-          <AnimatePresence>
-            {showCustomize && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="space-y-6 overflow-hidden"
-              >
-                {/* How Many People */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div>How many</div>
-                    <div>people?</div>
-                  </div>
-                  <div className="flex gap-2 flex-1">
-                    {[2, 3, 4, 5, 6].map((count) => (
-                      <button
-                        key={count}
-                        onClick={() => {
-                          setInviteCount(count.toString())
-                          setShowCustomInput(false)
-                          setCustomCount('')
-                        }}
-                        className={cn(
-                          "flex-1 py-3 rounded-xl font-bold text-lg transition-all",
-                          inviteCount === count.toString()
-                            ? "bg-gradient-pink text-white shadow-lg scale-105"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
-                        )}
-                      >
-                        {count}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => {
-                        setShowCustomInput(true)
-                        setInviteCount('')
-                      }}
-                      className={cn(
-                        "flex-1 py-3 rounded-xl font-bold text-lg transition-all",
-                        showCustomInput
-                          ? "bg-gradient-pink text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      7+
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Custom Count Input */}
-                <AnimatePresence>
-                  {showCustomInput && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="flex items-center gap-4"
-                    >
-                      <div className="w-20"></div>
-                      <div className="flex-1">
-                        <input
-                          type="number"
-                          min="2"
-                          max="20"
-                          placeholder="Enter number (2-20)"
-                          value={customCount}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            setCustomCount(value)
-                            if (value && parseInt(value) >= 2 && parseInt(value) <= 20) {
-                              setInviteCount(value)
-                            }
-                          }}
-                          className="input-gradient w-full text-center"
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Require Names */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div>Require</div>
-                    <div>names?</div>
-                  </div>
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={() => setRequireNames(false)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        !requireNames 
-                          ? "bg-gradient-electric text-white shadow-lg scale-105" 
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      No
-                    </button>
-                    <button
-                      onClick={() => setRequireNames(true)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        requireNames 
-                          ? "bg-gradient-electric text-white shadow-lg scale-105" 
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
-
-                {/* Price Filter */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div>Price</div>
-                    <div>range</div>
-                  </div>
-                  <div className="flex gap-2 flex-1">
-                    {[1, 2, 3, 4].map((level) => (
-                      <button
-                        key={level}
-                        onClick={() => togglePriceLevel(level)}
-                        className={cn(
-                          "flex-1 py-3 rounded-xl font-bold text-xl transition-all",
-                          selectedPriceLevels.includes(level)
-                            ? "bg-gradient-lime text-white shadow-lg scale-105"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
-                        )}
-                      >
-                        {'$'.repeat(level)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Match Type */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div>Matches</div>
-                    <div>Required</div>
-                  </div>
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={() => setMatchRequirement('all')}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        matchRequirement === 'all'
-                          ? "bg-gradient-orange text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      100%
-                    </button>
-                    <button
-                      onClick={() => setMatchRequirement('majority')}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        matchRequirement === 'majority'
-                          ? "bg-gradient-orange text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      50%
-                    </button>
-                  </div>
-                </div>
-
-                {/* How Many Matches */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div># of</div>
-                    <div>matches</div>
-                  </div>
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={() => setMultipleMatches(false)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        !multipleMatches
-                          ? "bg-gradient-blue text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      First match
-                    </button>
-                    <button
-                      onClick={() => setMultipleMatches(true)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        multipleMatches
-                          ? "bg-gradient-blue text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      All matches
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Error Message */}
-        {error && (
+            <motion.div 
+              className="gradient-text"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              SUCKS
+            </motion.div>
+          </h1>
+          
+          {/* Subtitle */}
           <motion.p 
+            className="text-white/70 text-lg font-semibold"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-sm text-orange-burst text-center"
+            transition={{ delay: 0.4 }}
           >
-            {error}
+            Let's make it simple
           </motion.p>
-        )}
+        </motion.div>
 
-        {/* Create Button */}
-        <button
-          onClick={handleCreateSession}
-          disabled={loading || !zipCode}
-          className="btn-gradient w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed"
+        {/* Category Grid */}
+        <motion.div 
+          className="grid grid-cols-2 gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
         >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Creating...
-            </span>
-          ) : (
-            'Start swiping'
-          )}
-        </button>
-      </motion.div>
+          {categories.map((category, index) => {
+            const IconComponent = category.icon
+            
+            return (
+              <motion.button
+                key={category.id}
+                onClick={() => handleCategoryClick(category)}
+                disabled={false}
+                className={`
+                  relative overflow-hidden rounded-2xl p-6 aspect-square
+                  flex flex-col items-center justify-center gap-3
+                  font-bold text-lg transition-all duration-300
+                  ${category.comingSoon 
+                    ? 'bg-white/10 text-white hover:bg-white/15 cursor-pointer' 
+                    : 'bg-gradient-electric text-white shadow-lg hover:scale-105 active:scale-95 cursor-pointer'
+                  }
+                `}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ 
+                  delay: 0.8 + (index * 0.1),
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20
+                }}
+                whileHover={category.isActive ? { scale: 1.05 } : {}}
+                whileTap={category.isActive ? { scale: 0.95 } : {}}
+              >
+                {/* Icon */}
+                <IconComponent className="h-8 w-8" />
+                
+                {/* Category Name */}
+                <span className="text-center leading-tight">
+                  {category.name}
+                </span>
+                
+                {/* Coming Soon Badge */}
+                {category.comingSoon && (
+                  <div className="absolute top-2 right-2 bg-gradient-orange text-white text-xs px-2 py-1 rounded-full font-bold">
+                    Soon
+                  </div>
+                )}
+                
+              </motion.button>
+            )
+          })}
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div 
+          className="text-center space-y-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+        >
+          <p className="text-white/50 text-sm">
+            Tap a category to start choosing
+          </p>
+          <p className="text-white/30 text-xs">
+            More categories coming soon
+          </p>
+        </motion.div>
+      </div>
     </div>
   )
 }

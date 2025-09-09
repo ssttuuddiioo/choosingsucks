@@ -192,7 +192,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
             disabled={isAnimating}
             className="flex-1 flex items-center justify-center gap-3 py-4 px-6 font-bold text-xl bg-gradient-to-r from-red-500 to-red-600 text-white transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 relative overflow-hidden shadow-lg"
             style={{
-              borderRadius: '0.5rem 1.5rem 1.5rem 0.5rem',
+              borderRadius: '0.5rem 0.75rem 0.75rem 0.5rem',
               clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 50%)'
             }}
           >
@@ -205,7 +205,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
             disabled={isAnimating}
             className="flex-1 bg-gradient-lime text-white font-bold text-xl py-4 px-6 shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 relative overflow-hidden"
             style={{
-              borderRadius: '1.5rem 0.5rem 0.5rem 1.5rem',
+              borderRadius: '0.75rem 0.5rem 0.5rem 0.75rem',
               clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)'
             }}
           >

@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: 'choosing.sucks - We\'ll choose for you.',
   description: 'Stop arguing. Start eating. We make choosing suck less.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/icon-192.png',
+  },
 }
 
 export const viewport = {
