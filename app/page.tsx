@@ -90,8 +90,8 @@ export default function CategoryLandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-2 md:p-4">
+      <div className="max-w-md w-full space-y-6 md:space-y-8">
         {/* Header */}
         <motion.div 
           initial={{ y: -20, opacity: 0 }}

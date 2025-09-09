@@ -8,11 +8,11 @@ export default function MoviesPage() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-primary md:flex md:items-center md:justify-center md:p-4">
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="glass-card p-8 max-w-md w-full text-center space-y-6"
+        className="md:glass-card p-4 md:p-8 md:max-w-md w-full text-center space-y-6 min-h-screen md:min-h-0 flex flex-col justify-center"
       >
         <div className="space-y-4">
           <Film className="h-16 w-16 mx-auto text-white" />
