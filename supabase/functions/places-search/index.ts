@@ -14,7 +14,7 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { sessionId, lat, lng, maxPriceLevel } = await req.json()
+    const { sessionId, lat, lng, maxPriceLevel, selectedPriceLevels } = await req.json()
     
     // Validate required parameters
     if (!sessionId || !lat || !lng) {
@@ -62,15 +62,21 @@ serve(async (req) => {
       )
     }
 
-    // Build price levels array based on maxPriceLevel
+    // Build price levels array based on selectedPriceLevels
     const priceLevels = []
-    if (maxPriceLevel && maxPriceLevel < 4) {
-      // If a price limit is set, include all levels up to that limit
-      // Skip PRICE_LEVEL_FREE as requested
-      if (maxPriceLevel >= 1) priceLevels.push('PRICE_LEVEL_INEXPENSIVE')
-      if (maxPriceLevel >= 2) priceLevels.push('PRICE_LEVEL_MODERATE')
-      if (maxPriceLevel >= 3) priceLevels.push('PRICE_LEVEL_EXPENSIVE')
-      // Note: maxPriceLevel 4 means include all, so we don't set priceLevels filter
+    if (selectedPriceLevels && Array.isArray(selectedPriceLevels)) {
+      // Map numeric levels to Google API strings
+      selectedPriceLevels.forEach(level => {
+        switch(level) {
+          case 1: priceLevels.push('PRICE_LEVEL_INEXPENSIVE'); break
+          case 2: priceLevels.push('PRICE_LEVEL_MODERATE'); break
+          case 3: priceLevels.push('PRICE_LEVEL_EXPENSIVE'); break
+          case 4: priceLevels.push('PRICE_LEVEL_VERY_EXPENSIVE'); break
+        }
+      })
+    } else {
+      // Fallback to all price levels if not specified
+      priceLevels.push('PRICE_LEVEL_INEXPENSIVE', 'PRICE_LEVEL_MODERATE', 'PRICE_LEVEL_EXPENSIVE', 'PRICE_LEVEL_VERY_EXPENSIVE')
     }
     
     // Use the new Places API (Text Search)
@@ -91,17 +97,9 @@ serve(async (req) => {
       languageCode: 'en'
     }
     
-    // Only add priceLevels if we're filtering (not showing all)
-    if (maxPriceLevel && maxPriceLevel < 4 && priceLevels.length > 0) {
+    // Always add price levels filter
+    if (priceLevels.length > 0) {
       requestBody.priceLevels = priceLevels
-    } else if (maxPriceLevel === 4 || !maxPriceLevel) {
-      // Include all price levels when maxPriceLevel is 4 or not specified
-      requestBody.priceLevels = [
-        'PRICE_LEVEL_INEXPENSIVE',
-        'PRICE_LEVEL_MODERATE', 
-        'PRICE_LEVEL_EXPENSIVE',
-        'PRICE_LEVEL_VERY_EXPENSIVE'
-      ]
     }
     
     const placesResponse = await fetch(placesUrl, {
@@ -171,7 +169,7 @@ serve(async (req) => {
     console.log('📝 Attempting to insert candidates:', {
       count: candidates.length,
       sessionId,
-      maxPriceLevel: maxPriceLevel || 'all',
+      selectedPriceLevels: selectedPriceLevels || 'all',
       priceLevelsUsed: requestBody.priceLevels,
       restaurants: candidates.map(c => ({
         name: c.name,

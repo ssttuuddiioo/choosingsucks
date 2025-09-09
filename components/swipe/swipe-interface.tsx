@@ -18,6 +18,23 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   const [currentIndex, setCurrentIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
+
+  // Prevent body scrolling on mobile
+  useEffect(() => {
+    // Prevent scrolling on the body
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.width = '100%'
+    document.body.style.height = '100%'
+    
+    return () => {
+      // Restore scrolling when component unmounts
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+    }
+  }, [])
   
   const currentCandidate = candidates[currentIndex]
   const nextCandidate = candidates[currentIndex + 1]
@@ -121,9 +138,9 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-gradient-primary">
+    <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
       {/* Card Stack */}
-      <div className="flex-1 relative overflow-hidden min-h-[400px] p-4">
+      <div className="flex-1 relative overflow-hidden p-2 md:p-4">
         {/* Third card (far background) - static positioning */}
         {nextNextCandidate && (
           <div
@@ -153,38 +170,30 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         )}
         
         {/* Current card - animated */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentCandidate.id}
-            className="absolute inset-4 cursor-grab active:cursor-grabbing"
-            style={{ 
-              x, 
-              rotate, 
-              opacity,
-              scale,
-              zIndex: 10
-            } as any}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
-              damping: 30 
-            }}
-            initial={{ scale: 0.8, opacity: 0, y: 50 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ 
-              scale: 0.8,
-              opacity: 0,
-              transition: { duration: 0.2 }
-            }}
-            {...bind() as any}
-          >
-            <RestaurantCard candidate={currentCandidate} dragX={x} />
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={currentCandidate.id}
+          className="absolute inset-4 cursor-grab active:cursor-grabbing"
+          style={{ 
+            x, 
+            rotate, 
+            opacity,
+            scale,
+            zIndex: 10
+          } as any}
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ 
+            duration: 0.2,
+            ease: "easeOut"
+          }}
+          {...bind() as any}
+        >
+          <RestaurantCard candidate={currentCandidate} dragX={x} />
+        </motion.div>
       </div>
 
       {/* Action Buttons */}
-      <div className="p-6 safe-bottom space-y-4 max-w-md mx-auto w-full">
+      <div className="p-4 md:p-6 pb-safe space-y-4 max-w-md mx-auto w-full flex-shrink-0">
         {/* Action Buttons - side by side with arrow styling */}
         <div className="flex gap-3">
           <button
