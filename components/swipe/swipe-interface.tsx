@@ -69,9 +69,13 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     x.set(0)
   }, [candidates.length])
 
-  const currentCandidate = candidates[currentIndex]
-  const nextCandidate = candidates[backgroundBaseIndex + 1]
-  const nextNextCandidate = candidates[backgroundBaseIndex + 2]
+  // Clamp indices to valid range to avoid premature "done" when 1 item remains
+  const hasCandidates = candidates.length > 0
+  const safeCurrentIndex = hasCandidates ? Math.min(currentIndex, candidates.length - 1) : 0
+  const safeBackgroundIndex = hasCandidates ? Math.min(backgroundBaseIndex, Math.max(candidates.length - 1, 0)) : 0
+  const currentCandidate = hasCandidates ? candidates[safeCurrentIndex] : undefined
+  const nextCandidate = hasCandidates ? candidates[safeBackgroundIndex + 1] : undefined
+  const nextNextCandidate = hasCandidates ? candidates[safeBackgroundIndex + 2] : undefined
   
   // Motion values for smooth animations
   const x = useMotionValue(0)
@@ -159,7 +163,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     }
   )
 
-  if (!currentCandidate) {
+  if (candidates.length === 0) {
     return (
       <div className="h-screen flex flex-col items-center justify-center p-6 bg-gradient-primary">
         <div className="text-center space-y-6 max-w-md">
@@ -187,7 +191,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
       {/* Card Stack - flexible height */}
       <div
         className="flex-1 relative overflow-hidden p-2 md:p-4 pb-0"
-        style={{ paddingBottom: bottomBarHeight ? bottomBarHeight + 8 : 0 }}
+        style={{ paddingBottom: bottomBarHeight ? bottomBarHeight + 24 : 96 }}
       >
         {/* Third card (far background) - static positioning */}
         {nextNextCandidate && (

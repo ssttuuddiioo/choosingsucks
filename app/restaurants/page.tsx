@@ -536,9 +536,27 @@ export default function HostSetupPage() {
             </motion.p>
           )}
 
-        {/* Pinned Bottom Button */}
+          {/* Primary CTA - desktop within the glass card, below details */}
+          <div className="hidden md:block pt-4">
+            <button
+              onClick={handleCreateSession}
+              disabled={loading || !zipCode}
+              className="btn-gradient w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Creating...
+                </span>
+              ) : (
+                'Start a swipe session'
+              )}
+            </button>
+          </div>
+
+        {/* Pinned Bottom Button - mobile only inside card */}
         <div
-          className="sticky bottom-0 left-0 right-0 z-20 bg-gradient-primary/95 backdrop-blur pt-4"
+          className="sticky bottom-0 left-0 right-0 z-20 bg-gradient-primary/95 backdrop-blur pt-4 md:hidden"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
         >
           <button
@@ -557,6 +575,8 @@ export default function HostSetupPage() {
           </button>
         </div>
       </motion.div>
+
+      {/* Desktop CTA outside card removed as requested */}
     </div>
   )
 }
