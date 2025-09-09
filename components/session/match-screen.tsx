@@ -1,7 +1,8 @@
-import { Star, MapPin, DollarSign, ExternalLink, Navigation } from 'lucide-react'
+import { Star, MapPin, DollarSign, ExternalLink, Navigation, Plus } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Lottie from 'lottie-react'
 import confettiAnimation from '@/lib/animations/confetti.json'
 import { cn } from '@/lib/utils/cn'
@@ -13,6 +14,7 @@ interface MatchScreenProps {
 }
 
 export default function MatchScreen({ session, candidate }: MatchScreenProps) {
+  const router = useRouter()
   const [showConfetti, setShowConfetti] = useState(true)
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
   const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-primary md:flex md:items-center md:justify-center md:p-4 relative overflow-hidden">
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50">
@@ -72,7 +74,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
           damping: 15,
           duration: 0.8 
         }}
-        className="glass-card max-w-md w-full overflow-hidden"
+        className="md:glass-card md:max-w-md w-full overflow-hidden min-h-screen md:min-h-0 flex flex-col"
       >
         {/* Success Header */}
         <div className="bg-gradient-lime p-6 text-center">
@@ -82,7 +84,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
             transition={{ delay: 0.3 }}
             className="text-3xl font-outfit font-bold text-white"
           >
-            Done! No more choosing!
+            Unanimous decision!
           </motion.h1>
           <motion.p 
             initial={{ y: 20, opacity: 0 }}
@@ -109,7 +111,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
         )}
 
         {/* Restaurant Details */}
-        <div className="p-6 space-y-4">
+        <div className="flex-1 p-6 space-y-4 flex flex-col">
           <div>
             <h2 className="text-2xl font-outfit font-bold text-white">
               {candidate.name}
@@ -160,7 +162,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
           )}
 
           {/* Action Buttons */}
-          <div className="space-y-3 pt-4">
+          <div className="mt-auto space-y-3 pt-4">
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(candidate.name)}&query_place_id=${candidate.place_id}`}
               target="_blank"
@@ -182,6 +184,15 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
                 View on Google
               </a>
             )}
+
+            {/* Subtle New Session Button */}
+            <button
+              onClick={() => router.push('/')}
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 text-white/60 hover:text-white/80 transition-all text-sm"
+            >
+              <Plus className="h-4 w-4" />
+              Start a new swipe session
+            </button>
           </div>
         </div>
       </motion.div>

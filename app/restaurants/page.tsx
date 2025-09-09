@@ -201,24 +201,14 @@ export default function HostSetupPage() {
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="md:glass-card p-4 md:p-8 md:max-w-md w-full space-y-6 md:space-y-8 min-h-screen md:min-h-0 flex flex-col justify-center"
+        className="md:glass-card p-4 md:p-8 md:max-w-md w-full min-h-screen md:min-h-0 flex flex-col"
       >
-        {/* Header */}
-        <div className="text-left relative">
-          {/* Restaurant Icon - Top Right */}
-          <motion.div
-            className="absolute -top-2 -right-2 p-3 rounded-xl"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
-          >
-            <Utensils className="h-6 w-6 text-white/70" />
-          </motion.div>
-
-          {/* Logo - Smaller */}
+        {/* Header - Top Left Logo + Top Right Icon */}
+        <div className="flex justify-between items-start mb-8">
+          {/* Logo - Top Left */}
           <div>
             <h1 
-              className="text-4xl font-outfit font-black leading-[0.9] tracking-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
+              className="text-3xl font-outfit font-black leading-[0.9] tracking-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
               onClick={() => router.push('/')}
             >
               <motion.div 
@@ -238,21 +228,31 @@ export default function HostSetupPage() {
                 SUCKS
               </motion.div>
             </h1>
+            
+            {/* Tagline */}
+            <motion.p 
+              className="text-white/70 text-lg font-semibold mt-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              Let's figure out where to eat
+            </motion.p>
           </div>
-          
-          {/* New tagline */}
-          <motion.p 
-            className="text-white/70 text-xl font-semibold mt-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+
+          {/* Restaurant Icon - Top Right */}
+          <motion.div
+            className="p-3 rounded-xl"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
           >
-            Let's figure out where to eat
-          </motion.p>
+            <Utensils className="h-6 w-6 text-white/70" />
+          </motion.div>
         </div>
 
-        {/* Form Grid - Consistent Layout */}
-        <div className="space-y-6">
+        {/* Center Content - ZIP and Details */}
+        <div className="flex-1 flex flex-col justify-center space-y-6">
           {/* ZIP Code */}
           <div className="flex items-center gap-4">
             <div className="text-lg font-black text-white/90 leading-tight w-20">
@@ -525,32 +525,35 @@ export default function HostSetupPage() {
           </AnimatePresence>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-sm text-orange-burst text-center"
-          >
-            {error}
-          </motion.p>
-        )}
-
-        {/* Create Button */}
-        <button
-          onClick={handleCreateSession}
-          disabled={loading || !zipCode}
-          className="btn-gradient w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Creating...
-            </span>
-          ) : (
-            'Start a swipe session'
+          {/* Error Message */}
+          {error && (
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-sm text-orange-burst text-center"
+            >
+              {error}
+            </motion.p>
           )}
-        </button>
+        </div>
+
+        {/* Pinned Bottom Button */}
+        <div className="mt-auto pt-6">
+          <button
+            onClick={handleCreateSession}
+            disabled={loading || !zipCode}
+            className="btn-gradient w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Creating...
+              </span>
+            ) : (
+              'Start a swipe session'
+            )}
+          </button>
+        </div>
       </motion.div>
     </div>
   )

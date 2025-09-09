@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
-import { X, Heart, Star, DollarSign, MapPin } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { X, Heart, Star, DollarSign, MapPin, Plus } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
 import { useSpring, animated } from '@react-spring/web'
@@ -15,6 +16,7 @@ interface SwipeInterfaceProps {
 }
 
 export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfaceProps) {
+  const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
@@ -124,14 +126,22 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
 
   if (!currentCandidate) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="text-center space-y-4 max-w-md">
+      <div className="h-screen flex flex-col items-center justify-center p-6 bg-gradient-primary">
+        <div className="text-center space-y-6 max-w-md">
           <h2 className="text-4xl font-outfit font-bold gradient-text">
             DONE CHOOSING!
           </h2>
           <p className="text-white/70 text-lg font-medium">
             Now we wait for the other indecisive humans...
           </p>
+          
+          <button
+            onClick={() => router.push('/')}
+            className="btn-gradient w-full flex items-center justify-center gap-2 text-lg py-4 mt-8"
+          >
+            <Plus className="h-5 w-5" />
+            Host Your Own Session
+          </button>
         </div>
       </div>
     )
@@ -140,11 +150,11 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   return (
     <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
       {/* Card Stack - flexible height */}
-      <div className="flex-1 min-h-0 relative overflow-hidden p-2 md:p-4">
+      <div className="flex-1 relative overflow-hidden p-2 md:p-4 pb-0">
         {/* Third card (far background) - static positioning */}
         {nextNextCandidate && (
           <div
-            className="absolute inset-4"
+            className="absolute inset-2 md:inset-4"
             style={{ 
               zIndex: 1,
               transform: 'scale(0.85) translateY(20px)',
@@ -158,7 +168,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         {/* Next card (background) - static positioning */}
         {nextCandidate && (
           <div
-            className="absolute inset-4"
+            className="absolute inset-2 md:inset-4"
             style={{ 
               zIndex: 2,
               transform: 'scale(0.92) translateY(10px)',
@@ -172,7 +182,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         {/* Current card - animated */}
         <motion.div
           key={currentCandidate.id}
-          className="absolute inset-4 cursor-grab active:cursor-grabbing"
+          className="absolute inset-2 md:inset-4 cursor-grab active:cursor-grabbing"
           style={{ 
             x, 
             rotate, 
@@ -192,8 +202,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         </motion.div>
       </div>
 
-      {/* Action Buttons - always visible */}
-      <div className="p-4 md:p-6 pb-safe max-w-md mx-auto w-full flex-shrink-0">
+      {/* Action Buttons - pinned to bottom */}
+      <div className="p-4 pb-6 max-w-md mx-auto w-full flex-shrink-0 bg-gradient-primary">
         {/* Action Buttons - side by side with arrow styling */}
         <div className="flex gap-3">
           <button
