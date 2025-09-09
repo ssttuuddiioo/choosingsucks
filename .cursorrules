@@ -1,0 +1,10 @@
+This is the project plan. It is your Bible: docs/project_plan.md
+Refer to project plan often. Check off features as they are implemented. If you need to suggest an edit to the plan, first seek consent from the user.
+
+
+**Database Schema Reference:** Always use your Supabase MCP tools when planning or executing database migrations.
+
+*   **Modularity and Maintainability:** To ensure long-term health and ease of development, the project will strictly adhere to principles of modular design. Large, monolithic files (especially for UI components or complex logic) are to be avoided. Code should be broken down into smaller, logical, and reusable parts. 
+<600 lines per module is ideal.
+
+For instance, React components should be granular, custom hooks should encapsulate specific functionalities, and utilities/constants should be organized into their respective directories (e.g., `/lib/hooks`, `/lib/utils`, `/lib/constants`, `/components/feature/...`). This principle is critical for efficient collaboration, testing, and future scalability.

@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+    --font-outfit: 'Outfit', sans-serif;
+    --font-jetbrains: 'JetBrains Mono', monospace;
+  }
+
+
+  body {
+    @apply bg-gradient-primary text-white min-h-screen;
+    font-family: var(--font-inter);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-outfit);
+    @apply font-bold;
+  }
+
+  code, pre {
+    font-family: var(--font-jetbrains);
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl;
+  }
+
+  /* Gradient button */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-electric-purple to-electric-purpleLight text-white font-bold py-4 px-8 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95;
+  }
+
+  .btn-gradient-pink {
+    @apply bg-gradient-to-r from-hot-pink to-hot-pinkLight text-white font-bold py-4 px-8 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95;
+  }
+
+  .btn-gradient-lime {
+    @apply bg-gradient-to-r from-lime-green to-lime-greenLight text-white font-bold py-4 px-8 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95;
+  }
+
+  .btn-gradient-orange {
+    @apply bg-gradient-to-r from-orange-burst to-orange-burstLight text-white font-bold py-4 px-8 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-electric-purple via-hot-pink to-orange-burst bg-clip-text text-transparent;
+  }
+
+  /* Chunky logo styles */
+  .logo-chunky {
+    font-weight: 900;
+    font-stretch: expanded;
+    letter-spacing: -0.02em;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Input with gradient border */
+  .input-gradient {
+    @apply bg-white/10 backdrop-blur-sm border-2 border-transparent bg-clip-padding rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-4 focus:ring-electric-purple/50;
+    background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #8B5CF6, #EC4899);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+
+  /* Toggle button */
+  .toggle-btn {
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-200;
+  }
+
+  .toggle-btn-active {
+    @apply bg-gradient-to-r from-electric-purple to-electric-purpleLight text-white shadow-lg scale-105;
+  }
+
+  .toggle-btn-inactive {
+    @apply bg-white/10 text-white/70 hover:bg-white/20;
+  }
+
+  /* Loading shimmer */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer;
+    content: '';
+  }
+
+  /* Safe area padding for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+@layer utilities {
+  /* Animated gradient background */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+
+  /* Text selection */
+  ::selection {
+    @apply bg-electric-purple text-white;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-white/5;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/30;
+  }
+
+  /* Disable tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text selection on buttons */
+  button, .btn {
+    user-select: none;
+  }
+}
