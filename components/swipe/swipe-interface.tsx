@@ -18,11 +18,9 @@ interface SwipeInterfaceProps {
 export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfaceProps) {
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
-  // Base index used to render background cards; updates slightly after currentIndex
-  // to avoid background swapping during the transition which causes a visible flash.
-  const [backgroundBaseIndex, setBackgroundBaseIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
+  const [animatingCardId, setAnimatingCardId] = useState<string | null>(null)
   const buttonsRef = useRef<HTMLDivElement | null>(null)
   const [bottomBarHeight, setBottomBarHeight] = useState<number>(0)
 
@@ -65,17 +63,16 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   // Reset indices whenever the filtered candidates list changes length
   useEffect(() => {
     setCurrentIndex(0)
-    setBackgroundBaseIndex(0)
+    setAnimatingCardId(null)
     x.set(0)
   }, [candidates.length])
 
-  // Clamp indices to valid range to avoid premature "done" when 1 item remains
+  // Calculate card candidates using single index source
   const hasCandidates = candidates.length > 0
   const safeCurrentIndex = hasCandidates ? Math.min(currentIndex, candidates.length - 1) : 0
-  const safeBackgroundIndex = hasCandidates ? Math.min(backgroundBaseIndex, Math.max(candidates.length - 1, 0)) : 0
   const currentCandidate = hasCandidates ? candidates[safeCurrentIndex] : undefined
-  const nextCandidate = hasCandidates ? candidates[safeBackgroundIndex + 1] : undefined
-  const nextNextCandidate = hasCandidates ? candidates[safeBackgroundIndex + 2] : undefined
+  const nextCandidate = hasCandidates ? candidates[safeCurrentIndex + 1] : undefined
+  const nextNextCandidate = hasCandidates ? candidates[safeCurrentIndex + 2] : undefined
   
   // Motion values for smooth animations
   const x = useMotionValue(0)
@@ -83,9 +80,9 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0])
   const scale = useTransform(x, [-150, 0, 150], [0.95, 1, 0.95])
 
-  // Preload next images
+  // Preload next images based on current index
   useEffect(() => {
-    const imagesToPreload = [nextCandidate, nextNextCandidate].filter(Boolean)
+    const imagesToPreload = [currentCandidate, nextCandidate, nextNextCandidate].filter(Boolean)
     imagesToPreload.forEach(candidate => {
       if (candidate?.photo_ref && !preloadedImages.has(candidate.photo_ref)) {
         const img = new Image()
@@ -95,12 +92,13 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         }
       }
     })
-  }, [currentIndex, nextCandidate, nextNextCandidate])
+  }, [currentIndex, preloadedImages])
 
   const handleSwipeComplete = (vote: boolean) => {
     if (!currentCandidate || isAnimating) return
     
     setIsAnimating(true)
+    setAnimatingCardId(currentCandidate.id)
     
     // Haptic feedback for mobile devices
     if ('vibrate' in navigator) {
@@ -109,15 +107,12 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     
     onSwipe(currentCandidate.id, vote)
     
-    // Animate out and then update index
+    // Atomic state update after animation completes
     setTimeout(() => {
       setCurrentIndex(prev => prev + 1)
+      setAnimatingCardId(null)
       x.set(0) // Reset position for next card
       setIsAnimating(false)
-      // Delay background update slightly to avoid the brief background swap flash
-      setTimeout(() => {
-        setBackgroundBaseIndex(prev => prev + 1)
-      }, 120)
     }, 300)
   }
 
@@ -189,18 +184,19 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   return (
     <div className="h-screen flex flex-col bg-gradient-primary">
       {/* Card Stack - flexible height with proper spacing */}
-      <div className="flex-1 relative overflow-hidden p-2 md:p-4">
-        {/* Calculate available height for cards */}
-        <div 
-          className="h-full relative"
-          style={{ 
-            paddingBottom: bottomBarHeight ? bottomBarHeight + 16 : 80,
-            minHeight: '400px' // Ensure minimum card height
-          }}
-        >
+      <div 
+        className="flex-1 relative overflow-hidden p-2 md:p-4"
+        style={{ 
+          paddingBottom: bottomBarHeight ? bottomBarHeight + 16 : 80
+        }}
+      >
+        {/* Card container - constrained to available space */}
+        <div className="h-full relative" style={{ minHeight: '400px' }}>
+          <AnimatePresence mode="popLayout">
           {/* Third card (far background) - positioned within available space */}
           {nextNextCandidate && (
             <div
+              key={`bg-far-${nextNextCandidate.id}`}
               className="absolute inset-0"
               style={{ 
                 zIndex: 1,
@@ -215,6 +211,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
           {/* Next card (background) - positioned within available space */}
           {nextCandidate && (
             <div
+              key={`bg-next-${nextCandidate.id}`}
               className="absolute inset-0"
               style={{ 
                 zIndex: 2,
@@ -229,26 +226,31 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
           {/* Current card - animated within available space */}
           {currentCandidate && (
             <motion.div
-              key={currentCandidate.id}
+              key={`current-${currentCandidate.id}`}
               className="absolute inset-0 cursor-grab active:cursor-grabbing"
               style={{ 
                 x, 
                 rotate, 
-                opacity,
-                scale,
+                opacity: animatingCardId === currentCandidate.id ? opacity : 1,
+                scale: animatingCardId === currentCandidate.id ? scale : 1,
                 zIndex: 10
               } as any}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
               transition={{ 
                 duration: 0.2,
                 ease: "easeOut"
               }}
               {...bind() as any}
             >
-              <RestaurantCard candidate={currentCandidate} dragX={x} />
+              <RestaurantCard 
+                candidate={currentCandidate} 
+                dragX={animatingCardId === currentCandidate.id ? x : undefined} 
+              />
             </motion.div>
           )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -298,7 +300,15 @@ interface RestaurantCardProps {
 }
 
 function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
+  
+  // Reset image state when candidate changes
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+  }, [candidate.id])
   
   // Debug logging for photo references
   if (candidate.photo_ref && !photoUrl) {
@@ -341,14 +351,27 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
           maxHeight: 'calc(100% - 180px)' // Reserve space for info section
         }}
       >
-        {photoUrl ? (
+        {photoUrl && !imageError ? (
           <>
             <img
               src={photoUrl}
               alt={candidate.name}
-              className="absolute inset-0 w-full h-full object-cover"
+              className={cn(
+                "absolute inset-0 w-full h-full object-cover transition-opacity duration-200",
+                imageLoaded ? "opacity-100" : "opacity-0"
+              )}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            {/* Loading placeholder */}
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-gradient-mesh animate-gradient flex items-center justify-center">
+                <div className="text-6xl font-outfit font-bold text-white/20">
+                  {candidate.name.charAt(0)}
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-mesh animate-gradient">
