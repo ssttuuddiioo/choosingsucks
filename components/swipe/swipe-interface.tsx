@@ -18,6 +18,9 @@ interface SwipeInterfaceProps {
 export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfaceProps) {
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
+  // Base index used to render background cards; updates slightly after currentIndex
+  // to avoid background swapping during the transition which causes a visible flash.
+  const [backgroundBaseIndex, setBackgroundBaseIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
 
@@ -39,8 +42,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   }, [])
   
   const currentCandidate = candidates[currentIndex]
-  const nextCandidate = candidates[currentIndex + 1]
-  const nextNextCandidate = candidates[currentIndex + 2]
+  const nextCandidate = candidates[backgroundBaseIndex + 1]
+  const nextNextCandidate = candidates[backgroundBaseIndex + 2]
   
   // Motion values for smooth animations
   const x = useMotionValue(0)
@@ -79,6 +82,10 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
       setCurrentIndex(prev => prev + 1)
       x.set(0) // Reset position for next card
       setIsAnimating(false)
+      // Delay background update slightly to avoid the brief background swap flash
+      setTimeout(() => {
+        setBackgroundBaseIndex(prev => prev + 1)
+      }, 120)
     }, 300)
   }
 
@@ -148,7 +155,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-primary">
       {/* Card Stack - flexible height */}
       <div className="flex-1 relative overflow-hidden p-2 md:p-4 pb-0">
         {/* Third card (far background) - static positioning */}
@@ -202,8 +209,11 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         </motion.div>
       </div>
 
-      {/* Action Buttons - pinned to bottom */}
-      <div className="p-4 pb-6 max-w-md mx-auto w-full flex-shrink-0 bg-gradient-primary">
+      {/* Action Buttons - pinned to bottom and safe-area aware */}
+      <div
+        className="sticky bottom-0 left-0 right-0 z-20 max-w-md mx-auto w-full flex-shrink-0 bg-gradient-primary/95 backdrop-blur p-4 pt-3"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
+      >
         {/* Action Buttons - side by side with arrow styling */}
         <div className="flex gap-3">
           <button

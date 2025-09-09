@@ -14,6 +14,7 @@ import SwipeInterface from '@/components/swipe/swipe-interface'
 import SessionStatus from '@/components/session/session-status'
 import MatchScreen from '@/components/session/match-screen'
 import ExhaustedScreen from '@/components/session/exhausted-screen'
+import InvalidSessionScreen from '@/components/session/invalid-session-screen'
 
 type Session = Tables<'sessions'>
 type Participant = Tables<'participants'>
@@ -299,14 +300,7 @@ export default function SessionPage() {
 
   // Error state
   if (error || !session) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Oops!</h1>
-          <p className="mt-2 text-gray-600">{error || 'Session not found'}</p>
-        </div>
-      </div>
-    )
+    return <InvalidSessionScreen message={error || 'Session not found'} />
   }
 
   // Match state
