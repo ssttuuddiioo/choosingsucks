@@ -23,6 +23,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   const [backgroundBaseIndex, setBackgroundBaseIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
+  const buttonsRef = useRef<HTMLDivElement | null>(null)
+  const [bottomBarHeight, setBottomBarHeight] = useState<number>(0)
 
   // Prevent body scrolling on mobile
   useEffect(() => {
@@ -41,6 +43,32 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     }
   }, [])
   
+  // Measure bottom action bar to keep card fully visible above it
+  useEffect(() => {
+    const updateHeights = () => {
+      if (buttonsRef.current) {
+        setBottomBarHeight(buttonsRef.current.offsetHeight || 0)
+      }
+    }
+    updateHeights()
+
+    window.addEventListener('resize', updateHeights)
+    const observer = new ResizeObserver(updateHeights)
+    if (buttonsRef.current) observer.observe(buttonsRef.current)
+
+    return () => {
+      window.removeEventListener('resize', updateHeights)
+      observer.disconnect()
+    }
+  }, [])
+
+  // Reset indices whenever the filtered candidates list changes length
+  useEffect(() => {
+    setCurrentIndex(0)
+    setBackgroundBaseIndex(0)
+    x.set(0)
+  }, [candidates.length])
+
   const currentCandidate = candidates[currentIndex]
   const nextCandidate = candidates[backgroundBaseIndex + 1]
   const nextNextCandidate = candidates[backgroundBaseIndex + 2]
@@ -157,7 +185,10 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   return (
     <div className="h-screen flex flex-col bg-gradient-primary">
       {/* Card Stack - flexible height */}
-      <div className="flex-1 relative overflow-hidden p-2 md:p-4 pb-0">
+      <div
+        className="flex-1 relative overflow-hidden p-2 md:p-4 pb-0"
+        style={{ paddingBottom: bottomBarHeight ? bottomBarHeight + 8 : 0 }}
+      >
         {/* Third card (far background) - static positioning */}
         {nextNextCandidate && (
           <div
@@ -211,6 +242,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
 
       {/* Action Buttons - pinned to bottom and safe-area aware */}
       <div
+        ref={buttonsRef}
         className="sticky bottom-0 left-0 right-0 z-20 max-w-md mx-auto w-full flex-shrink-0 bg-gradient-primary/95 backdrop-blur p-4 pt-3"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
       >

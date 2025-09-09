@@ -91,7 +91,7 @@ export default function CategoryLandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-4 overflow-hidden">
-      <div className="max-w-md w-full space-y-6 md:space-y-8 flex-shrink-0">
+      <div className="max-w-md md:max-w-3xl lg:max-w-5xl w-full space-y-6 md:space-y-10 flex-shrink-0">
         {/* Header */}
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
@@ -131,7 +131,7 @@ export default function CategoryLandingPage() {
 
         {/* Category Grid */}
         <motion.div 
-          className="grid grid-cols-2 gap-4"
+          className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-2 gap-4 md:gap-6 lg:gap-8 md:max-w-5xl md:mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
@@ -145,9 +145,10 @@ export default function CategoryLandingPage() {
                 onClick={() => handleCategoryClick(category)}
                 disabled={false}
                 className={`
-                  relative overflow-hidden rounded-2xl p-6 aspect-square
-                  flex flex-col items-center justify-center gap-3
-                  font-bold text-lg transition-all duration-300
+                  relative overflow-hidden rounded-2xl p-6 md:p-8 lg:p-10
+                  aspect-square md:aspect-[4/3]
+                  flex flex-col items-center justify-center gap-3 md:gap-4
+                  font-bold text-lg md:text-xl lg:text-2xl transition-all duration-300
                   ${category.comingSoon 
                     ? 'bg-white/10 text-white hover:bg-white/15 cursor-pointer' 
                     : 'bg-gradient-electric text-white shadow-lg hover:scale-105 active:scale-95 cursor-pointer'
@@ -162,7 +163,7 @@ export default function CategoryLandingPage() {
                 }}
               >
                 {/* Icon */}
-                <IconComponent className="h-8 w-8" />
+                <IconComponent className="h-8 w-8 md:h-12 md:w-12 lg:h-14 lg:w-14" />
                 
                 {/* Category Name */}
                 <span className="text-center leading-tight">
