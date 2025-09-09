@@ -101,8 +101,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
       if (active) {
         x.set(mx)
       } else {
-        // Determine if swipe should trigger
-        const trigger = Math.abs(vx) > 0.3 || Math.abs(mx) > 100
+        // Determine if swipe should trigger - much more sensitive
+        const trigger = Math.abs(vx) > 0.2 || Math.abs(mx) > 50
         
         if (trigger) {
           const vote = mx > 0
@@ -139,8 +139,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
 
   return (
     <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
-      {/* Card Stack */}
-      <div className="flex-1 relative overflow-hidden p-2 md:p-4">
+      {/* Card Stack - flexible height */}
+      <div className="flex-1 min-h-0 relative overflow-hidden p-2 md:p-4">
         {/* Third card (far background) - static positioning */}
         {nextNextCandidate && (
           <div
@@ -192,8 +192,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         </motion.div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="p-4 md:p-6 pb-safe space-y-4 max-w-md mx-auto w-full flex-shrink-0">
+      {/* Action Buttons - always visible */}
+      <div className="p-4 md:p-6 pb-safe max-w-md mx-auto w-full flex-shrink-0">
         {/* Action Buttons - side by side with arrow styling */}
         <div className="flex gap-3">
           <button
@@ -223,15 +223,6 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
           </button>
         </div>
         
-        {/* Brand voice messaging - moved below buttons */}
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-outfit font-bold text-white">
-            SWIPE
-          </h2>
-          <p className="text-xs text-white/30 font-medium">
-            Or tap the buttons
-          </p>
-        </div>
       </div>
     </div>
   )

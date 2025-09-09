@@ -47,7 +47,7 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-electric-purple" />
-              <span className="font-bold text-base">{joinedCount} humans</span>
+              <span className="font-bold text-base">{joinedCount} of {invitedCount}</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -96,12 +96,6 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
           </div>
         </div>
 
-        {/* Waiting message - brand voice */}
-        {invitedCount > 0 && joinedCount < invitedCount && (
-          <div className="text-sm text-white/60 text-center font-medium mt-3">
-            Waiting for {invitedCount - joinedCount} more indecisive {invitedCount - joinedCount === 1 ? 'human' : 'humans'}
-          </div>
-        )}
       </div>
     </div>
   )
