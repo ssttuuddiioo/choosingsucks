@@ -16,7 +16,7 @@ export default function HostSetupPage() {
   const [zipCode, setZipCode] = useState('')
   const [showCustomize, setShowCustomize] = useState(false)
   const [requireNames, setRequireNames] = useState(false)
-  const [inviteCount, setInviteCount] = useState('2')
+  const [inviteCount, setInviteCount] = useState('2') // Fixed to 2 people for now
   const [customCount, setCustomCount] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
   const [notifyEmail, setNotifyEmail] = useState('')
@@ -328,78 +328,6 @@ export default function HostSetupPage() {
                 exit={{ height: 0, opacity: 0 }}
                 className="space-y-5 overflow-hidden"
               >
-                {/* How Many People */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div>How many</div>
-                    <div>people?</div>
-                  </div>
-                  <div className="flex gap-2 flex-1">
-                    {[2, 3, 4, 5, 6].map((count) => (
-                      <button
-                        key={count}
-                        onClick={() => {
-                          setInviteCount(count.toString())
-                          setShowCustomInput(false)
-                          setCustomCount('')
-                        }}
-                        className={cn(
-                          "flex-1 py-3 rounded-xl font-bold text-lg transition-all",
-                          inviteCount === count.toString()
-                            ? "bg-gradient-pink text-white shadow-lg scale-105"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
-                        )}
-                      >
-                        {count}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => {
-                        setShowCustomInput(true)
-                        setInviteCount('')
-                      }}
-                      className={cn(
-                        "flex-1 py-3 rounded-xl font-bold text-lg transition-all",
-                        showCustomInput
-                          ? "bg-gradient-pink text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      7+
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Custom Count Input */}
-                <AnimatePresence>
-                  {showCustomInput && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="flex items-center gap-4"
-                    >
-                      <div className="w-20"></div>
-                      <div className="flex-1">
-                        <input
-                          type="number"
-                          min="2"
-                          max="20"
-                          placeholder="Enter number (2-20)"
-                          value={customCount}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            setCustomCount(value)
-                            if (value && parseInt(value) >= 2 && parseInt(value) <= 20) {
-                              setInviteCount(value)
-                            }
-                          }}
-                          className="input-gradient w-full text-center"
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
                 {/* Require Names */}
                 <div className="flex items-center gap-4">
@@ -413,7 +341,7 @@ export default function HostSetupPage() {
                       className={cn(
                         "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
                         !requireNames 
-                          ? "bg-gradient-pink text-white shadow-lg scale-105" 
+                          ? "bg-gradient-pink text-white shadow-lg" 
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       )}
                     >
@@ -424,7 +352,7 @@ export default function HostSetupPage() {
                       className={cn(
                         "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
                         requireNames 
-                          ? "bg-gradient-pink text-white shadow-lg scale-105" 
+                          ? "bg-gradient-pink text-white shadow-lg" 
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       )}
                     >
@@ -447,7 +375,7 @@ export default function HostSetupPage() {
                         className={cn(
                           "flex-1 py-3 rounded-xl font-bold text-xl transition-all",
                           selectedPriceLevels.includes(level)
-                            ? "bg-gradient-pink text-white shadow-lg scale-105"
+                            ? "bg-gradient-pink text-white shadow-lg"
                             : "bg-white/10 text-white/70 hover:bg-white/20"
                         )}
                       >
@@ -469,7 +397,7 @@ export default function HostSetupPage() {
                       className={cn(
                         "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
                         matchRequirement === 'all'
-                          ? "bg-gradient-pink text-white shadow-lg scale-105"
+                          ? "bg-gradient-pink text-white shadow-lg"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       )}
                     >
@@ -480,7 +408,7 @@ export default function HostSetupPage() {
                       className={cn(
                         "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
                         matchRequirement === 'majority'
-                          ? "bg-gradient-pink text-white shadow-lg scale-105"
+                          ? "bg-gradient-pink text-white shadow-lg"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       )}
                     >
@@ -501,7 +429,7 @@ export default function HostSetupPage() {
                       className={cn(
                         "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
                         !multipleMatches
-                          ? "bg-gradient-pink text-white shadow-lg scale-105"
+                          ? "bg-gradient-pink text-white shadow-lg"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       )}
                     >
@@ -512,7 +440,7 @@ export default function HostSetupPage() {
                       className={cn(
                         "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
                         multipleMatches
-                          ? "bg-gradient-pink text-white shadow-lg scale-105"
+                          ? "bg-gradient-pink text-white shadow-lg"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       )}
                     >
