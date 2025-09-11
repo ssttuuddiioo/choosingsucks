@@ -1,22 +1,31 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ContentType } from '@/lib/constants/streaming'
 
 interface ContentTypeSectionProps {
-  contentType: ContentType
-  onContentTypeChange: (type: ContentType) => void
+  contentTypes: ('movie' | 'tv_series')[]
+  onContentTypesChange: (types: ('movie' | 'tv_series')[]) => void
 }
 
 export default function ContentTypeSection({ 
-  contentType, 
-  onContentTypeChange 
+  contentTypes, 
+  onContentTypesChange 
 }: ContentTypeSectionProps) {
   const options = [
-    { value: 'tv_series' as ContentType, label: 'TV Shows' },
-    { value: 'movie' as ContentType, label: 'Movies' },
-    { value: 'both' as ContentType, label: 'Both' },
+    { value: 'tv_series' as const, label: 'TV Shows' },
+    { value: 'movie' as const, label: 'Movies' },
   ]
+
+  const toggleContentType = (type: 'movie' | 'tv_series') => {
+    if (contentTypes.includes(type)) {
+      // Don't allow removing if it's the only one selected
+      if (contentTypes.length > 1) {
+        onContentTypesChange(contentTypes.filter(t => t !== type))
+      }
+    } else {
+      onContentTypesChange([...contentTypes, type])
+    }
+  }
 
   return (
     <motion.div 
@@ -30,10 +39,10 @@ export default function ContentTypeSection({
         {options.map((option) => (
           <button
             key={option.value}
-            onClick={() => onContentTypeChange(option.value)}
+            onClick={() => toggleContentType(option.value)}
             className={`
               px-6 py-3 rounded-xl font-bold transition-all duration-300
-              ${contentType === option.value
+              ${contentTypes.includes(option.value)
                 ? 'bg-gradient-electric text-white shadow-lg transform scale-105' 
                 : 'bg-white/20 text-white hover:bg-white/30 hover:scale-102'
               }

@@ -50,17 +50,6 @@ export default function GenresSection({
         ))}
       </div>
       
-      {selectedGenres.length === 0 && (
-        <p className="text-white/60 text-sm mt-4 text-center">
-          Leave empty to see all genres, or select specific ones
-        </p>
-      )}
-      
-      {selectedGenres.length > 0 && (
-        <p className="text-white/80 text-sm mt-4 text-center">
-          {selectedGenres.length} genre{selectedGenres.length > 1 ? 's' : ''} selected
-        </p>
-      )}
     </motion.div>
   )
 }

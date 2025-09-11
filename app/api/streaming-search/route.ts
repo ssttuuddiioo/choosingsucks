@@ -47,16 +47,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Set content types
-    if (preferences.contentType === 'movie') {
-      searchParams.types = 'movie'
-    } else if (preferences.contentType === 'tv_series') {
-      searchParams.types = 'tv_series'
+    if (preferences.contentTypes.length > 0) {
+      searchParams.types = preferences.contentTypes.join(',')
     } else {
-      searchParams.types = 'movie,tv_series'
+      searchParams.types = 'movie,tv_series' // Fallback to both
     }
 
     // Set streaming services
-    if (!preferences.useAllServices && preferences.streamingServices.length > 0) {
+    if (preferences.streamingServices.length > 0) {
       searchParams.source_ids = preferences.streamingServices.join(',')
     }
 
@@ -158,7 +156,10 @@ export async function POST(request: NextRequest) {
       success: true,
       sessionId,
       candidatesAdded: candidates.length,
-      message: `Found ${candidates.length} ${preferences.contentType === 'both' ? 'titles' : preferences.contentType === 'movie' ? 'movies' : 'TV shows'} to explore`,
+      message: `Found ${candidates.length} ${
+        preferences.contentTypes.length === 2 ? 'titles' : 
+        preferences.contentTypes.includes('movie') ? 'movies' : 'TV shows'
+      } to explore`,
       candidates, // Include candidates in response for now
     }, {
       status: 200,

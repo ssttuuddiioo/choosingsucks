@@ -45,18 +45,14 @@ export const GENRES: Genre[] = [
   { id: 19, name: 'Western' },
 ]
 
-export type ContentType = 'movie' | 'tv_series' | 'both'
-
 export interface StreamingPreferences {
-  contentType: ContentType
+  contentTypes: ('movie' | 'tv_series')[]
   streamingServices: number[]
   genres: number[]
-  useAllServices: boolean
 }
 
 export const DEFAULT_PREFERENCES: StreamingPreferences = {
-  contentType: 'both',
-  streamingServices: [],
-  genres: [],
-  useAllServices: true,
+  contentTypes: ['movie', 'tv_series'], // Both selected by default
+  streamingServices: [203, 157, 390, 26, 387, 444, 371, 73], // Major services selected by default
+  genres: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 14, 15, 17, 18, 19], // All genres selected by default
 }

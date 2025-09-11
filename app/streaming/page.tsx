@@ -10,7 +10,6 @@ import ContentTypeSection from '@/components/streaming/content-type-section'
 import StreamingServicesSection from '@/components/streaming/streaming-services-section'
 import GenresSection from '@/components/streaming/genres-section'
 import { 
-  ContentType, 
   StreamingPreferences, 
   DEFAULT_PREFERENCES,
   STREAMING_SERVICES 
@@ -21,16 +20,12 @@ export default function StreamingPage() {
   const [preferences, setPreferences] = useState<StreamingPreferences>(DEFAULT_PREFERENCES)
   const [isCreatingSession, setIsCreatingSession] = useState(false)
 
-  const updateContentType = (contentType: ContentType) => {
-    setPreferences(prev => ({ ...prev, contentType }))
+  const updateContentTypes = (contentTypes: ('movie' | 'tv_series')[]) => {
+    setPreferences(prev => ({ ...prev, contentTypes }))
   }
 
   const updateStreamingServices = (streamingServices: number[]) => {
     setPreferences(prev => ({ ...prev, streamingServices }))
-  }
-
-  const updateAllServices = (useAllServices: boolean) => {
-    setPreferences(prev => ({ ...prev, useAllServices }))
   }
 
   const updateGenres = (genres: number[]) => {
@@ -38,7 +33,7 @@ export default function StreamingPage() {
   }
 
   const canStartSession = () => {
-    return preferences.useAllServices || preferences.streamingServices.length > 0
+    return preferences.contentTypes.length > 0 && preferences.streamingServices.length > 0
   }
 
   const createStreamingSession = async () => {
@@ -86,28 +81,6 @@ export default function StreamingPage() {
     }
   }
 
-  const getSelectedServicesText = () => {
-    if (preferences.useAllServices) {
-      return 'All streaming services'
-    }
-    if (preferences.streamingServices.length === 0) {
-      return 'No services selected'
-    }
-    if (preferences.streamingServices.length === 1) {
-      const service = STREAMING_SERVICES.find(s => s.id === preferences.streamingServices[0])
-      return service?.name || '1 service'
-    }
-    return `${preferences.streamingServices.length} services selected`
-  }
-
-  const getContentTypeText = () => {
-    switch (preferences.contentType) {
-      case 'tv_series': return 'TV Shows'
-      case 'movie': return 'Movies'
-      case 'both': return 'TV Shows & Movies'
-      default: return 'Content'
-    }
-  }
 
   return (
     <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden" style={{ height: '100dvh' }}>
@@ -118,7 +91,11 @@ export default function StreamingPage() {
             className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
             onClick={() => router.push('/')}
           >
-            <div className="gradient-text">What to Stream?</div>
+            <div>
+              <span className="gradient-text">CHOOSING </span>
+              <span className="text-white">SHOWS </span>
+              <span className="gradient-text">SUCKS</span>
+            </div>
           </h1>
           <p className="text-white/70 text-sm font-semibold">
             Set your preferences and we'll find the perfect match
@@ -136,15 +113,13 @@ export default function StreamingPage() {
         {/* Setup Sections */}
         <div className="space-y-6">
           <ContentTypeSection 
-            contentType={preferences.contentType}
-            onContentTypeChange={updateContentType}
+            contentTypes={preferences.contentTypes}
+            onContentTypesChange={updateContentTypes}
           />
           
           <StreamingServicesSection 
             selectedServices={preferences.streamingServices}
-            useAllServices={preferences.useAllServices}
             onServicesChange={updateStreamingServices}
-            onAllServicesToggle={updateAllServices}
           />
           
           <GenresSection 
@@ -181,14 +156,14 @@ export default function StreamingPage() {
             ) : (
               <>
                 <Play className="h-6 w-6" />
-                Start Streaming Session
+                Start Swipe Session
               </>
             )}
           </button>
 
           {!canStartSession() && (
             <p className="text-white/60 text-sm text-center">
-              Please select at least one streaming service to continue
+              Please select at least one content type and streaming service to continue
             </p>
           )}
         </motion.div>

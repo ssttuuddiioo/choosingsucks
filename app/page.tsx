@@ -29,18 +29,18 @@ const categories: Category[] = [
     isActive: true,
   },
   {
-    id: 'delivery',
-    name: 'Delivery',
-    icon: Truck,
-    isActive: true,
-    comingSoon: true,
-  },
-  {
     id: 'streaming',
     name: 'Streaming',
     icon: Tv,
     isActive: true,
     comingSoon: false,
+  },
+  {
+    id: 'delivery',
+    name: 'Delivery',
+    icon: Truck,
+    isActive: true,
+    comingSoon: true,
   },
   {
     id: 'movies',
