@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Filter, Star, X } from 'lucide-react'
+import { Filter, X } from 'lucide-react'
 import {
   Drawer,
   DrawerClose,
@@ -18,8 +18,6 @@ import { env } from '@/lib/utils/env'
 interface DetailsDrawerProps {
   selectedPriceLevels: number[]
   onPriceLevelsChange: (levels: number[]) => void
-  minRating: number
-  onMinRatingChange: (rating: number) => void
   keywords: string[]
   onKeywordsChange: (keywords: string[]) => void
   requireNames: boolean
@@ -39,8 +37,6 @@ interface DetailsDrawerProps {
 export default function DetailsDrawer({
   selectedPriceLevels,
   onPriceLevelsChange,
-  minRating,
-  onMinRatingChange,
   keywords,
   onKeywordsChange,
   requireNames,
@@ -121,32 +117,6 @@ export default function DetailsDrawer({
               </div>
             </div>
 
-            {/* Star Rating Filter */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-center gap-1">
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <button
-                    key={rating}
-                    onClick={() => onMinRatingChange(rating === minRating ? 0 : rating)}
-                    className="p-2 transition-all hover:scale-110"
-                  >
-                    <Star
-                      className={cn(
-                        "h-8 w-8 transition-all",
-                        rating <= minRating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-white/30 hover:text-white/50"
-                      )}
-                    />
-                  </button>
-                ))}
-              </div>
-              {minRating > 0 && (
-                <p className="text-center text-white/70 text-sm">
-                  Show restaurants with {minRating}+ stars
-                </p>
-              )}
-            </div>
 
             {/* Keywords Filter */}
             <div className="space-y-3">

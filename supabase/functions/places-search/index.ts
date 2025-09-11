@@ -14,7 +14,7 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { sessionId, lat, lng, radius, maxPriceLevel, selectedPriceLevels, minRating, keywords } = await req.json()
+    const { sessionId, lat, lng, radius, maxPriceLevel, selectedPriceLevels, keywords } = await req.json()
     
     // Validate required parameters
     if (!sessionId || !lat || !lng) {
@@ -35,9 +35,9 @@ serve(async (req) => {
       radiusInMeters,
       center: { lat, lng },
       conversion: `${radius} miles = ${radiusInMeters} meters`,
-      minRating: minRating || 'none',
       keywords: keywords || [],
-      textQuery: keywords && keywords.length > 0 ? `restaurants ${keywords.join(' ')}` : 'restaurants'
+      textQuery: keywords && keywords.length > 0 ? `restaurants ${keywords.join(' ')}` : 'restaurants',
+      sortStrategy: 'rating (highest to lowest)'
     })
 
     // Get environment variables
@@ -121,10 +121,6 @@ serve(async (req) => {
       requestBody.priceLevels = priceLevels
     }
     
-    // Add minimum rating filter
-    if (minRating && minRating > 0) {
-      requestBody.minRating = minRating
-    }
     
     const placesResponse = await fetch(placesUrl, {
       method: 'POST',
@@ -185,7 +181,20 @@ serve(async (req) => {
 
     console.log(`📊 Filtering results: ${placesData.places.length} → ${filteredPlaces.length} restaurants within ${radius} miles`)
 
-    const candidates = filteredPlaces.map((place: any) => {
+    // Sort by rating (highest to lowest) for faster matches
+    // Places with no rating go to the end
+    const sortedPlaces = filteredPlaces.sort((a: any, b: any) => {
+      const ratingA = a.rating || 0
+      const ratingB = b.rating || 0
+      return ratingB - ratingA // Descending order (highest first)
+    })
+
+    console.log(`⭐ Rating-sorted restaurants:`, sortedPlaces.slice(0, 5).map((place: any) => ({
+      name: place.displayName?.text,
+      rating: place.rating || 'no rating'
+    })))
+
+    const candidates = sortedPlaces.map((place: any) => {
       // Convert price level string to number
       let priceLevel = null
       if (place.priceLevel) {
