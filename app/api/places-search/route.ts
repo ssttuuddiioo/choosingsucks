@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     console.log('Places search request body:', body)
-    const { sessionId, lat, lng, selectedPriceLevels } = body
+    const { sessionId, lat, lng, radius, selectedPriceLevels } = body
     
     // Validate session ID format
     if (!sessionId || !/^[a-f0-9-]{36}$/.test(sessionId)) {
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
         sessionId,
         lat,
         lng,
+        radius, // Pass through the search radius
         selectedPriceLevels, // Pass through the selected price levels
       }),
     })

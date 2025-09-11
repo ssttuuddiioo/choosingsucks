@@ -1,7 +1,7 @@
 interface AnalyticsEvent {
   event: string
   sessionId?: string
-  zipCode?: string
+  location?: string
   placeId?: string
   meta?: Record<string, any>
 }
@@ -63,11 +63,11 @@ class Analytics {
   }
 
   // Specific event methods
-  sessionCreated(sessionId: string, zipCode: string): void {
+  sessionCreated(sessionId: string, location: string): void {
     this.track({
       event: 'session_created',
       sessionId,
-      zipCode,
+      location,
     })
   }
 
@@ -87,12 +87,12 @@ class Analytics {
     })
   }
 
-  matched(sessionId: string, placeId: string, zipCode?: string): void {
+  matched(sessionId: string, placeId: string, location?: string): void {
     this.track({
       event: 'matched',
       sessionId,
       placeId,
-      zipCode,
+      location,
     })
   }
 

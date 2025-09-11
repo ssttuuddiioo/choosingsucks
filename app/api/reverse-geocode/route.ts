@@ -61,35 +61,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find ZIP code from address components
+    // Extract location information from address components
+    let city = null
     let zipCode = null
+    let state = null
+    
     for (const result of data.results) {
       for (const component of result.address_components) {
-        if (component.types.includes('postal_code')) {
+        if (component.types.includes('locality')) {
+          city = component.long_name
+        } else if (component.types.includes('postal_code')) {
           zipCode = component.short_name
-          break
+        } else if (component.types.includes('administrative_area_level_1')) {
+          state = component.short_name
         }
       }
-      if (zipCode) break
+      if (city) break
     }
 
-    if (!zipCode) {
-      return NextResponse.json(
-        { error: 'ZIP code not found for this location' },
-        { status: 404 }
-      )
-    }
-
-    // Validate it's a 5-digit US ZIP code
-    if (!/^\d{5}$/.test(zipCode)) {
-      return NextResponse.json(
-        { error: 'Invalid ZIP code format' },
-        { status: 400 }
-      )
+    // Fallback to sublocality or neighborhood if no city found
+    if (!city) {
+      for (const result of data.results) {
+        for (const component of result.address_components) {
+          if (component.types.includes('sublocality') || component.types.includes('neighborhood')) {
+            city = component.long_name
+            break
+          }
+        }
+        if (city) break
+      }
     }
 
     return NextResponse.json({
+      city: city || 'Unknown Location',
       zipCode,
+      state,
       address: data.results[0].formatted_address
     })
 

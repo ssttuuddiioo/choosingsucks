@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { X, Heart, Star, DollarSign, MapPin, Plus } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
-import { useSpring, animated } from '@react-spring/web'
 import { env } from '@/lib/utils/env'
 
 interface SwipeInterfaceProps {
@@ -265,7 +264,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
           <button
             onClick={() => handleButtonSwipe(false)}
             disabled={isAnimating}
-            className="flex-1 flex items-center justify-center gap-3 py-4 px-6 font-bold text-xl bg-gradient-to-r from-red-500 to-red-600 text-white transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 relative overflow-hidden shadow-lg"
+            aria-label="Reject this restaurant"
+            className="flex-1 flex items-center justify-center gap-3 py-4 px-6 font-bold text-xl bg-gradient-to-r from-red-500 to-red-600 text-white transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 relative overflow-hidden shadow-lg focus:outline-none focus:ring-4 focus:ring-red-500/50"
             style={{
               borderRadius: '0.5rem 0.75rem 0.75rem 0.5rem',
               clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 50%)'
@@ -278,7 +278,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
           <button
             onClick={() => handleButtonSwipe(true)}
             disabled={isAnimating}
-            className="flex-1 bg-gradient-lime text-white font-bold text-xl py-4 px-6 shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 relative overflow-hidden"
+            aria-label="Like this restaurant"
+            className="flex-1 bg-gradient-lime text-white font-bold text-xl py-4 px-6 shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 relative overflow-hidden focus:outline-none focus:ring-4 focus:ring-lime-green/50"
             style={{
               borderRadius: '0.75rem 0.5rem 0.5rem 0.75rem',
               clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)'

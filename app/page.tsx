@@ -30,7 +30,7 @@ const categories: Category[] = [
   },
   {
     id: 'delivery',
-    name: 'Food Delivery',
+    name: 'Delivery',
     icon: Truck,
     isActive: true,
     comingSoon: true,
@@ -144,11 +144,13 @@ export default function CategoryLandingPage() {
                 key={category.id}
                 onClick={() => handleCategoryClick(category)}
                 disabled={false}
+                aria-label={category.comingSoon ? `${category.name} - Coming Soon` : `Start ${category.name} session`}
                 className={`
                   relative overflow-hidden rounded-2xl p-6 md:p-8 lg:p-10
                   aspect-square md:aspect-[4/3]
                   flex flex-col items-center justify-center gap-3 md:gap-4
                   font-bold text-lg md:text-xl lg:text-2xl transition-all duration-300
+                  focus:outline-none focus:ring-4 focus:ring-electric-purple/50
                   ${category.comingSoon 
                     ? 'bg-white/10 text-white hover:bg-white/15 cursor-pointer' 
                     : 'bg-gradient-electric text-white shadow-lg hover:scale-105 active:scale-95 cursor-pointer'

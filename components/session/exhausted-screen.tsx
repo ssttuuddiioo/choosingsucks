@@ -1,7 +1,7 @@
 import { Clock, Users } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
-import { motion } from 'framer-motion'
-import { useSpring, animated } from '@react-spring/web'
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { useEffect } from 'react'
 
 interface ExhaustedScreenProps {
   session: Tables<'sessions'>
@@ -16,12 +16,14 @@ export default function ExhaustedScreen({ session, sessionStatus }: ExhaustedScr
   const { joinedCount, submittedCount } = sessionStatus
   const waitingCount = joinedCount - submittedCount
 
-  // Animated counter
-  const props = useSpring({
-    from: { number: 0 },
-    to: { number: submittedCount },
-    config: { duration: 1000 }
-  })
+  // Animated counter using Framer Motion
+  const count = useMotionValue(0)
+  const rounded = useTransform(count, (latest) => Math.round(latest))
+
+  useEffect(() => {
+    const controls = animate(count, submittedCount, { duration: 1 })
+    return controls.stop
+  }, [count, submittedCount])
 
   const messages = [
     "You've done your part",
@@ -87,9 +89,9 @@ export default function ExhaustedScreen({ session, sessionStatus }: ExhaustedScr
           <div className="pt-4">
             <div className="flex items-center justify-center gap-8">
               <div className="text-center">
-                <animated.div className="text-4xl font-outfit font-bold gradient-text">
-                  {props.number.to(n => Math.floor(n))}
-                </animated.div>
+                <motion.div className="text-4xl font-outfit font-bold gradient-text">
+                  {rounded}
+                </motion.div>
                 <div className="text-white/50 text-sm">Decided</div>
               </div>
               <div className="text-3xl text-white/20">/</div>

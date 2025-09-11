@@ -44,14 +44,13 @@ export function getParticipantToken(sessionId: string): string | null {
   return localStorage.getItem(key)
 }
 
-// Format ZIP code
-export function formatZipCode(value: string): string {
-  return value.replace(/\D/g, '').slice(0, 5)
+// Location utilities for coordinate-based sessions
+export function formatCoordinates(lat: number, lng: number): string {
+  return `${lat.toFixed(6)}, ${lng.toFixed(6)}`
 }
 
-// Validate ZIP code
-export function isValidZipCode(zip: string): boolean {
-  return /^\d{5}$/.test(zip)
+export function isValidCoordinates(lat: number, lng: number): boolean {
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
 }
 
 

@@ -47,7 +47,7 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
             Help us choose
           </h1>
           <p className="text-white/70">
-            Because choosing where to eat in <span className="font-bold text-white">{session.zip_code}</span> sucks
+            Because choosing where to eat sucks
           </p>
         </div>
 

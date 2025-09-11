@@ -14,7 +14,7 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { sessionId, lat, lng, maxPriceLevel, selectedPriceLevels } = await req.json()
+    const { sessionId, lat, lng, radius, maxPriceLevel, selectedPriceLevels } = await req.json()
     
     // Validate required parameters
     if (!sessionId || !lat || !lng) {
@@ -26,6 +26,9 @@ serve(async (req) => {
         }
       )
     }
+
+    // Convert radius from miles to meters (default to 2.5 miles if not provided)
+    const radiusInMeters = (radius || 2.5) * 1609.34
 
     // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -90,7 +93,7 @@ serve(async (req) => {
             latitude: lat,
             longitude: lng
           },
-          radius: 3000.0  // Changed from 8000 to match UI
+          radius: radiusInMeters
         }
       },
       maxResultCount: 20,
