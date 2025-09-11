@@ -137,52 +137,79 @@ export type Database = {
       }
       sessions: {
         Row: {
-          created_at: string | null
-          match_requirement: string | null
           allow_multiple_matches: boolean | null
+          created_at: string | null
           host_notify_email: string | null
           host_notify_phone: string | null
           id: string
           invite_count_hint: number | null
           match_place_id: string | null
           match_reason: string | null
+          match_requirement: string | null
           place_search_center: unknown | null
           radius_m: number | null
           require_names: boolean | null
+          search_radius_miles: number | null
           status: Database["public"]["Enums"]["session_status"] | null
-          zip_code: string
+          zip_code: string | null
         }
         Insert: {
-          created_at?: string | null
-          match_requirement?: string | null
           allow_multiple_matches?: boolean | null
+          created_at?: string | null
           host_notify_email?: string | null
           host_notify_phone?: string | null
           id?: string
           invite_count_hint?: number | null
           match_place_id?: string | null
           match_reason?: string | null
+          match_requirement?: string | null
           place_search_center?: unknown | null
           radius_m?: number | null
           require_names?: boolean | null
+          search_radius_miles?: number | null
           status?: Database["public"]["Enums"]["session_status"] | null
-          zip_code: string
+          zip_code?: string | null
         }
         Update: {
-          created_at?: string | null
-          match_requirement?: string | null
           allow_multiple_matches?: boolean | null
+          created_at?: string | null
           host_notify_email?: string | null
           host_notify_phone?: string | null
           id?: string
           invite_count_hint?: number | null
           match_place_id?: string | null
           match_reason?: string | null
+          match_requirement?: string | null
           place_search_center?: unknown | null
           radius_m?: number | null
           require_names?: boolean | null
+          search_radius_miles?: number | null
           status?: Database["public"]["Enums"]["session_status"] | null
-          zip_code?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      spatial_ref_sys: {
+        Row: {
+          auth_name: string | null
+          auth_srid: number | null
+          proj4text: string | null
+          srid: number
+          srtext: string | null
+        }
+        Insert: {
+          auth_name?: string | null
+          auth_srid?: number | null
+          proj4text?: string | null
+          srid: number
+          srtext?: string | null
+        }
+        Update: {
+          auth_name?: string | null
+          auth_srid?: number | null
+          proj4text?: string | null
+          srid?: number
+          srtext?: string | null
         }
         Relationships: []
       }
@@ -236,7 +263,50 @@ export type Database = {
         ]
       }
     }
-    Views: {}
+    Views: {
+      geography_columns: {
+        Row: {
+          coord_dimension: number | null
+          f_geography_column: unknown | null
+          f_table_catalog: unknown | null
+          f_table_name: unknown | null
+          f_table_schema: unknown | null
+          srid: number | null
+          type: string | null
+        }
+        Relationships: []
+      }
+      geometry_columns: {
+        Row: {
+          coord_dimension: number | null
+          f_geometry_column: unknown | null
+          f_table_catalog: string | null
+          f_table_name: unknown | null
+          f_table_schema: unknown | null
+          srid: number | null
+          type: string | null
+        }
+        Insert: {
+          coord_dimension?: number | null
+          f_geometry_column?: unknown | null
+          f_table_catalog?: string | null
+          f_table_name?: unknown | null
+          f_table_schema?: unknown | null
+          srid?: number | null
+          type?: string | null
+        }
+        Update: {
+          coord_dimension?: number | null
+          f_geometry_column?: unknown | null
+          f_table_catalog?: string | null
+          f_table_name?: unknown | null
+          f_table_schema?: unknown | null
+          srid?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+    }
     Functions: {
       check_for_match: {
         Args: { p_session_id: string }
@@ -270,7 +340,9 @@ export type Database = {
     Enums: {
       session_status: "active" | "matched" | "closed"
     }
-    CompositeTypes: {}
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
@@ -391,4 +463,10 @@ export type CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-
+export const Constants = {
+  public: {
+    Enums: {
+      session_status: ["active", "matched", "closed"],
+    },
+  },
+} as const

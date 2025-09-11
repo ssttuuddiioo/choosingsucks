@@ -19,8 +19,8 @@ export default function LocationSearch({
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const autocompleteService = useRef<google.maps.places.AutocompleteService>()
-  const placesService = useRef<google.maps.places.PlacesService>()
+  const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null)
+  const placesService = useRef<google.maps.places.PlacesService | null>(null)
 
   // Initialize Google Places services
   useEffect(() => {
