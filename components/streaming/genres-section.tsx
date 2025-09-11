@@ -15,7 +15,10 @@ export default function GenresSection({
   
   const toggleGenre = (genreId: number) => {
     if (selectedGenres.includes(genreId)) {
-      onGenresChange(selectedGenres.filter(id => id !== genreId))
+      // Don't allow removing if it's the only one selected
+      if (selectedGenres.length > 1) {
+        onGenresChange(selectedGenres.filter(id => id !== genreId))
+      }
     } else {
       onGenresChange([...selectedGenres, genreId])
     }
@@ -28,7 +31,7 @@ export default function GenresSection({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <h2 className="text-white text-xl font-bold mb-4">Genres (Optional)</h2>
+      <h2 className="text-white text-xl font-bold mb-4">Genres</h2>
       <div className="flex flex-wrap gap-2">
         {GENRES.map((genre, index) => (
           <motion.button
