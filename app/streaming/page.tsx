@@ -68,6 +68,11 @@ export default function StreamingPage() {
       const data = await response.json()
       
       if (data.success) {
+        // Store candidates in session storage for the session page to access
+        if (data.candidates) {
+          sessionStorage.setItem(`streaming-session-${sessionId}`, JSON.stringify(data.candidates))
+        }
+        
         // Navigate to streaming session page (similar to restaurant session)
         router.push(`/streaming/${sessionId}`)
       } else {
@@ -179,7 +184,7 @@ export default function StreamingPage() {
             {isCreatingSession ? (
               <>
                 <Loader2 className="h-6 w-6 animate-spin" />
-                Finding Content...
+                Shuffling cards...
               </>
             ) : (
               <>

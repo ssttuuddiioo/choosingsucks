@@ -102,23 +102,52 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Found ${searchResults.titles.length} titles`)
 
-    // Transform and prepare candidates for swiping
-    const candidates = searchResults.titles.map((title) => ({
-      id: title.id,
-      title: title.title,
-      original_title: title.original_title,
-      type: title.type,
-      year: title.year,
-      runtime_minutes: title.runtime_minutes,
-      plot_overview: title.plot_overview,
-      genre_names: title.genre_names,
-      user_rating: title.user_rating,
-      critic_score: title.critic_score,
-      poster: title.poster,
-      backdrop: title.backdrop,
-      sources: title.sources,
-      session_id: sessionId,
-    }))
+    // Get detailed information for each title to include posters and rich data
+    console.log('🔍 Fetching detailed information for each title...')
+    const detailedCandidates = await Promise.all(
+      searchResults.titles.map(async (title) => {
+        try {
+          // Fetch detailed information for this title
+          const detailedTitle = await watchmode.getTitleDetails(title.id)
+          
+          return {
+            id: detailedTitle.id,
+            title: detailedTitle.title,
+            original_title: detailedTitle.original_title,
+            type: detailedTitle.type,
+            year: detailedTitle.year,
+            runtime_minutes: detailedTitle.runtime_minutes,
+            plot_overview: detailedTitle.plot_overview,
+            genre_names: detailedTitle.genre_names,
+            user_rating: detailedTitle.user_rating,
+            critic_score: detailedTitle.critic_score,
+            poster: detailedTitle.poster,
+            posterLarge: detailedTitle.posterLarge,
+            backdrop: detailedTitle.backdrop,
+            trailer: detailedTitle.trailer,
+            us_rating: detailedTitle.us_rating,
+            sources: detailedTitle.sources || [],
+            session_id: sessionId,
+          }
+        } catch (error) {
+          console.error(`Failed to fetch details for title ${title.id}:`, error)
+          // Return basic info if detailed fetch fails
+          return {
+            id: title.id,
+            title: title.title,
+            type: title.type,
+            year: title.year,
+            session_id: sessionId,
+            poster: null,
+            plot_overview: null,
+            user_rating: null,
+            sources: [],
+          }
+        }
+      })
+    )
+
+    const candidates = detailedCandidates
 
     // TODO: Store candidates in database for session
     // For now, we'll return the data directly
