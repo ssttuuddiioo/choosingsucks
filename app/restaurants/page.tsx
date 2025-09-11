@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Copy, Loader2, Utensils } from 'lucide-react'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
@@ -9,18 +9,18 @@ import { analytics } from '@/lib/utils/analytics'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // New components
-import MapInterface from '@/components/restaurant-setup/MapInterface'
+import MapInterface, { MapInterfaceRef } from '@/components/restaurant-setup/MapInterface'
 import LocationSearch, { loadGoogleMapsPlaces } from '@/components/restaurant-setup/LocationSearch'
 import DetailsDrawer from '@/components/restaurant-setup/DetailsDrawer'
 import { useLocationPermission, LocationState } from '@/components/restaurant-setup/LocationPermission'
 
 export default function RestaurantSetupPage() {
   const router = useRouter()
+  const mapRef = useRef<MapInterfaceRef>(null)
   
   // Location state
   const { state: locationState, location, requestLocation, setManualLocation } = useLocationPermission()
   const [mapCenter, setMapCenter] = useState({ lat: 47.6062, lng: -122.3321 }) // Default to Seattle
-  const [searchRadius, setSearchRadius] = useState(2.5)
   
   // Session configuration
   const [selectedPriceLevels, setSelectedPriceLevels] = useState<number[]>([2, 3])
@@ -62,8 +62,10 @@ export default function RestaurantSetupPage() {
   }
 
   const handleCreateSession = async () => {
-    if (!location?.coordinates) {
-      setError('Please set your location first')
+    // Get current map state
+    const mapState = mapRef.current?.getCurrentMapState()
+    if (!mapState) {
+      setError('Please wait for the map to load')
       return
     }
 
@@ -73,12 +75,12 @@ export default function RestaurantSetupPage() {
     try {
       const supabase = createBrowserClient()
       
-      // Create session with coordinates directly
+      // Create session with current map center and calculated radius
       const { data: session, error: sessionError } = await supabase
         .from('sessions')
         .insert({
-          place_search_center: `POINT(${mapCenter.lng} ${mapCenter.lat})`,
-          search_radius_miles: searchRadius,
+          place_search_center: `POINT(${mapState.center.lng} ${mapState.center.lat})`,
+          search_radius_miles: mapState.radius,
           require_names: requireNames,
           invite_count_hint: inviteCount ? parseInt(inviteCount) : 2,
           match_requirement: matchRequirement,
@@ -108,17 +110,17 @@ export default function RestaurantSetupPage() {
       setSessionCreated(true)
 
       // Track analytics
-      analytics.sessionCreated(session.id, location.name)
+      analytics.sessionCreated(session.id, location?.name || 'Map Location')
 
-      // Trigger places search
+      // Trigger places search with current map state
       const placesResponse = await fetch('/api/places-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: session.id,
-          lat: mapCenter.lat,
-          lng: mapCenter.lng,
-          radius: searchRadius,
+          lat: mapState.center.lat,
+          lng: mapState.center.lng,
+          radius: mapState.radius,
           selectedPriceLevels,
         })
       })
@@ -191,21 +193,21 @@ export default function RestaurantSetupPage() {
     <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
       {/* Header - Fixed */}
       <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary backdrop-blur border-b border-white/10 relative z-20">
-        <div>
-          <h1 
+          <div>
+            <h1 
             className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => router.push('/')}
-          >
+              onClick={() => router.push('/')}
+            >
             <div className="gradient-text">CHOOSING SUCKS</div>
-          </h1>
+            </h1>
           <p className="text-white/70 text-sm font-semibold">
-            Let's figure out where to eat
+              Let's figure out where to eat
           </p>
-        </div>
+          </div>
         <div className="p-2 rounded-xl">
-          <Utensils className="h-6 w-6 text-white/70" />
+            <Utensils className="h-6 w-6 text-white/70" />
         </div>
-      </div>
+            </div>
 
       {/* Main Content - Takes remaining space */}
       <div className="flex-1 relative overflow-hidden">
@@ -215,8 +217,8 @@ export default function RestaurantSetupPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
               <p className="text-white/70">Finding your location...</p>
             </div>
-          </div>
-        )}
+            </div>
+          )}
 
         {showLocationSearch && (
           <div className="absolute inset-0 flex items-center justify-center p-4">
@@ -230,14 +232,12 @@ export default function RestaurantSetupPage() {
 
         {isLocationReady && (
           <MapInterface
+            ref={mapRef}
             center={mapCenter}
-            radius={searchRadius}
-            onCenterChange={setMapCenter}
-            onRadiusChange={setSearchRadius}
             className="h-full w-full"
           />
         )}
-      </div>
+                </div>
 
       {/* Bottom Actions - Fixed */}
       <div className="flex-shrink-0 p-4 bg-gradient-primary/95 backdrop-blur border-t border-white/10">
@@ -286,7 +286,7 @@ export default function RestaurantSetupPage() {
             className="absolute bottom-20 left-4 right-4 bg-red-500/90 backdrop-blur text-white p-4 rounded-xl text-center z-50"
           >
             {error}
-          </motion.div>
+      </motion.div>
         )}
       </AnimatePresence>
     </div>

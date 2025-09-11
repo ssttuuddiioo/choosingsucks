@@ -1,30 +1,31 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react'
 import { Wrapper } from '@googlemaps/react-wrapper'
 import { env } from '@/lib/utils/env'
-import { Slider } from '@/components/ui/slider'
 
 interface MapInterfaceProps {
   center: { lat: number; lng: number }
-  radius: number // in miles
-  onCenterChange: (center: { lat: number; lng: number }) => void
-  onRadiusChange: (radius: number) => void
   className?: string
+}
+
+export interface MapInterfaceRef {
+  getCurrentMapState: () => {
+    center: { lat: number; lng: number }
+    zoom: number
+    radius: number
+  } | null
 }
 
 interface GoogleMapProps {
   center: { lat: number; lng: number }
-  radius: number
-  onCenterChange: (center: { lat: number; lng: number }) => void
   style: React.CSSProperties
+  onMapReady: (map: google.maps.Map) => void
 }
 
-function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMapProps) {
+function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map>()
-  const [marker, setMarker] = useState<google.maps.Marker>()
-  const [circle, setCircle] = useState<google.maps.Circle>()
   const [isMobile, setIsMobile] = useState(false)
 
   // Check if mobile
@@ -44,7 +45,7 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
         center,
         zoom: 13,
         disableDefaultUI: true,
-        zoomControl: !isMobile, // Hide zoom controls on mobile
+        zoomControl: true,
         gestureHandling: 'greedy',
         draggable: true,
         scrollwheel: true,
@@ -57,120 +58,52 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
         ]
       })
       setMap(newMap)
+      onMapReady(newMap)
     }
-  }, [ref, map, center, isMobile])
+  }, [ref, map, center, onMapReady])
 
-  // Update map center when prop changes
+  // Update map center when prop changes (only for initial load)
   useEffect(() => {
     if (map) {
       map.setCenter(center)
     }
   }, [map, center])
 
-  // Listen to map center changes and update circle position
-  useEffect(() => {
-    if (map) {
-      const listener = map.addListener('center_changed', () => {
-        const newCenter = map.getCenter()
-        if (newCenter && circle) {
-          const newCenterObj = {
-            lat: newCenter.lat(),
-            lng: newCenter.lng()
-          }
-          circle.setCenter(newCenterObj)
-          // Update parent component with new center
-          onCenterChange(newCenterObj)
-        }
-      })
-
-      return () => {
-        google.maps.event.removeListener(listener)
-      }
-    }
-  }, [map, circle, onCenterChange])
-
-  // Create marker
-  useEffect(() => {
-    if (map && !marker) {
-      const newMarker = new google.maps.Marker({
-        position: center,
-        map,
-        draggable: true,
-        title: 'Search Center',
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#EC4899',
-          fillOpacity: 1,
-          strokeColor: '#FFFFFF',
-          strokeWeight: 2,
-        }
-      })
-
-      newMarker.addListener('dragend', () => {
-        const position = newMarker.getPosition()
-        if (position) {
-          onCenterChange({
-            lat: position.lat(),
-            lng: position.lng()
-          })
-        }
-      })
-
-      setMarker(newMarker)
-    }
-  }, [map, marker, center, onCenterChange])
-
-  // Update marker position to always be at map center
-  useEffect(() => {
-    if (map && marker) {
-      const listener = map.addListener('center_changed', () => {
-        const newCenter = map.getCenter()
-        if (newCenter) {
-          marker.setPosition(newCenter)
-        }
-      })
-
-      return () => {
-        google.maps.event.removeListener(listener)
-      }
-    }
-  }, [map, marker])
-
-  // Create/update circle
-  useEffect(() => {
-    if (map) {
-      if (circle) {
-        circle.setMap(null)
-      }
-
-      const newCircle = new google.maps.Circle({
-        center,
-        radius: radius * 1609.34, // miles to meters
-        map,
-        fillColor: '#EC4899',
-        fillOpacity: 0.2,
-        strokeColor: '#EC4899',
-        strokeWeight: 3,
-        strokeOpacity: 1,
-        clickable: false,
-        editable: false,
-      })
-
-      setCircle(newCircle)
-    }
-  }, [map, center, radius])
-
   return <div ref={ref} style={style} />
 }
 
-export default function MapInterface({ 
+// Function to calculate radius from zoom level
+function zoomToRadius(zoom: number): number {
+  // Rough approximation: higher zoom = smaller radius
+  // Zoom 13 = ~2.5 miles, Zoom 10 = ~10 miles, Zoom 16 = ~0.5 miles
+  return Math.max(0.5, Math.min(10, 20 / Math.pow(2, zoom - 10)))
+}
+
+const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({ 
   center, 
-  radius, 
-  onCenterChange, 
-  onRadiusChange, 
   className = '' 
-}: MapInterfaceProps) {
+}, ref) => {
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+
+  useImperativeHandle(ref, () => ({
+    getCurrentMapState: () => {
+      if (!mapInstance) return null
+      
+      const currentCenter = mapInstance.getCenter()
+      const currentZoom = mapInstance.getZoom()
+      
+      if (!currentCenter || currentZoom === undefined) return null
+      
+      return {
+        center: {
+          lat: currentCenter.lat(),
+          lng: currentCenter.lng()
+        },
+        zoom: currentZoom,
+        radius: zoomToRadius(currentZoom)
+      }
+    }
+  }), [mapInstance])
   const render = useCallback((status: any) => {
     if (status === 'LOADING') {
       return (
@@ -202,12 +135,11 @@ export default function MapInterface({
     return (
       <GoogleMapComponent
         center={center}
-        radius={radius}
-        onCenterChange={onCenterChange}
         style={{ width: '100%', height: '100%' }}
+        onMapReady={setMapInstance}
       />
     )
-  }, [center, radius, onCenterChange])
+  }, [center])
 
   if (!env.google.mapsApiKey) {
     return (
@@ -223,29 +155,25 @@ export default function MapInterface({
     <div className={`relative ${className}`}>
       <Wrapper apiKey={env.google.mapsApiKey} render={render} />
       
-      {/* Desktop Radius Control */}
-      <div className="absolute bottom-4 left-4 right-4 z-10 hidden md:block">
-        <div className="bg-black/80 backdrop-blur-sm rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-white font-bold">{radius} {radius === 1 ? 'mile' : 'miles'}</span>
-          </div>
-          <Slider
-            value={[radius]}
-            onValueChange={(value) => onRadiusChange(value[0])}
-            max={10}
-            min={1}
-            step={0.5}
-            className="w-full"
-          />
-        </div>
+      {/* Fixed Circle Overlay - Always centered on screen */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div 
+          className="border-2 border-pink-500 bg-pink-500/20 rounded-full"
+          style={{
+            width: '200px',
+            height: '200px',
+          }}
+        />
       </div>
 
-      {/* Mobile Radius Display */}
-      <div className="absolute top-4 left-4 z-20 md:hidden">
-        <div className="bg-black/80 backdrop-blur-sm rounded-xl px-3 py-2">
-          <span className="text-white font-bold text-sm">{radius} {radius === 1 ? 'mile' : 'miles'}</span>
-        </div>
+      {/* Center Dot */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+        <div className="w-2 h-2 bg-pink-500 rounded-full" />
       </div>
     </div>
   )
-}
+})
+
+MapInterface.displayName = 'MapInterface'
+
+export default MapInterface
