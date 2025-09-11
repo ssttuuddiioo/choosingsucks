@@ -42,7 +42,7 @@ export default function StreamingServicesSection({
               min-h-[100px] cursor-pointer
               ${selectedServices.includes(service.id)
                 ? 'ring-4 ring-electric-purple/50 shadow-lg bg-gradient-to-br from-white to-gray-50' 
-                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-white to-gray-100'
+                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-gray-200 to-gray-300 filter grayscale opacity-60'
               }
               hover:scale-102
             `}
@@ -53,10 +53,10 @@ export default function StreamingServicesSection({
             <img 
               src={service.logo} 
               alt={service.name}
-              className={`w-16 h-12 object-contain transition-all duration-300 ${
-                selectedServices.includes(service.id)
-                  ? 'filter-none' 
-                  : 'filter grayscale opacity-60'
+              className={`object-contain transition-all duration-300 ${
+                service.name === 'HBO Max' 
+                  ? 'w-16 h-12' // Keep HBO Max original size
+                  : 'w-24 h-18' // Make others 50% larger
               }`}
               onError={(e) => {
                 // Fallback to text if logo fails to load

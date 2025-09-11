@@ -21,7 +21,7 @@ export const STREAMING_SERVICES: StreamingService[] = [
   { id: 371, name: 'Apple TV+', logo: '/streaming/apple tv plus.png', backgroundColor: '#FFFFFF' },
   { id: 73, name: 'Peacock', logo: '/streaming/peacock.svg', backgroundColor: '#FFFFFF' },
   { id: 279, name: 'Crunchyroll', logo: '/streaming/Crunchyroll_logo_2012v.png', backgroundColor: '#FFFFFF' },
-  { id: 372, name: 'Starz', logo: '/streaming/starz.png', backgroundColor: '#FFFFFF' },
+  { id: 372, name: 'Starz', logo: '/streaming/starz.jpg', backgroundColor: '#FFFFFF' },
   { id: 43, name: 'Showtime', logo: '/streaming/showtime.png', backgroundColor: '#FFFFFF' },
   { id: 78, name: 'Tubi', logo: '/streaming/tubi logo.png', backgroundColor: '#FFFFFF' },
 ]
