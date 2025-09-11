@@ -94,7 +94,6 @@ export default function DetailsDrawer({
       <DrawerContent className="bg-gradient-primary border-white/20">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader className="pb-4">
-            <div className="mx-auto w-12 h-1.5 bg-white/20 rounded-full" />
           </DrawerHeader>
           
           <div className="p-4 pb-0 space-y-6">
