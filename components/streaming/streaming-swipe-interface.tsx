@@ -198,74 +198,27 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     return `${hours}h ${mins}m`
   }
 
-  // Show exhausted screen when no more candidates
+  // Show exhausted screen when no more candidates - this should trigger RPS game
   if (currentIndex >= candidates.length) {
+    // This should be handled by the parent component to show the RPS game
+    // For now, show a simple message
     return (
       <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
           <FaHeartBroken className="text-6xl text-white mx-auto" />
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white">No matches found!</h1>
+            <h1 className="text-2xl font-bold text-white">Session Complete!</h1>
             <p className="text-white/70">
-              Nobody agreed on the same show or movie. Let's settle this!
+              You've gone through all the content. Time to make a decision!
             </p>
           </div>
 
-          {/* Quick RPS Game Options */}
-          <div className="space-y-4">
-            <p className="text-white/80 font-semibold">Let's decide with a quick game:</p>
-            
-            <div className="grid grid-cols-3 gap-3">
-              <motion.button
-                className="aspect-square bg-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/20 transition-all duration-300 hover:scale-105"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  // TODO: Navigate to RPS game with 'rock' choice
-                  console.log('Starting RPS game with Rock')
-                }}
-              >
-                <PiHandFistLight className="text-4xl text-white transform -rotate-90" />
-                <span className="text-white font-bold text-sm">Rock</span>
-              </motion.button>
-
-              <motion.button
-                className="aspect-square bg-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/20 transition-all duration-300 hover:scale-105"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  // TODO: Navigate to RPS game with 'paper' choice
-                  console.log('Starting RPS game with Paper')
-                }}
-              >
-                <LiaHandPaper className="text-4xl text-white transform -rotate-90" />
-                <span className="text-white font-bold text-sm">Paper</span>
-              </motion.button>
-
-              <motion.button
-                className="aspect-square bg-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/20 transition-all duration-300 hover:scale-105"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  // TODO: Navigate to RPS game with 'scissors' choice
-                  console.log('Starting RPS game with Scissors')
-                }}
-              >
-                <PiHandPeaceLight className="text-4xl text-white transform -rotate-90" />
-                <span className="text-white font-bold text-sm">Scissors</span>
-              </motion.button>
-            </div>
-          </div>
-
-          {/* Alternative Options */}
-          <div className="pt-4 border-t border-white/10">
-            <button
-              onClick={() => router.push('/streaming')}
-              className="w-full bg-gradient-electric text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
-            >
-              Create New Swipe Session
-            </button>
-          </div>
+          <button
+            onClick={() => router.push('/streaming')}
+            className="w-full bg-gradient-electric text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
+          >
+            Create New Swipe Session
+          </button>
         </div>
       </div>
     )
