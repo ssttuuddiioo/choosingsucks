@@ -29,7 +29,7 @@ export default function ContentTypeSection({
 
   return (
     <motion.div 
-      className="bg-white/10 rounded-2xl p-6"
+      className="space-y-3"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
@@ -40,10 +40,10 @@ export default function ContentTypeSection({
             key={option.value}
             onClick={() => toggleContentType(option.value)}
             className={`
-              flex-1 px-6 py-4 rounded-xl font-bold text-xl transition-all duration-300
+              flex-1 py-3 rounded-xl font-bold text-xl transition-all duration-300
               ${contentTypes.includes(option.value)
                 ? 'bg-gradient-electric text-white shadow-lg' 
-                : 'bg-white/20 text-white hover:bg-white/30'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
               }
             `}
           >

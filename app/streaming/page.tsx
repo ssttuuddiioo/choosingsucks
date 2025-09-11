@@ -46,7 +46,7 @@ export default function StreamingPage() {
   }
 
   const canStartSession = () => {
-    return preferences.contentTypes.length > 0
+    return preferences.contentTypes.length > 0 && preferences.streamingServices.length > 0
   }
 
   const createStreamingSession = async () => {
@@ -125,11 +125,26 @@ export default function StreamingPage() {
       isCreatingSession={isCreatingSession}
       sessionButtonText="Start Swipe Session"
       loadingText="Shuffling cards..."
-      errorMessage="Please select at least one content type to continue"
+      errorMessage="Please select at least one content type and streaming service to continue"
     >
+      <SortPreferenceSection 
+        sortBy={preferences.sortBy}
+        onSortChange={updateSortBy}
+      />
+      
       <ContentTypeSection 
         contentTypes={preferences.contentTypes}
         onContentTypesChange={updateContentTypes}
+      />
+      
+      <StreamingServicesSection 
+        selectedServices={preferences.streamingServices}
+        onServicesChange={updateStreamingServices}
+      />
+      
+      <GenresSection 
+        selectedGenres={preferences.genres}
+        onGenresChange={updateGenres}
       />
     </SetupPageTemplate>
   )

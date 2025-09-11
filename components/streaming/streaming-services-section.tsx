@@ -26,15 +26,11 @@ export default function StreamingServicesSection({
 
   return (
     <motion.div 
-      className="bg-white/10 rounded-2xl p-6"
+      className="space-y-3"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <div className="mb-4">
-        <h2 className="text-white text-xl font-bold">Streaming Services</h2>
-      </div>
-      
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {STREAMING_SERVICES.map((service, index) => (
           <motion.button
@@ -61,12 +57,6 @@ export default function StreamingServicesSection({
           </motion.button>
         ))}
       </div>
-      
-      {selectedServices.length === 0 && (
-        <p className="text-white/60 text-sm mt-4 text-center">
-          Select at least one streaming service
-        </p>
-      )}
     </motion.div>
   )
 }

@@ -26,12 +26,11 @@ export default function GenresSection({
 
   return (
     <motion.div 
-      className="bg-white/10 rounded-2xl p-6"
+      className="space-y-3"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <h2 className="text-white text-xl font-bold mb-4">Genres</h2>
       <div className="flex flex-wrap gap-2">
         {GENRES.map((genre, index) => (
           <motion.button
@@ -52,7 +51,6 @@ export default function GenresSection({
           </motion.button>
         ))}
       </div>
-      
     </motion.div>
   )
 }
