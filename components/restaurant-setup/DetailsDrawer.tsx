@@ -61,8 +61,9 @@ export default function DetailsDrawer({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <button className="flex items-center justify-center px-4 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors">
+        <button className="flex items-center gap-2 px-4 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors">
           <Filter className="h-5 w-5" />
+          Filters
         </button>
       </DrawerTrigger>
       

@@ -25,6 +25,17 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
   const [map, setMap] = useState<google.maps.Map>()
   const [marker, setMarker] = useState<google.maps.Marker>()
   const [circle, setCircle] = useState<google.maps.Circle>()
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Initialize map
   useEffect(() => {
@@ -33,8 +44,10 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
         center,
         zoom: 13,
         disableDefaultUI: true,
-        zoomControl: true,
+        zoomControl: !isMobile, // Hide zoom controls on mobile
         gestureHandling: 'greedy',
+        draggable: true,
+        scrollwheel: true,
         styles: [
           {
             featureType: 'poi',
@@ -45,7 +58,7 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
       })
       setMap(newMap)
     }
-  }, [ref, map, center])
+  }, [ref, map, center, isMobile])
 
   // Update map center when prop changes
   useEffect(() => {
@@ -115,7 +128,7 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
 
       setCircle(newCircle)
     }
-  }, [map, center, radius, circle])
+  }, [map, center, radius])
 
   return <div ref={ref} style={style} />
 }
@@ -179,8 +192,8 @@ export default function MapInterface({
     <div className={`relative ${className}`}>
       <Wrapper apiKey={env.google.mapsApiKey} render={render} />
       
-      {/* Radius Control Overlay */}
-      <div className="absolute bottom-4 left-4 right-4 z-10">
+      {/* Desktop Radius Control */}
+      <div className="absolute bottom-4 left-4 right-4 z-10 hidden md:block">
         <div className="bg-black/80 backdrop-blur-sm rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-white font-bold">{radius} {radius === 1 ? 'mile' : 'miles'}</span>
@@ -193,6 +206,13 @@ export default function MapInterface({
             step={0.5}
             className="w-full"
           />
+        </div>
+      </div>
+
+      {/* Mobile Radius Display */}
+      <div className="absolute top-4 left-4 z-10 md:hidden">
+        <div className="bg-black/80 backdrop-blur-sm rounded-xl px-3 py-2">
+          <span className="text-white font-bold text-sm">{radius} {radius === 1 ? 'mile' : 'miles'}</span>
         </div>
       </div>
     </div>

@@ -188,35 +188,35 @@ export default function RestaurantSetupPage() {
   const showLocationSearch = locationState === 'denied' || locationState === 'unavailable'
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-primary">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 flex-shrink-0">
-          <div>
-            <h1 
+    <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary/95 backdrop-blur border-b border-white/10">
+        <div>
+          <h1 
             className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => router.push('/')}
-            >
+            onClick={() => router.push('/')}
+          >
             <div className="gradient-text">CHOOSING SUCKS</div>
-            </h1>
+          </h1>
           <p className="text-white/70 text-sm font-semibold">
-              Let's figure out where to eat
+            Let's figure out where to eat
           </p>
-          </div>
-        <div className="p-2 rounded-xl">
-            <Utensils className="h-6 w-6 text-white/70" />
         </div>
-            </div>
+        <div className="p-2 rounded-xl">
+          <Utensils className="h-6 w-6 text-white/70" />
+        </div>
+      </div>
 
-      {/* Main Content */}
-            <div className="flex-1 relative">
+      {/* Main Content - Takes remaining space */}
+      <div className="flex-1 relative overflow-hidden">
         {locationState === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-electric-purple/20 to-hot-pink/20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
               <p className="text-white/70">Finding your location...</p>
             </div>
-            </div>
-          )}
+          </div>
+        )}
 
         {showLocationSearch && (
           <div className="absolute inset-0 flex items-center justify-center p-4">
@@ -234,12 +234,12 @@ export default function RestaurantSetupPage() {
             radius={searchRadius}
             onCenterChange={setMapCenter}
             onRadiusChange={setSearchRadius}
-            className="h-full"
+            className="h-full w-full"
           />
         )}
-                </div>
+      </div>
 
-      {/* Bottom Actions */}
+      {/* Bottom Actions - Fixed */}
       <div className="flex-shrink-0 p-4 bg-gradient-primary/95 backdrop-blur border-t border-white/10">
         <div className="flex gap-3 max-w-md mx-auto">
           <DetailsDrawer
@@ -283,10 +283,10 @@ export default function RestaurantSetupPage() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="absolute bottom-20 left-4 right-4 bg-red-500/90 backdrop-blur text-white p-4 rounded-xl text-center"
+            className="absolute bottom-20 left-4 right-4 bg-red-500/90 backdrop-blur text-white p-4 rounded-xl text-center z-50"
           >
             {error}
-      </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
