@@ -13,7 +13,7 @@ export interface Genre {
 // Major streaming services supported by Watchmode API
 export const STREAMING_SERVICES: StreamingService[] = [
   { id: 203, name: 'Netflix', logo: '/streaming/Netflix_Large.png', backgroundColor: '#FFFFFF' },
-  { id: 157, name: 'Hulu', logo: '/streaming/hulu.webp', backgroundColor: '#FFFFFF' },
+  { id: 157, name: 'Hulu', logo: '/streaming/hulu.svg', backgroundColor: '#FFFFFF' },
   { id: 390, name: 'Disney+', logo: '/streaming/disney+.png', backgroundColor: '#FFFFFF' },
   { id: 26, name: 'Amazon Prime', logo: '/streaming/prime video.png', backgroundColor: '#FFFFFF' },
   { id: 387, name: 'HBO Max', logo: '/streaming/hbo max.png', backgroundColor: '#FFFFFF' },

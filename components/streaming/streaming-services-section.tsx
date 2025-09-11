@@ -41,12 +41,11 @@ export default function StreamingServicesSection({
               flex items-center justify-center
               min-h-[100px] cursor-pointer
               ${selectedServices.includes(service.id)
-                ? 'ring-4 ring-white/50 shadow-lg' 
-                : 'hover:ring-2 hover:ring-white/30'
+                ? 'ring-4 ring-electric-purple/50 shadow-lg bg-gradient-to-br from-white to-gray-50' 
+                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-white to-gray-100'
               }
               hover:scale-102
             `}
-            style={{ backgroundColor: service.backgroundColor }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 + (index * 0.05) }}
@@ -54,7 +53,11 @@ export default function StreamingServicesSection({
             <img 
               src={service.logo} 
               alt={service.name}
-              className="w-16 h-12 object-contain"
+              className={`w-16 h-12 object-contain transition-all duration-300 ${
+                selectedServices.includes(service.id)
+                  ? 'filter-none' 
+                  : 'filter grayscale opacity-60'
+              }`}
               onError={(e) => {
                 // Fallback to text if logo fails to load
                 e.currentTarget.style.display = 'none'
