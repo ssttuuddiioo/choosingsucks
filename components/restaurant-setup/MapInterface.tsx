@@ -45,7 +45,7 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
         center,
         zoom: 13,
         disableDefaultUI: true,
-        zoomControl: true,
+        zoomControl: !isMobile, // Show zoom controls only on desktop
         gestureHandling: 'greedy',
         draggable: true,
         scrollwheel: true,

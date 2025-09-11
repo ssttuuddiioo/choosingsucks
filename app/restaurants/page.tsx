@@ -190,7 +190,7 @@ export default function RestaurantSetupPage() {
   const showLocationSearch = locationState === 'denied' || locationState === 'unavailable'
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden" style={{ height: '100dvh' }}>
       {/* Header - Fixed */}
       <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary backdrop-blur border-b border-white/10 relative z-20">
           <div>
@@ -240,7 +240,7 @@ export default function RestaurantSetupPage() {
                 </div>
 
       {/* Bottom Actions - Fixed */}
-      <div className="flex-shrink-0 p-4 bg-gradient-primary/95 backdrop-blur border-t border-white/10">
+      <div className="flex-shrink-0 p-4 bg-gradient-primary/95 backdrop-blur border-t border-white/10" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
         <div className="flex gap-3 max-w-md mx-auto">
           <DetailsDrawer
             selectedPriceLevels={selectedPriceLevels}
