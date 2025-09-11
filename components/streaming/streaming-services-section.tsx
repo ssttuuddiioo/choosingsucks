@@ -41,19 +41,27 @@ export default function StreamingServicesSection({
               flex flex-col items-center justify-center gap-2
               min-h-[80px] font-bold text-sm cursor-pointer
               ${selectedServices.includes(service.id)
-                ? 'bg-gradient-electric text-white shadow-lg' 
-                : 'bg-white/20 text-white hover:bg-white/30'
+                ? 'ring-4 ring-white/50 shadow-lg' 
+                : 'hover:ring-2 hover:ring-white/30'
               }
               hover:scale-102
             `}
+            style={{ backgroundColor: service.backgroundColor }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 + (index * 0.05) }}
           >
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-xs">
-              {service.name.slice(0, 2).toUpperCase()}
-            </div>
-            <span className="text-center leading-tight">{service.name}</span>
+            <img 
+              src={service.logo} 
+              alt={service.name}
+              className="w-12 h-8 object-contain"
+              onError={(e) => {
+                // Fallback to text if logo fails to load
+                e.currentTarget.style.display = 'none'
+                e.currentTarget.nextElementSibling!.textContent = service.name
+              }}
+            />
+            <span className="text-center leading-tight text-white text-xs opacity-0">{service.name}</span>
           </motion.button>
         ))}
       </div>
