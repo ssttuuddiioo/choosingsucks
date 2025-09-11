@@ -39,19 +39,42 @@ export default function StreamingSessionPage() {
 
   const fetchSessionData = async () => {
     try {
-      // For now, we'll use session storage to get the candidates
-      // In a production app, you'd fetch from your database using the sessionId
+      // Check session storage first
       const storedCandidates = sessionStorage.getItem(`streaming-session-${sessionId}`)
       
       if (storedCandidates) {
         const parsedCandidates = JSON.parse(storedCandidates)
         setCandidates(parsedCandidates)
         setLoading(false)
-      } else {
-        // If no stored data, show error
-        setError('Session expired or not found. Please go back and create a new session.')
-        setLoading(false)
+        return
       }
+      
+      // If no stored data, wait a bit and check again (background loading might still be in progress)
+      let retries = 0
+      const maxRetries = 10
+      const checkInterval = 500 // 500ms intervals
+      
+      const checkForData = () => {
+        const data = sessionStorage.getItem(`streaming-session-${sessionId}`)
+        if (data) {
+          const parsedCandidates = JSON.parse(data)
+          setCandidates(parsedCandidates)
+          setLoading(false)
+          return
+        }
+        
+        retries++
+        if (retries < maxRetries) {
+          setTimeout(checkForData, checkInterval)
+        } else {
+          // After 5 seconds of waiting, show error
+          setError('Session expired or not found. Please go back and create a new session.')
+          setLoading(false)
+        }
+      }
+      
+      // Start checking for data
+      setTimeout(checkForData, checkInterval)
       
     } catch (err) {
       console.error('Error fetching session data:', err)

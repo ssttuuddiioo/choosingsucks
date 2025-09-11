@@ -66,8 +66,9 @@ export default function StreamingPage() {
       setIsCreatingSession(false)
       
       // Load content in background while user shares the session
-      setTimeout(async () => {
+      const loadContent = async () => {
         try {
+          console.log('🔄 Loading streaming content in background...')
           const response = await fetch('/api/streaming-search', {
             method: 'POST',
             headers: {
@@ -83,12 +84,18 @@ export default function StreamingPage() {
             const data = await response.json()
             if (data.success && data.candidates) {
               sessionStorage.setItem(`streaming-session-${newSessionId}`, JSON.stringify(data.candidates))
+              console.log(`✅ Stored ${data.candidates.length} candidates for session ${newSessionId}`)
             }
+          } else {
+            console.error('❌ Background API response not ok:', response.status)
           }
         } catch (error) {
-          console.error('Background API loading error:', error)
+          console.error('❌ Background API loading error:', error)
         }
-      }, 100) // Small delay to ensure UI updates first
+      }
+      
+      // Start loading immediately (no delay)
+      loadContent()
       
     } catch (error) {
       console.error('Error creating streaming session:', error)
