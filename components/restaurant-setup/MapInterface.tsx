@@ -49,6 +49,7 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
         gestureHandling: 'greedy',
         draggable: true,
         scrollwheel: true,
+        isFractionalZoomEnabled: true, // Enable smooth fractional zoom
         styles: [
           {
             featureType: 'poi',
@@ -72,11 +73,13 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
   return <div ref={ref} style={style} />
 }
 
-// Function to calculate radius from zoom level
+// Function to calculate radius from zoom level (supports fractional zoom)
 function zoomToRadius(zoom: number): number {
-  // Rough approximation: higher zoom = smaller radius
-  // Zoom 13 = ~2.5 miles, Zoom 10 = ~10 miles, Zoom 16 = ~0.5 miles
-  return Math.max(0.5, Math.min(10, 20 / Math.pow(2, zoom - 10)))
+  // Smooth calculation for fractional zoom levels
+  // Zoom 10 = ~10 miles, Zoom 13 = ~2.5 miles, Zoom 16 = ~0.5 miles
+  // Formula: radius = 20 / 2^(zoom - 10), clamped between 0.5 and 10 miles
+  const radius = 20 / Math.pow(2, zoom - 10)
+  return Math.max(0.5, Math.min(10, Math.round(radius * 10) / 10)) // Round to 1 decimal
 }
 
 const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({ 
