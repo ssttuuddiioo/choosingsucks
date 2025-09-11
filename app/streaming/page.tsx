@@ -9,10 +9,14 @@ import { nanoid } from 'nanoid'
 import ContentTypeSection from '@/components/streaming/content-type-section'
 import StreamingServicesSection from '@/components/streaming/streaming-services-section'
 import GenresSection from '@/components/streaming/genres-section'
+import SortPreferenceSection from '@/components/streaming/sort-preference-section'
 import SetupPageTemplate from '@/components/shared/setup-page-template'
+import SessionCreatedScreen from '@/components/streaming/session-created-screen'
 import { Tv } from 'lucide-react'
+import { generateShareToken } from '@/lib/utils/session'
 import { 
   StreamingPreferences, 
+  SortPreference,
   DEFAULT_PREFERENCES,
   STREAMING_SERVICES 
 } from '@/lib/constants/streaming'
@@ -21,6 +25,9 @@ export default function StreamingPage() {
   const router = useRouter()
   const [preferences, setPreferences] = useState<StreamingPreferences>(DEFAULT_PREFERENCES)
   const [isCreatingSession, setIsCreatingSession] = useState(false)
+  const [sessionCreated, setSessionCreated] = useState(false)
+  const [sessionId, setSessionId] = useState('')
+  const [shareLink, setShareLink] = useState('')
 
   const updateContentTypes = (contentTypes: ('movie' | 'tv_series')[]) => {
     setPreferences(prev => ({ ...prev, contentTypes }))
@@ -34,6 +41,10 @@ export default function StreamingPage() {
     setPreferences(prev => ({ ...prev, genres }))
   }
 
+  const updateSortBy = (sortBy: SortPreference) => {
+    setPreferences(prev => ({ ...prev, sortBy }))
+  }
+
   const canStartSession = () => {
     return preferences.contentTypes.length > 0 && preferences.streamingServices.length > 0
   }
@@ -44,45 +55,61 @@ export default function StreamingPage() {
     setIsCreatingSession(true)
     
     try {
-      const sessionId = nanoid()
+      const newSessionId = nanoid()
+      const shareToken = generateShareToken()
+      const newShareLink = `${window.location.origin}/streaming/${newSessionId}?t=${shareToken}`
       
-      // Create session with preferences
-      const response = await fetch('/api/streaming-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId,
-          preferences
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create streaming session')
-      }
-
-      const data = await response.json()
+      // Set session created state immediately to show sharing screen
+      setSessionId(newSessionId)
+      setShareLink(newShareLink)
+      setSessionCreated(true)
+      setIsCreatingSession(false)
       
-      if (data.success) {
-        // Store candidates in session storage for the session page to access
-        if (data.candidates) {
-          sessionStorage.setItem(`streaming-session-${sessionId}`, JSON.stringify(data.candidates))
+      // Load content in background while user shares the session
+      setTimeout(async () => {
+        try {
+          const response = await fetch('/api/streaming-search', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sessionId: newSessionId,
+              preferences
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            if (data.success && data.candidates) {
+              sessionStorage.setItem(`streaming-session-${newSessionId}`, JSON.stringify(data.candidates))
+            }
+          }
+        } catch (error) {
+          console.error('Background API loading error:', error)
         }
-        
-        // Navigate to streaming session page (similar to restaurant session)
-        router.push(`/streaming/${sessionId}`)
-      } else {
-        throw new Error(data.error || 'Failed to create session')
-      }
+      }, 100) // Small delay to ensure UI updates first
+      
     } catch (error) {
       console.error('Error creating streaming session:', error)
-      // TODO: Show error toast
-    } finally {
       setIsCreatingSession(false)
     }
   }
 
+  const handleJoinSession = () => {
+    router.push(`/streaming/${sessionId}`)
+  }
+
+  // Show session created screen
+  if (sessionCreated) {
+    return (
+      <SessionCreatedScreen
+        sessionId={sessionId}
+        shareLink={shareLink}
+        onJoinSession={handleJoinSession}
+      />
+    )
+  }
 
   return (
     <SetupPageTemplate
@@ -100,6 +127,11 @@ export default function StreamingPage() {
       loadingText="Shuffling cards..."
       errorMessage="Please select at least one content type and streaming service to continue"
     >
+      <SortPreferenceSection 
+        sortBy={preferences.sortBy}
+        onSortChange={updateSortBy}
+      />
+      
       <ContentTypeSection 
         contentTypes={preferences.contentTypes}
         onContentTypesChange={updateContentTypes}

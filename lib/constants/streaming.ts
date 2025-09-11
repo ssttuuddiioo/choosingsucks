@@ -45,14 +45,18 @@ export const GENRES: Genre[] = [
   { id: 19, name: 'Western' },
 ]
 
+export type SortPreference = 'new_releases' | 'most_popular'
+
 export interface StreamingPreferences {
   contentTypes: ('movie' | 'tv_series')[]
   streamingServices: number[]
   genres: number[]
+  sortBy: SortPreference
 }
 
 export const DEFAULT_PREFERENCES: StreamingPreferences = {
   contentTypes: ['movie', 'tv_series'], // Both selected by default
   streamingServices: [203, 157, 390, 26, 387, 444, 371, 73], // Major services selected by default
   genres: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 14, 15, 17, 18, 19], // All genres selected by default
+  sortBy: 'new_releases', // Default to new releases
 }

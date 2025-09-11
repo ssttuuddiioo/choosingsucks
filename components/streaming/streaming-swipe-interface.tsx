@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { useRouter } from 'next/navigation'
-import { X, Heart, Star, Clock, Calendar, Play } from 'lucide-react'
+import { X, Heart, Star, Clock, Calendar, Play, Clipboard, Check } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 interface StreamingCandidate {
@@ -40,6 +40,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
   const [animatingCardId, setAnimatingCardId] = useState<number | null>(null)
   const buttonsRef = useRef<HTMLDivElement | null>(null)
   const [bottomBarHeight, setBottomBarHeight] = useState<number>(0)
+  const [copied, setCopied] = useState(false)
 
   // Prevent body scrolling on mobile
   useEffect(() => {
@@ -139,6 +140,18 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     
     // Then complete the swipe
     handleSwipeComplete(vote)
+  }
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
   }
 
   const bind = useDrag(
@@ -293,6 +306,34 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
               <div className="bg-gradient-orange text-white px-3 py-2 rounded-full font-bold text-sm">
                 {candidates.length - currentIndex}
               </div>
+              
+              <button
+                onClick={handleShare}
+                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all transform hover:scale-110 active:scale-95"
+                title="Copy session link"
+              >
+                <AnimatePresence mode="wait">
+                  {copied ? (
+                    <motion.div
+                      key="copied"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                    >
+                      <Check className="h-5 w-5 text-lime-green" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="clipboard"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                    >
+                      <Clipboard className="h-5 w-5 text-white" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </button>
               
               <button
                 onClick={() => router.push('/streaming')}

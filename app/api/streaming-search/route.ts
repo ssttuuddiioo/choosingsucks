@@ -40,9 +40,10 @@ export async function POST(request: NextRequest) {
     // Initialize Watchmode client
     const watchmode = new WatchmodeClient(watchmodeApiKey)
 
-    // Build search parameters
+    // Build search parameters based on user preference
+    const sortBy = preferences.sortBy === 'new_releases' ? 'release_date_desc' : 'popularity_desc'
     const searchParams: any = {
-      sort_by: 'popularity_desc', // Get popular content, then we'll sort by rating
+      sort_by: sortBy, // New releases or popular content
       limit: 50, // Get more titles so we can filter for the best rated ones
     }
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
       searchParams.genres = preferences.genres.join(',')
     }
 
-    console.log('🎬 Fetching streaming content with params:', searchParams)
+    console.log(`🎬 Fetching ${preferences.sortBy === 'new_releases' ? 'new releases' : 'popular content'} with params:`, searchParams)
 
     // Fetch content from Watchmode API with fallback logic
     let searchResults

@@ -88,6 +88,8 @@
   /* Solid opaque card */
   .glass-card {
     @apply bg-white border border-gray-200 rounded-2xl shadow-2xl;
+    background-color: rgb(255, 255, 255) !important;
+    opacity: 1 !important;
   }
 
   /* Gradient button */
