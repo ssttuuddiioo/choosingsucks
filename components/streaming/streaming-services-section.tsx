@@ -53,11 +53,8 @@ export default function StreamingServicesSection({
             <img 
               src={service.logo} 
               alt={service.name}
-              className={`object-contain transition-all duration-300 ${
-                ['HBO Max', 'Netflix', 'Hulu', 'Starz'].includes(service.name)
-                  ? 'w-16 h-12' // HBO Max height for Netflix, Hulu, Starz
-                  : 'w-24 h-18' // Make others 50% larger
-              }`}
+              className="h-12 object-contain transition-all duration-300"
+              style={{ maxWidth: '80px' }}
               onError={(e) => {
                 // Fallback to text if logo fails to load
                 e.currentTarget.style.display = 'none'
