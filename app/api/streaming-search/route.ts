@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Build search parameters
     const searchParams: any = {
       sort_by: 'popularity_desc', // Sort by popularity as requested
-      limit: 50, // Get 50 titles for good variety
+      limit: 20, // Get 20 titles for good variety
     }
 
     // Set content types
