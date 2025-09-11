@@ -200,12 +200,12 @@ export default function RestaurantSetupPage() {
             className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
               onClick={() => router.push('/')}
             >
-            <div className="gradient-text">CHOOSING SUCKS</div>
+            <div className="gradient-text">Where to Eat?</div>
             </h1>
           <p className="text-white/70 text-sm font-semibold">
-              Let's figure out where to eat
+              Set your preferences and we'll find the perfect match
           </p>
-          </div>
+        </div>
         <div className="p-2 rounded-xl">
             <Utensils className="h-6 w-6 text-white/70" />
         </div>

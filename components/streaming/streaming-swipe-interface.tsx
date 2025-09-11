@@ -333,7 +333,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
                   scale,
                   zIndex: 3
                 }}
-                {...bind()}
+                {...bind() as any}
                 animate={animatingCardId === currentCandidate.id ? {
                   x: 0,
                   rotate: 0,

@@ -342,7 +342,7 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
   const nopeOpacity = useTransform(dragX || fallbackX, [-150, 0], [0.8, 0])
 
   return (
-    <div className="h-full glass-card overflow-hidden flex flex-col relative">
+    <div className="h-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
       {/* Drag feedback overlays */}
       {dragX && (
         <>

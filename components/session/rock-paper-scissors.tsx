@@ -34,9 +34,9 @@ interface Candidate {
   id: string
   name: string
   place_id: string
-  photo_ref?: string
-  rating?: number
-  price_level?: number
+  photo_ref?: string | null
+  rating?: number | null
+  price_level?: number | null
 }
 
 const moveIcons = {

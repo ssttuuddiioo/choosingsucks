@@ -110,21 +110,28 @@ export default function StreamingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-4">
-      <div className="max-w-4xl w-full space-y-8">
-        {/* Header */}
-        <motion.div 
-          className="text-center space-y-4"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-        >
-          <h1 className="text-4xl md:text-5xl font-outfit font-black gradient-text leading-tight">
-            What to Stream?
+    <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden" style={{ height: '100dvh' }}>
+      {/* Header - Fixed */}
+      <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary backdrop-blur border-b border-white/10 relative z-20">
+        <div>
+          <h1 
+            className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => router.push('/')}
+          >
+            <div className="gradient-text">What to Stream?</div>
           </h1>
-          <p className="text-white/70 text-lg md:text-xl">
+          <p className="text-white/70 text-sm font-semibold">
             Set your preferences and we'll find the perfect match
           </p>
-        </motion.div>
+        </div>
+        <div className="p-2 rounded-xl">
+          <Play className="h-6 w-6 text-white/70" />
+        </div>
+      </div>
+      
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto p-4 space-y-6">
 
         {/* Setup Sections */}
         <div className="space-y-6">
@@ -146,28 +153,13 @@ export default function StreamingPage() {
           />
         </div>
 
-        {/* Session Summary & Start Button */}
+        {/* Start Button */}
         <motion.div 
           className="space-y-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          {/* Summary */}
-          <div className="bg-white/5 rounded-2xl p-4 text-center">
-            <p className="text-white/80 text-sm">
-              Ready to find <span className="font-bold text-white">{getContentTypeText()}</span> on{' '}
-              <span className="font-bold text-white">{getSelectedServicesText()}</span>
-              {preferences.genres.length > 0 && (
-                <>
-                  {' '}in <span className="font-bold text-white">
-                    {preferences.genres.length} selected genre{preferences.genres.length > 1 ? 's' : ''}
-                  </span>
-                </>
-              )}
-            </p>
-          </div>
-
           {/* Start Button */}
           <button
             onClick={createStreamingSession}
@@ -200,6 +192,7 @@ export default function StreamingPage() {
             </p>
           )}
         </motion.div>
+        </div>
       </div>
     </div>
   )

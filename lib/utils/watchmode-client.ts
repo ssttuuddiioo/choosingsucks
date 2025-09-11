@@ -18,7 +18,9 @@ export interface WatchmodeTitle {
   critic_score?: number
   us_rating?: string
   poster: string
+  posterLarge?: string
   backdrop: string
+  trailer?: string
   original_language: string
   similar_titles: number[]
   networks?: string[]
