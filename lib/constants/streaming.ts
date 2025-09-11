@@ -14,16 +14,16 @@ export interface Genre {
 export const STREAMING_SERVICES: StreamingService[] = [
   { id: 203, name: 'Netflix', logo: '/streaming/Netflix_Large.png', backgroundColor: '#000000' },
   { id: 157, name: 'Hulu', logo: '/streaming/hulu.webp', backgroundColor: '#1CE783' },
-  { id: 390, name: 'Disney+', logo: '/streaming/disney+.png', backgroundColor: '#113CCF' },
-  { id: 26, name: 'Amazon Prime', logo: '/streaming/prime video.png', backgroundColor: '#00A8E1' },
-  { id: 387, name: 'HBO Max', logo: '/streaming/hbo max.png', backgroundColor: '#000000' },
-  { id: 444, name: 'Paramount+', logo: '/streaming/paramoung plus.png', backgroundColor: '#0064FF' },
-  { id: 371, name: 'Apple TV+', logo: '/streaming/apple tv plus.png', backgroundColor: '#000000' },
-  { id: 73, name: 'Peacock', logo: '/streaming/peacock.svg', backgroundColor: '#000000' },
-  { id: 279, name: 'Crunchyroll', logo: '/streaming/Crunchyroll_logo_2012v.png', backgroundColor: '#FF6500' },
+  { id: 390, name: 'Disney+', logo: '/streaming/disney+.png', backgroundColor: '#FFFFFF' },
+  { id: 26, name: 'Amazon Prime', logo: '/streaming/prime video.png', backgroundColor: '#FFFFFF' },
+  { id: 387, name: 'HBO Max', logo: '/streaming/hbo max.png', backgroundColor: '#FFFFFF' },
+  { id: 444, name: 'Paramount+', logo: '/streaming/paramoung plus.png', backgroundColor: '#FFFFFF' },
+  { id: 371, name: 'Apple TV+', logo: '/streaming/apple tv plus.png', backgroundColor: '#FFFFFF' },
+  { id: 73, name: 'Peacock', logo: '/streaming/peacock.svg', backgroundColor: '#FFFFFF' },
+  { id: 279, name: 'Crunchyroll', logo: '/streaming/Crunchyroll_logo_2012v.png', backgroundColor: '#FFFFFF' },
   { id: 372, name: 'Starz', logo: '/streaming/starz.png', backgroundColor: '#000000' },
-  { id: 43, name: 'Showtime', logo: '/streaming/showtime.png', backgroundColor: '#FF0000' },
-  { id: 78, name: 'Tubi', logo: '/streaming/tubi logo.png', backgroundColor: '#FFE500' },
+  { id: 43, name: 'Showtime', logo: '/streaming/showtime.png', backgroundColor: '#FFFFFF' },
+  { id: 78, name: 'Tubi', logo: '/streaming/tubi logo.png', backgroundColor: '#6B46C1' },
 ]
 
 // Content genres (using Watchmode API genre IDs)

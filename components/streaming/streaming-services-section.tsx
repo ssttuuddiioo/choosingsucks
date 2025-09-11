@@ -37,9 +37,9 @@ export default function StreamingServicesSection({
             key={service.id}
             onClick={() => toggleService(service.id)}
             className={`
-              p-4 rounded-xl transition-all duration-300 transform
-              flex flex-col items-center justify-center gap-2
-              min-h-[80px] font-bold text-sm cursor-pointer
+              p-6 rounded-xl transition-all duration-300 transform
+              flex items-center justify-center
+              min-h-[100px] cursor-pointer
               ${selectedServices.includes(service.id)
                 ? 'ring-4 ring-white/50 shadow-lg' 
                 : 'hover:ring-2 hover:ring-white/30'
@@ -54,14 +54,14 @@ export default function StreamingServicesSection({
             <img 
               src={service.logo} 
               alt={service.name}
-              className="w-12 h-8 object-contain"
+              className="w-16 h-12 object-contain"
               onError={(e) => {
                 // Fallback to text if logo fails to load
                 e.currentTarget.style.display = 'none'
-                e.currentTarget.nextElementSibling!.textContent = service.name
+                const parent = e.currentTarget.parentElement!
+                parent.innerHTML = `<span class="text-gray-900 font-bold text-sm">${service.name}</span>`
               }}
             />
-            <span className="text-center leading-tight text-white text-xs opacity-0">{service.name}</span>
           </motion.button>
         ))}
       </div>
