@@ -19,6 +19,10 @@ export const env = {
   app: {
     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   },
+  features: {
+    // Enable multi-person sessions (default: false for 2-person only)
+    multiPersonSessions: process.env.NEXT_PUBLIC_ENABLE_MULTI_PERSON === 'true',
+  },
 } as const
 
 // Validate required environment variables
