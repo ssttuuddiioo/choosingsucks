@@ -276,6 +276,93 @@ export type Database = {
         }
         Relationships: []
       }
+      rps_games: {
+        Row: {
+          created_at: string
+          id: string
+          round_number: number
+          session_id: string
+          status: string
+          updated_at: string
+          winner_participant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          round_number?: number
+          session_id: string
+          status?: string
+          updated_at?: string
+          winner_participant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          round_number?: number
+          session_id?: string
+          status?: string
+          updated_at?: string
+          winner_participant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rps_games_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rps_games_winner_participant_id_fkey"
+            columns: ["winner_participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      rps_moves: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          move: string
+          participant_id: string
+          round_number: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          move: string
+          participant_id: string
+          round_number: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          move?: string
+          participant_id?: string
+          round_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rps_moves_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "rps_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rps_moves_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       geometry_columns: {
         Row: {
           coord_dimension: number | null
@@ -313,6 +400,16 @@ export type Database = {
         Returns: {
           match_name: string
           match_place_id: string
+        }[]
+      }
+      find_session_matches: {
+        Args: { p_session_id: string }
+        Returns: {
+          candidate_id: string
+          place_id: string
+          name: string
+          yes_count: number
+          total_participants: number
         }[]
       }
       get_session_status: {

@@ -37,10 +37,10 @@ const categories: Category[] = [
   },
   {
     id: 'streaming',
-    name: 'TV Shows',
+    name: 'Streaming',
     icon: Tv,
     isActive: true,
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'movies',

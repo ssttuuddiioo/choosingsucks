@@ -15,6 +15,8 @@ import SessionStatus from '@/components/session/session-status'
 import MatchScreen from '@/components/session/match-screen'
 import ExhaustedScreen from '@/components/session/exhausted-screen'
 import InvalidSessionScreen from '@/components/session/invalid-session-screen'
+import NoMatchesScreen from '@/components/session/no-matches-screen'
+import RockPaperScissors from '@/components/session/rock-paper-scissors'
 
 type Session = Tables<'sessions'>
 type Participant = Tables<'participants'>
@@ -38,6 +40,10 @@ export default function SessionPage() {
     joinedCount: 0,
     submittedCount: 0,
   })
+  const [showNoMatches, setShowNoMatches] = useState(false)
+  const [showRockPaperScissors, setShowRockPaperScissors] = useState(false)
+  const [rpsGameId, setRpsGameId] = useState<string | null>(null)
+  const [pendingMove, setPendingMove] = useState<string | null>(null)
 
   const supabase = createBrowserClient()
 
@@ -53,6 +59,8 @@ export default function SessionPage() {
           status: 'matched',
           match_place_id: payload.payload.placeId,
         } : null)
+      } else if (payload.event === 'no_matches_detected') {
+        setShowNoMatches(true)
       }
     },
   })
@@ -289,6 +297,127 @@ export default function SessionPage() {
     }
   }
 
+  // Check for no matches when everyone has finished swiping
+  useEffect(() => {
+    if (session && sessionStatus.joinedCount > 0 && 
+        sessionStatus.submittedCount === sessionStatus.joinedCount &&
+        session.status === 'active') {
+      // Everyone has finished swiping, check if there's a match
+      checkForNoMatches()
+    }
+  }, [sessionStatus, session])
+
+  async function checkForNoMatches() {
+    if (!session) return
+
+    try {
+      // Check if there are any unanimous matches
+      const { data: matches } = await supabase
+        .rpc('find_session_matches', { p_session_id: session.id })
+
+      if (!matches || matches.length === 0) {
+        // No matches found, show no-matches screen
+        setShowNoMatches(true)
+        broadcast('no_matches_detected', { sessionId: session.id })
+      }
+    } catch (error) {
+      console.error('Error checking for matches:', error)
+      // If we can't check, assume no matches for now
+      setShowNoMatches(true)
+    }
+  }
+
+  // Handler functions for no-matches screen
+  function handleStartOver() {
+    // Reset swipes and start over
+    setSwipedCandidateIds(new Set())
+    setShowNoMatches(false)
+    // TODO: Reset participant submitted status
+  }
+
+  function handleExpandSearch() {
+    // TODO: Implement expand search functionality
+    console.log('Expand search not implemented yet')
+  }
+
+  function handleRockPaperScissors() {
+    setShowRockPaperScissors(true)
+    setShowNoMatches(false)
+  }
+
+  function handleBackFromRPS() {
+    setShowRockPaperScissors(false)
+    setShowNoMatches(true)
+  }
+
+  async function handleRPSMove(move: 'rock' | 'paper' | 'scissors') {
+    if (!session || !participant) return
+
+    try {
+      // Create or join RPS game
+      let gameId = rpsGameId
+      
+      if (!gameId) {
+        // Check for existing game or create new one
+        const { data: existingGame } = await supabase
+          .from('rps_games')
+          .select('id')
+          .eq('session_id', session.id)
+          .eq('status', 'waiting')
+          .single()
+
+        if (existingGame) {
+          gameId = existingGame.id
+        } else {
+          const { data: newGame, error } = await supabase
+            .from('rps_games')
+            .insert({
+              session_id: session.id,
+              status: 'waiting',
+              round_number: 1,
+            })
+            .select('id')
+            .single()
+
+          if (error) throw error
+          gameId = newGame.id
+        }
+        
+        setRpsGameId(gameId)
+      }
+
+      // Store the move
+      await supabase
+        .from('rps_moves')
+        .insert({
+          game_id: gameId,
+          participant_id: participant.id,
+          round_number: 1,
+          move,
+        })
+
+      // Set pending move and switch to RPS screen
+      setPendingMove(move)
+      setShowRockPaperScissors(true)
+      setShowNoMatches(false)
+
+      // Broadcast the move
+      broadcast('rps_move_made', {
+        gameId,
+        participantId: participant.id,
+        move,
+      })
+
+    } catch (error) {
+      console.error('Error making RPS move:', error)
+    }
+  }
+
+  function handleNewSession() {
+    // Navigate to home to create a new session
+    window.location.href = '/'
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -336,6 +465,34 @@ export default function SessionPage() {
   }
 
   // remainingCandidates is already calculated above
+
+  // Rock Paper Scissors game
+  if (showRockPaperScissors && participant) {
+    return (
+      <RockPaperScissors
+        session={session}
+        participant={participant}
+        onBack={handleBackFromRPS}
+        initialMove={pendingMove}
+        gameId={rpsGameId}
+      />
+    )
+  }
+
+  // No matches screen
+  if (showNoMatches) {
+    return (
+      <NoMatchesScreen
+        session={session}
+        participant={participant}
+        onStartOver={handleStartOver}
+        onExpandSearch={handleExpandSearch}
+        onRockPaperScissors={handleRockPaperScissors}
+        onRPSMove={handleRPSMove}
+        onNewSession={handleNewSession}
+      />
+    )
+  }
 
   // Exhausted state
   if (remainingCandidates.length === 0 && candidates.length > 0) {
