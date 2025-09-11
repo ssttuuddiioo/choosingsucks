@@ -24,6 +24,8 @@ export default function RestaurantSetupPage() {
   
   // Session configuration
   const [selectedPriceLevels, setSelectedPriceLevels] = useState<number[]>([2, 3])
+  const [minRating, setMinRating] = useState(0) // 0 means no minimum rating filter
+  const [keywords, setKeywords] = useState<string[]>([])
   const [requireNames, setRequireNames] = useState(false)
   const [inviteCount, setInviteCount] = useState('2')
   const [customCount, setCustomCount] = useState('')
@@ -122,6 +124,8 @@ export default function RestaurantSetupPage() {
           lng: mapState.center.lng,
           radius: mapState.radius,
           selectedPriceLevels,
+          minRating,
+          keywords,
         })
       })
 
@@ -245,6 +249,10 @@ export default function RestaurantSetupPage() {
           <DetailsDrawer
             selectedPriceLevels={selectedPriceLevels}
             onPriceLevelsChange={setSelectedPriceLevels}
+            minRating={minRating}
+            onMinRatingChange={setMinRating}
+            keywords={keywords}
+            onKeywordsChange={setKeywords}
             requireNames={requireNames}
             onRequireNamesChange={setRequireNames}
             matchRequirement={matchRequirement}

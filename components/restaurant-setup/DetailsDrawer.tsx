@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Filter, DollarSign } from 'lucide-react'
+import { Filter, Star, X } from 'lucide-react'
 import {
   Drawer,
   DrawerClose,
@@ -18,6 +18,10 @@ import { env } from '@/lib/utils/env'
 interface DetailsDrawerProps {
   selectedPriceLevels: number[]
   onPriceLevelsChange: (levels: number[]) => void
+  minRating: number
+  onMinRatingChange: (rating: number) => void
+  keywords: string[]
+  onKeywordsChange: (keywords: string[]) => void
   requireNames: boolean
   onRequireNamesChange: (require: boolean) => void
   matchRequirement: 'all' | 'majority'
@@ -35,6 +39,10 @@ interface DetailsDrawerProps {
 export default function DetailsDrawer({
   selectedPriceLevels,
   onPriceLevelsChange,
+  minRating,
+  onMinRatingChange,
+  keywords,
+  onKeywordsChange,
   requireNames,
   onRequireNamesChange,
   matchRequirement,
@@ -49,6 +57,7 @@ export default function DetailsDrawer({
   onShowCustomInputChange,
 }: DetailsDrawerProps) {
   const [open, setOpen] = useState(false)
+  const [keywordInput, setKeywordInput] = useState('')
 
   const togglePriceLevel = (level: number) => {
     onPriceLevelsChange(
@@ -56,6 +65,25 @@ export default function DetailsDrawer({
         ? selectedPriceLevels.filter(l => l !== level)
         : [...selectedPriceLevels, level].sort()
     )
+  }
+
+  const addKeyword = (keyword: string) => {
+    const trimmed = keyword.trim().toLowerCase()
+    if (trimmed && !keywords.includes(trimmed)) {
+      onKeywordsChange([...keywords, trimmed])
+    }
+    setKeywordInput('')
+  }
+
+  const removeKeyword = (keyword: string) => {
+    onKeywordsChange(keywords.filter(k => k !== keyword))
+  }
+
+  const handleKeywordKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      addKeyword(keywordInput)
+    }
   }
 
   return (
@@ -90,6 +118,72 @@ export default function DetailsDrawer({
                     {'$'.repeat(level)}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Star Rating Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-1">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <button
+                    key={rating}
+                    onClick={() => onMinRatingChange(rating === minRating ? 0 : rating)}
+                    className="p-2 transition-all hover:scale-110"
+                  >
+                    <Star
+                      className={cn(
+                        "h-8 w-8 transition-all",
+                        rating <= minRating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-white/30 hover:text-white/50"
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+              {minRating > 0 && (
+                <p className="text-center text-white/70 text-sm">
+                  Show restaurants with {minRating}+ stars
+                </p>
+              )}
+            </div>
+
+            {/* Keywords Filter */}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Add keywords (sushi, gluten-free, etc.)"
+                  value={keywordInput}
+                  onChange={(e) => setKeywordInput(e.target.value)}
+                  onKeyDown={handleKeywordKeyPress}
+                  onBlur={() => {
+                    if (keywordInput.trim()) {
+                      addKeyword(keywordInput)
+                    }
+                  }}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-electric-purple/50 focus:border-transparent"
+                />
+                
+                {/* Keywords Tags */}
+                {keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {keywords.map((keyword) => (
+                      <div
+                        key={keyword}
+                        className="flex items-center gap-1 px-3 py-1 bg-gradient-pink text-white text-sm rounded-full"
+                      >
+                        <span>{keyword}</span>
+                        <button
+                          onClick={() => removeKeyword(keyword)}
+                          className="p-0.5 hover:bg-white/20 rounded-full transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

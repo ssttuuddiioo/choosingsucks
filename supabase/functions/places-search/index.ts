@@ -14,7 +14,7 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { sessionId, lat, lng, radius, maxPriceLevel, selectedPriceLevels } = await req.json()
+    const { sessionId, lat, lng, radius, maxPriceLevel, selectedPriceLevels, minRating, keywords } = await req.json()
     
     // Validate required parameters
     if (!sessionId || !lat || !lng) {
@@ -34,7 +34,10 @@ serve(async (req) => {
       inputRadius: radius,
       radiusInMeters,
       center: { lat, lng },
-      conversion: `${radius} miles = ${radiusInMeters} meters`
+      conversion: `${radius} miles = ${radiusInMeters} meters`,
+      minRating: minRating || 'none',
+      keywords: keywords || [],
+      textQuery: keywords && keywords.length > 0 ? `restaurants ${keywords.join(' ')}` : 'restaurants'
     })
 
     // Get environment variables
@@ -92,8 +95,14 @@ serve(async (req) => {
     // Use the new Places API (Text Search)
     const placesUrl = `https://places.googleapis.com/v1/places:searchText`
     
+    // Build text query with keywords
+    let textQuery = 'restaurants'
+    if (keywords && keywords.length > 0) {
+      textQuery = `restaurants ${keywords.join(' ')}`
+    }
+
     const requestBody: any = {
-      textQuery: 'restaurants',
+      textQuery,
       locationBias: {
         circle: {
           center: {
@@ -110,6 +119,11 @@ serve(async (req) => {
     // Always add price levels filter
     if (priceLevels.length > 0) {
       requestBody.priceLevels = priceLevels
+    }
+    
+    // Add minimum rating filter
+    if (minRating && minRating > 0) {
+      requestBody.minRating = minRating
     }
     
     const placesResponse = await fetch(placesUrl, {
