@@ -278,6 +278,9 @@ export default function SessionPage() {
           .update({ submitted_at: new Date().toISOString() })
           .eq('id', participant.id)
 
+        // Refresh session status immediately to reflect the change
+        await fetchSessionStatus()
+
         // Broadcast update
         broadcast('participant_update', { type: 'submitted' })
       }
