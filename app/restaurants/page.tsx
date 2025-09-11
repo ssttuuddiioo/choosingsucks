@@ -274,7 +274,7 @@ export default function RestaurantSetupPage() {
                 Creating...
               </span>
             ) : (
-              '🚀 Start Swiping'
+              'Start Swipe Session'
             )}
           </button>
         </div>
