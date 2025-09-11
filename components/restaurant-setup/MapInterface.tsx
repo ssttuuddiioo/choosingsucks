@@ -67,6 +67,28 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
     }
   }, [map, center])
 
+  // Listen to map center changes and update circle position
+  useEffect(() => {
+    if (map) {
+      const listener = map.addListener('center_changed', () => {
+        const newCenter = map.getCenter()
+        if (newCenter && circle) {
+          const newCenterObj = {
+            lat: newCenter.lat(),
+            lng: newCenter.lng()
+          }
+          circle.setCenter(newCenterObj)
+          // Update parent component with new center
+          onCenterChange(newCenterObj)
+        }
+      })
+
+      return () => {
+        google.maps.event.removeListener(listener)
+      }
+    }
+  }, [map, circle, onCenterChange])
+
   // Create marker
   useEffect(() => {
     if (map && !marker) {
@@ -99,12 +121,21 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
     }
   }, [map, marker, center, onCenterChange])
 
-  // Update marker position
+  // Update marker position to always be at map center
   useEffect(() => {
-    if (marker) {
-      marker.setPosition(center)
+    if (map && marker) {
+      const listener = map.addListener('center_changed', () => {
+        const newCenter = map.getCenter()
+        if (newCenter) {
+          marker.setPosition(newCenter)
+        }
+      })
+
+      return () => {
+        google.maps.event.removeListener(listener)
+      }
     }
-  }, [marker, center])
+  }, [map, marker])
 
   // Create/update circle
   useEffect(() => {
@@ -210,7 +241,7 @@ export default function MapInterface({
       </div>
 
       {/* Mobile Radius Display */}
-      <div className="absolute top-4 left-4 z-10 md:hidden">
+      <div className="absolute top-4 left-4 z-20 md:hidden">
         <div className="bg-black/80 backdrop-blur-sm rounded-xl px-3 py-2">
           <span className="text-white font-bold text-sm">{radius} {radius === 1 ? 'mile' : 'miles'}</span>
         </div>

@@ -190,7 +190,7 @@ export default function RestaurantSetupPage() {
   return (
     <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden">
       {/* Header - Fixed */}
-      <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary/95 backdrop-blur border-b border-white/10">
+      <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary backdrop-blur border-b border-white/10 relative z-20">
         <div>
           <h1 
             className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"

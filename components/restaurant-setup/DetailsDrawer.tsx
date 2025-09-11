@@ -245,11 +245,6 @@ export default function DetailsDrawer({
           </div>
           
           <DrawerFooter>
-            <DrawerClose asChild>
-              <button className="w-full py-3 bg-gradient-electric text-white font-semibold rounded-xl">
-                Done
-              </button>
-            </DrawerClose>
           </DrawerFooter>
         </div>
       </DrawerContent>
