@@ -54,8 +54,8 @@ export default function StreamingServicesSection({
               src={service.logo} 
               alt={service.name}
               className={`object-contain transition-all duration-300 ${
-                service.name === 'HBO Max' 
-                  ? 'w-16 h-12' // Keep HBO Max original size
+                ['HBO Max', 'Netflix', 'Hulu', 'Starz'].includes(service.name)
+                  ? 'w-16 h-12' // HBO Max height for Netflix, Hulu, Starz
                   : 'w-24 h-18' // Make others 50% larger
               }`}
               onError={(e) => {

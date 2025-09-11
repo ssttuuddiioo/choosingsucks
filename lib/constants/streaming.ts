@@ -13,7 +13,7 @@ export interface Genre {
 // Major streaming services supported by Watchmode API
 export const STREAMING_SERVICES: StreamingService[] = [
   { id: 203, name: 'Netflix', logo: '/streaming/Netflix_Large.png', backgroundColor: '#FFFFFF' },
-  { id: 157, name: 'Hulu', logo: '/streaming/hulu.svg', backgroundColor: '#FFFFFF' },
+  { id: 157, name: 'Hulu', logo: '/streaming/hulu.png', backgroundColor: '#FFFFFF' },
   { id: 390, name: 'Disney+', logo: '/streaming/disney+.png', backgroundColor: '#FFFFFF' },
   { id: 26, name: 'Amazon Prime', logo: '/streaming/prime video.png', backgroundColor: '#FFFFFF' },
   { id: 387, name: 'HBO Max', logo: '/streaming/hbo max.png', backgroundColor: '#FFFFFF' },
@@ -21,7 +21,7 @@ export const STREAMING_SERVICES: StreamingService[] = [
   { id: 371, name: 'Apple TV+', logo: '/streaming/apple tv plus.png', backgroundColor: '#FFFFFF' },
   { id: 73, name: 'Peacock', logo: '/streaming/peacock.svg', backgroundColor: '#FFFFFF' },
   { id: 279, name: 'Crunchyroll', logo: '/streaming/Crunchyroll_logo_2012v.png', backgroundColor: '#FFFFFF' },
-  { id: 372, name: 'Starz', logo: '/streaming/starz.jpg', backgroundColor: '#FFFFFF' },
+  { id: 372, name: 'Starz', logo: '/streaming/starz.png', backgroundColor: '#FFFFFF' },
   { id: 43, name: 'Showtime', logo: '/streaming/showtime.png', backgroundColor: '#FFFFFF' },
   { id: 78, name: 'Tubi', logo: '/streaming/tubi logo.png', backgroundColor: '#FFFFFF' },
 ]
