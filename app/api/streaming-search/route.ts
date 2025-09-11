@@ -101,31 +101,77 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Found ${searchResults.titles.length} titles`)
 
-    // Fast approach: Use basic title data with constructed poster URLs
-    // This eliminates the 20+ detailed API calls that were causing timeouts
-    console.log('🚀 Using fast basic data approach...')
+    // Hybrid approach: Get details for first 10 titles only (for posters), use basic data for rest
+    // This balances performance with image quality
+    console.log('🔍 Fetching details for first 10 titles for poster images...')
     
-    const candidates = searchResults.titles.map((title) => ({
+    const detailedPromises = searchResults.titles.slice(0, 10).map(async (title) => {
+      try {
+        const detailedTitle = await watchmode.getTitleDetails(title.id)
+        return {
+          id: detailedTitle.id,
+          title: detailedTitle.title,
+          original_title: detailedTitle.original_title,
+          type: detailedTitle.type,
+          year: detailedTitle.year,
+          runtime_minutes: detailedTitle.runtime_minutes,
+          plot_overview: detailedTitle.plot_overview,
+          genre_names: detailedTitle.genre_names,
+          user_rating: detailedTitle.user_rating,
+          critic_score: detailedTitle.critic_score,
+          poster: detailedTitle.poster,
+          posterLarge: detailedTitle.posterLarge,
+          backdrop: detailedTitle.backdrop,
+          trailer: detailedTitle.trailer,
+          us_rating: detailedTitle.us_rating,
+          sources: detailedTitle.sources || [],
+          session_id: sessionId,
+        }
+      } catch (error) {
+        console.error(`Failed to fetch details for title ${title.id}:`, error)
+        return {
+          id: title.id,
+          title: title.title,
+          type: title.type,
+          year: title.year,
+          session_id: sessionId,
+          poster: null,
+          plot_overview: `${title.type === 'movie' ? 'Movie' : 'TV Series'} from ${title.year}`,
+          user_rating: 6.5,
+          sources: [],
+        }
+      }
+    })
+
+    const basicTitles = searchResults.titles.slice(10).map((title) => ({
       id: title.id,
       title: title.title,
       original_title: title.title,
       type: title.type,
       year: title.year,
-      runtime_minutes: title.type === 'movie' ? 120 : 45, // Reasonable defaults
-      plot_overview: `Popular ${title.type === 'movie' ? 'movie' : 'TV series'} from ${title.year}`,
-      genre_names: ['Popular'], // Generic genre
-      user_rating: 7.5, // Default good rating
-      critic_score: 75,
-      poster: `https://image.tmdb.org/t/p/w342/${title.tmdb_id}`, // TMDB poster URL
-      posterLarge: `https://image.tmdb.org/t/p/w780/${title.tmdb_id}`,
-      backdrop: `https://image.tmdb.org/t/p/w1280/${title.tmdb_id}`,
+      runtime_minutes: title.type === 'movie' ? 120 : 45,
+      plot_overview: `${title.type === 'movie' ? 'Movie' : 'TV Series'} from ${title.year}`,
+      genre_names: ['Popular'],
+      user_rating: 6.0,
+      critic_score: null,
+      poster: null, // No poster for basic titles
+      posterLarge: null,
+      backdrop: null,
       trailer: null,
       us_rating: 'PG-13',
       sources: [],
       session_id: sessionId,
     }))
 
-    // Already sorted by API preference (new releases or popularity)
+    // Combine detailed and basic titles
+    const detailedTitles = await Promise.all(detailedPromises)
+    const allCandidates = [...detailedTitles, ...basicTitles]
+    
+    // Sort by rating and take top 20
+    const candidates = allCandidates
+      .filter(candidate => candidate.user_rating && candidate.user_rating > 0)
+      .sort((a, b) => (b.user_rating || 0) - (a.user_rating || 0))
+      .slice(0, 20)
 
     // TODO: Store candidates in database for session
     // For now, we'll return the data directly
