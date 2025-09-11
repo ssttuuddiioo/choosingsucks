@@ -61,25 +61,19 @@ export default function DetailsDrawer({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <button className="flex items-center gap-2 px-4 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors">
+        <button className="flex items-center justify-center px-4 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors">
           <Filter className="h-5 w-5" />
-          Filters
         </button>
       </DrawerTrigger>
       
       <DrawerContent className="bg-gradient-primary border-white/20">
         <div className="mx-auto w-full max-w-sm">
-          <DrawerHeader>
-            <DrawerTitle className="text-white font-outfit">Filters</DrawerTitle>
-            <DrawerDescription className="text-white/70">
-              Customize your restaurant search preferences
-            </DrawerDescription>
+          <DrawerHeader className="pb-2">
           </DrawerHeader>
           
           <div className="p-4 pb-0 space-y-6">
             {/* Price Range */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-white">Price Range</h3>
               <div className="flex gap-2">
                 {[1, 2, 3, 4].map((level) => (
                   <button

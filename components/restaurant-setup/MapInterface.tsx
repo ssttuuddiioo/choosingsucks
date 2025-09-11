@@ -114,17 +114,6 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
       })
 
       setCircle(newCircle)
-
-      // Adjust zoom to fit the circle
-      const bounds = newCircle.getBounds()
-      if (bounds) {
-        map.fitBounds(bounds)
-        // Ensure we don't zoom in too much for small radii
-        const currentZoom = map.getZoom()
-        if (currentZoom && currentZoom > 15) {
-          map.setZoom(15)
-        }
-      }
     }
   }, [map, center, radius, circle])
 
