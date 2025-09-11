@@ -29,6 +29,13 @@ serve(async (req) => {
 
     // Convert radius from miles to meters (default to 2.5 miles if not provided)
     const radiusInMeters = (radius || 2.5) * 1609.34
+    
+    console.log('🎯 Places Search Debug:', {
+      inputRadius: radius,
+      radiusInMeters,
+      center: { lat, lng },
+      conversion: `${radius} miles = ${radiusInMeters} meters`
+    })
 
     // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -87,7 +94,7 @@ serve(async (req) => {
     
     const requestBody: any = {
       textQuery: 'restaurants',
-      locationBias: {
+      locationRestriction: {
         circle: {
           center: {
             latitude: lat,
