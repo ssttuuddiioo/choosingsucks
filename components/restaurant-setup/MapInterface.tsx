@@ -163,8 +163,8 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
         <div 
           className="border-2 border-pink-500 bg-pink-500/20 rounded-full"
           style={{
-            width: '200px',
-            height: '200px',
+            width: 'min(70vw, 70vh, 350px)',
+            height: 'min(70vw, 70vh, 350px)',
           }}
         />
       </div>

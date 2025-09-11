@@ -126,7 +126,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   }
 
   const bind = useDrag(
-    ({ active, movement: [mx], direction: [xDir], velocity: [vx], cancel }) => {
+    ({ active, movement: [mx], direction: [xDir], velocity: [vx], cancel, tap }) => {
       if (isAnimating) {
         cancel()
         return
@@ -136,8 +136,19 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
       if (active) {
         x.set(mx)
       } else {
-        // Determine if swipe should trigger - much more sensitive
-        const trigger = Math.abs(vx) > 0.2 || Math.abs(mx) > 50
+        // More forgiving swipe detection - especially for right swipes
+        const absVx = Math.abs(vx)
+        const absMx = Math.abs(mx)
+        
+        // Different thresholds for left vs right to help with "yea" swipes
+        const isRightSwipe = mx > 0
+        const velocityThreshold = isRightSwipe ? 0.1 : 0.15
+        const distanceThreshold = isRightSwipe ? 30 : 40
+        
+        const trigger = absVx > velocityThreshold || absMx > distanceThreshold
+        
+        // Debug logging (remove in production)
+        console.log('Swipe attempt:', { mx, vx, trigger, isRightSwipe, absVx, absMx })
         
         if (trigger) {
           const vote = mx > 0
@@ -152,8 +163,10 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     },
     {
       axis: 'x',
-      bounds: { left: -300, right: 300 },
+      bounds: { left: -400, right: 400 },
       rubberband: true,
+      filterTaps: true,
+      threshold: 5,
     }
   )
 
@@ -226,7 +239,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
           {currentCandidate && (
             <motion.div
               key={`current-${currentCandidate.id}`}
-              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+              className="absolute inset-0 cursor-grab active:cursor-grabbing touch-none"
               style={{ 
                 x, 
                 rotate, 

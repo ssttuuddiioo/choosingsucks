@@ -94,7 +94,7 @@ serve(async (req) => {
     
     const requestBody: any = {
       textQuery: 'restaurants',
-      locationRestriction: {
+      locationBias: {
         circle: {
           center: {
             latitude: lat,
@@ -146,8 +146,32 @@ serve(async (req) => {
       )
     }
 
-    // Transform and insert candidates
-    const candidates = placesData.places.map((place: any) => {
+    // Helper function to calculate distance between two points in meters
+    function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+      const R = 6371000 // Earth's radius in meters
+      const dLat = (lat2 - lat1) * Math.PI / 180
+      const dLng = (lng2 - lng1) * Math.PI / 180
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+      return R * c
+    }
+
+    // Filter and transform candidates - only include restaurants within the actual radius
+    const filteredPlaces = placesData.places.filter((place: any) => {
+      if (!place.location?.latitude || !place.location?.longitude) return false
+      const distance = calculateDistance(lat, lng, place.location.latitude, place.location.longitude)
+      const withinRadius = distance <= radiusInMeters
+      if (!withinRadius) {
+        console.log(`🚫 Filtered out: ${place.displayName?.text} (${(distance/1609.34).toFixed(2)} miles away)`)
+      }
+      return withinRadius
+    })
+
+    console.log(`📊 Filtering results: ${placesData.places.length} → ${filteredPlaces.length} restaurants within ${radius} miles`)
+
+    const candidates = filteredPlaces.map((place: any) => {
       // Convert price level string to number
       let priceLevel = null
       if (place.priceLevel) {
