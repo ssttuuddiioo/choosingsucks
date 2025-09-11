@@ -16,14 +16,14 @@ export default function HostSetupPage() {
   const router = useRouter()
   const [zipCode, setZipCode] = useState('')
   const [showCustomize, setShowCustomize] = useState(false)
-  const [requireNames, setRequireNames] = useState(false)
+  const [requireNames, setRequireNames] = useState(false) // Default to false, hidden in 2-person mode
   const [inviteCount, setInviteCount] = useState('2') // Default to 2 people (configurable via feature flag)
   const [customCount, setCustomCount] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
   const [notifyEmail, setNotifyEmail] = useState('')
   const [notifyPhone, setNotifyPhone] = useState('')
-  const [matchRequirement, setMatchRequirement] = useState<'all' | 'majority'>('all')
-  const [multipleMatches, setMultipleMatches] = useState(false)
+  const [matchRequirement, setMatchRequirement] = useState<'all' | 'majority'>('all') // Default to 100%, hidden in 2-person mode
+  const [multipleMatches, setMultipleMatches] = useState(false) // Default to first match, hidden in 2-person mode
   const [selectedPriceLevels, setSelectedPriceLevels] = useState<number[]>([2, 3]) // Default: $$ and $$$ selected
   const [loading, setLoading] = useState(false)
 
@@ -35,6 +35,7 @@ export default function HostSetupPage() {
     )
   }
   const [error, setError] = useState('')
+  const [shakeError, setShakeError] = useState(false)
   const [sessionCreated, setSessionCreated] = useState(false)
   const [sessionId, setSessionId] = useState('')
   const [shareLink, setShareLink] = useState('')
@@ -59,6 +60,8 @@ export default function HostSetupPage() {
   const handleCreateSession = async () => {
     if (!isValidZipCode(zipCode)) {
       setError('Please enter a valid 5-digit ZIP code')
+      setShakeError(true)
+      setTimeout(() => setShakeError(false), 500)
       return
     }
 
@@ -259,7 +262,11 @@ export default function HostSetupPage() {
             <div className="text-lg font-black text-white/90 leading-tight w-20">
               ZIP
             </div>
-            <div className="flex-1 relative">
+            <motion.div 
+              className="flex-1 relative"
+              animate={shakeError ? { x: [-10, 10, -10, 10, 0] } : {}}
+              transition={{ duration: 0.4 }}
+            >
               <input
                 type="text"
                 inputMode="numeric"
@@ -267,8 +274,14 @@ export default function HostSetupPage() {
                 value={zipCode}
                 onChange={(e) => setZipCode(formatZipCode(e.target.value))}
                 maxLength={5}
-                className="input-gradient w-full text-center text-xl font-bold pr-12"
+                className={cn(
+                  "input-gradient w-full text-center text-xl font-bold pr-12",
+                  error && "ring-2 ring-red-500"
+                )}
                 disabled={geolocation.loading}
+                aria-label="ZIP Code"
+                aria-invalid={!!error}
+                aria-describedby={error ? "zip-error" : undefined}
               />
               <button
                 onClick={() => geolocation.getCurrentLocation()}
@@ -406,37 +419,39 @@ export default function HostSetupPage() {
                   </>
                 )}
 
-                {/* Require Names */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div>Require</div>
-                    <div>names?</div>
+                {/* Require Names - only show if multi-person is enabled */}
+                {env.features.multiPersonSessions && (
+                  <div className="flex items-center gap-4">
+                    <div className="text-lg font-black text-white/90 leading-tight w-20">
+                      <div>Require</div>
+                      <div>names?</div>
+                    </div>
+                    <div className="flex gap-2 flex-1">
+                      <button
+                        onClick={() => setRequireNames(false)}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
+                          !requireNames 
+                            ? "bg-gradient-pink text-white shadow-lg" 
+                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                        )}
+                      >
+                        No
+                      </button>
+                      <button
+                        onClick={() => setRequireNames(true)}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
+                          requireNames 
+                            ? "bg-gradient-pink text-white shadow-lg" 
+                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                        )}
+                      >
+                        Yes
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={() => setRequireNames(false)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        !requireNames 
-                          ? "bg-gradient-pink text-white shadow-lg" 
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      No
-                    </button>
-                    <button
-                      onClick={() => setRequireNames(true)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        requireNames 
-                          ? "bg-gradient-pink text-white shadow-lg" 
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
+                )}
 
                 {/* Price Filter */}
                 <div className="flex items-center gap-4">
@@ -462,69 +477,73 @@ export default function HostSetupPage() {
                   </div>
                 </div>
 
-                {/* Match Type */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div>Matches</div>
-                    <div>Required</div>
+                {/* Match Type - only show if multi-person is enabled */}
+                {env.features.multiPersonSessions && (
+                  <div className="flex items-center gap-4">
+                    <div className="text-lg font-black text-white/90 leading-tight w-20">
+                      <div>Matches</div>
+                      <div>Required</div>
+                    </div>
+                    <div className="flex gap-2 flex-1">
+                      <button
+                        onClick={() => setMatchRequirement('all')}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
+                          matchRequirement === 'all'
+                            ? "bg-gradient-pink text-white shadow-lg"
+                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                        )}
+                      >
+                        100%
+                      </button>
+                      <button
+                        onClick={() => setMatchRequirement('majority')}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
+                          matchRequirement === 'majority'
+                            ? "bg-gradient-pink text-white shadow-lg"
+                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                        )}
+                      >
+                        50%
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={() => setMatchRequirement('all')}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        matchRequirement === 'all'
-                          ? "bg-gradient-pink text-white shadow-lg"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      100%
-                    </button>
-                    <button
-                      onClick={() => setMatchRequirement('majority')}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        matchRequirement === 'majority'
-                          ? "bg-gradient-pink text-white shadow-lg"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      50%
-                    </button>
-                  </div>
-                </div>
+                )}
 
-                {/* How Many Matches */}
-                <div className="flex items-center gap-4">
-                  <div className="text-lg font-black text-white/90 leading-tight w-20">
-                    <div># of</div>
-                    <div>matches</div>
+                {/* How Many Matches - only show if multi-person is enabled */}
+                {env.features.multiPersonSessions && (
+                  <div className="flex items-center gap-4">
+                    <div className="text-lg font-black text-white/90 leading-tight w-20">
+                      <div># of</div>
+                      <div>matches</div>
+                    </div>
+                    <div className="flex gap-2 flex-1">
+                      <button
+                        onClick={() => setMultipleMatches(false)}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
+                          !multipleMatches
+                            ? "bg-gradient-pink text-white shadow-lg"
+                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                        )}
+                      >
+                        First match
+                      </button>
+                      <button
+                        onClick={() => setMultipleMatches(true)}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
+                          multipleMatches
+                            ? "bg-gradient-pink text-white shadow-lg"
+                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                        )}
+                      >
+                        All matches
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={() => setMultipleMatches(false)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        !multipleMatches
-                          ? "bg-gradient-pink text-white shadow-lg"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      First match
-                    </button>
-                    <button
-                      onClick={() => setMultipleMatches(true)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl font-semibold transition-all",
-                        multipleMatches
-                          ? "bg-gradient-pink text-white shadow-lg"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      All matches
-                    </button>
-                  </div>
-                </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

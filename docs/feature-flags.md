@@ -25,12 +25,18 @@ NEXT_PUBLIC_ENABLE_MULTI_PERSON=false
 **When `false` (default):**
 - Sessions are limited to 2 people
 - "How many people?" section is hidden from the setup UI
+- "Require names?" section is hidden (defaults to `false`)
+- "Matches Required" section is hidden (defaults to `100%`)
+- "# of matches" section is hidden (defaults to `First match`)
 - `inviteCount` defaults to '2'
 - Simplified UI for stress testing 2-person logic
 
 **When `true`:**
 - Users can select 2-20 people for sessions
 - "How many people?" section appears in the setup UI
+- "Require names?" section appears with full functionality
+- "Matches Required" section appears (100% or 50% options)
+- "# of matches" section appears (First match or All matches)
 - Full multi-person functionality is enabled
 - Custom count input for 7+ people
 
