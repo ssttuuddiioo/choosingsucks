@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Fetching detailed information with controlled concurrency...')
     
     const batchSize = 3 // Smaller batches to avoid timeouts
-    const detailedCandidates = []
+    const detailedCandidates: any[] = []
     
     for (let i = 0; i < searchResults.titles.length; i += batchSize) {
       const batch = searchResults.titles.slice(i, i + batchSize)
