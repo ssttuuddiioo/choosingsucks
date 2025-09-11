@@ -34,17 +34,16 @@ export default function ContentTypeSection({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      <h2 className="text-white text-xl font-bold mb-4">What do you want to watch?</h2>
       <div className="flex gap-3">
         {options.map((option) => (
           <button
             key={option.value}
             onClick={() => toggleContentType(option.value)}
             className={`
-              px-6 py-3 rounded-xl font-bold transition-all duration-300
+              flex-1 px-6 py-4 rounded-xl font-bold text-xl transition-all duration-300
               ${contentTypes.includes(option.value)
-                ? 'bg-gradient-electric text-white shadow-lg transform scale-105' 
-                : 'bg-white/20 text-white hover:bg-white/30 hover:scale-102'
+                ? 'bg-gradient-electric text-white shadow-lg' 
+                : 'bg-white/20 text-white hover:bg-white/30'
               }
             `}
           >
