@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react'
+import { Users, HandMetal } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { useEffect } from 'react'
@@ -58,18 +58,15 @@ export default function ExhaustedScreen({ session, sessionStatus }: ExhaustedScr
         {/* Main message */}
         <div className="space-y-3">
           <motion.div 
-            className="text-8xl"
+            className="flex justify-center"
             animate={{ rotate: [0, 10, -10, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
           >
-            ⏳
+            <HandMetal className="w-20 h-20 text-white" />
           </motion.div>
           <h1 className="text-3xl font-outfit font-bold gradient-text">
             Your votes are in
           </h1>
-          <p className="text-white/70 text-lg">
-            You've voted on all available options
-          </p>
         </div>
 
         {/* Status card */}
