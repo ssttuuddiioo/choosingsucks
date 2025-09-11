@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import StreamingSwipeInterface from '@/components/streaming/streaming-swipe-interface'
 import GenericRockPaperScissors from '@/components/shared/rock-paper-scissors-template'
+import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
 import { getClientFingerprint, getParticipantToken, storeParticipantToken } from '@/lib/utils/session'
 import type { Tables } from '@/types/supabase'
@@ -40,8 +41,14 @@ export default function StreamingSessionPage() {
   const [participant, setParticipant] = useState<Tables<'participants'> | null>(null)
   const [swipedCandidateIds, setSwipedCandidateIds] = useState<Set<number>>(new Set())
   const [showRockPaperScissors, setShowRockPaperScissors] = useState(false)
+  const [showNoMatches, setShowNoMatches] = useState(false)
   const [rpsGameId, setRpsGameId] = useState<string | null>(null)
   const [pendingMove, setPendingMove] = useState<string | null>(null)
+  const [sessionStatus, setSessionStatus] = useState({
+    invitedCount: 2, // Default for streaming sessions
+    joinedCount: 1,
+    submittedCount: 0,
+  })
 
   const supabase = createBrowserClient()
 
@@ -137,6 +144,12 @@ export default function StreamingSessionPage() {
     // Track swiped candidates
     setSwipedCandidateIds(prev => new Set(prev).add(candidateId))
     
+    // Update session status to show progress
+    setSessionStatus(prev => ({
+      ...prev,
+      submittedCount: prev.submittedCount + 1
+    }))
+    
     // In a full implementation, you'd store votes in database for matching
     // For now, we'll just track locally and trigger RPS when exhausted
   }
@@ -224,34 +237,14 @@ export default function StreamingSessionPage() {
     )
   }
 
-  // Show RPS trigger when exhausted
-  if (remainingCandidates.length === 0 && candidates.length > 0) {
+  // Exhausted state - show template exhausted screen like restaurant version
+  if (remainingCandidates.length === 0 && candidates.length > 0 && session) {
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="text-6xl">🤔</div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white">Session Complete!</h1>
-            <p className="text-white/70">
-              Ready to decide what to watch? Let's settle this with a game!
-            </p>
-          </div>
-
-          <button
-            onClick={handleRockPaperScissors}
-            className="w-full bg-gradient-electric text-white py-4 rounded-xl font-bold hover:scale-105 transition-transform"
-          >
-            Play Rock Paper Scissors
-          </button>
-          
-          <button
-            onClick={() => router.push('/streaming')}
-            className="w-full bg-white/20 text-white py-3 rounded-xl font-bold hover:bg-white/30 transition-colors"
-          >
-            Create New Session
-          </button>
-        </div>
-      </div>
+      <ExhaustedScreenTemplate
+        session={session}
+        sessionStatus={sessionStatus}
+        category="streaming"
+      />
     )
   }
 

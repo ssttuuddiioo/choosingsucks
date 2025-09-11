@@ -13,7 +13,7 @@ import JoinFlow from '@/components/session/join-flow'
 import SwipeInterface from '@/components/swipe/swipe-interface'
 import SessionStatus from '@/components/session/session-status'
 import MatchScreen from '@/components/session/match-screen'
-import ExhaustedScreen from '@/components/session/exhausted-screen'
+import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
 import InvalidSessionScreen from '@/components/session/invalid-session-screen'
 import NoMatchesScreen from '@/components/session/no-matches-screen'
 import RockPaperScissors from '@/components/session/rock-paper-scissors'
@@ -497,9 +497,10 @@ export default function SessionPage() {
   // Exhausted state
   if (remainingCandidates.length === 0 && candidates.length > 0) {
     return (
-      <ExhaustedScreen
+      <ExhaustedScreenTemplate
         session={session}
         sessionStatus={sessionStatus}
+        category="restaurants"
       />
     )
   }
