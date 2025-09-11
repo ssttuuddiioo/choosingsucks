@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, DollarSign } from 'lucide-react'
+import { Filter, DollarSign } from 'lucide-react'
 import {
   Drawer,
   DrawerClose,
@@ -62,15 +62,15 @@ export default function DetailsDrawer({
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <button className="flex items-center gap-2 px-4 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors">
-          <Settings className="h-5 w-5" />
-          Details
+          <Filter className="h-5 w-5" />
+          Filters
         </button>
       </DrawerTrigger>
       
       <DrawerContent className="bg-gradient-primary border-white/20">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
-            <DrawerTitle className="text-white font-outfit">Session Details</DrawerTitle>
+            <DrawerTitle className="text-white font-outfit">Filters</DrawerTitle>
             <DrawerDescription className="text-white/70">
               Customize your restaurant search preferences
             </DrawerDescription>

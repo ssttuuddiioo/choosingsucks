@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Wrapper } from '@googlemaps/react-wrapper'
 import { env } from '@/lib/utils/env'
+import { Slider } from '@/components/ui/slider'
 
 interface MapInterfaceProps {
   center: { lat: number; lng: number }
@@ -30,7 +31,7 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
     if (ref.current && !map) {
       const newMap = new google.maps.Map(ref.current, {
         center,
-        zoom: 12,
+        zoom: 13,
         disableDefaultUI: true,
         zoomControl: true,
         gestureHandling: 'greedy',
@@ -104,13 +105,26 @@ function GoogleMapComponent({ center, radius, onCenterChange, style }: GoogleMap
         radius: radius * 1609.34, // miles to meters
         map,
         fillColor: '#EC4899',
-        fillOpacity: 0.15,
+        fillOpacity: 0.2,
         strokeColor: '#EC4899',
-        strokeWeight: 2,
-        strokeOpacity: 0.8,
+        strokeWeight: 3,
+        strokeOpacity: 1,
+        clickable: false,
+        editable: false,
       })
 
       setCircle(newCircle)
+
+      // Adjust zoom to fit the circle
+      const bounds = newCircle.getBounds()
+      if (bounds) {
+        map.fitBounds(bounds)
+        // Ensure we don't zoom in too much for small radii
+        const currentZoom = map.getZoom()
+        if (currentZoom && currentZoom > 15) {
+          map.setZoom(15)
+        }
+      }
     }
   }, [map, center, radius, circle])
 
@@ -179,51 +193,19 @@ export default function MapInterface({
       {/* Radius Control Overlay */}
       <div className="absolute bottom-4 left-4 right-4 z-10">
         <div className="bg-black/80 backdrop-blur-sm rounded-xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-white/70 text-sm font-medium">Search Radius</span>
+          <div className="flex items-center justify-between mb-3">
             <span className="text-white font-bold">{radius} {radius === 1 ? 'mile' : 'miles'}</span>
           </div>
-          <div className="relative">
-            <input
-              type="range"
-              min="1"
-              max="10"
-              step="0.5"
-              value={radius}
-              onChange={(e) => onRadiusChange(parseFloat(e.target.value))}
-              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-            />
-            <div className="flex justify-between text-xs text-white/50 mt-1">
-              <span>1mi</span>
-              <span>5mi</span>
-              <span>10mi</span>
-            </div>
-          </div>
+          <Slider
+            value={[radius]}
+            onValueChange={(value) => onRadiusChange(value[0])}
+            max={10}
+            min={1}
+            step={0.5}
+            className="w-full"
+          />
         </div>
       </div>
-
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: #EC4899;
-          cursor: pointer;
-          border: 2px solid #FFFFFF;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .slider::-moz-range-thumb {
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: #EC4899;
-          cursor: pointer;
-          border: 2px solid #FFFFFF;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-      `}</style>
     </div>
   )
 }
