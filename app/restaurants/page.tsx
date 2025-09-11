@@ -153,13 +153,13 @@ export default function RestaurantSetupPage() {
   if (sessionCreated) {
     return (
       <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="glass-card p-8 max-w-md w-full text-center space-y-6"
+          className="md:glass-card p-8 max-w-md w-full text-center space-y-6"
         >
           <div className="space-y-2">
-            <h1 className="text-3xl font-outfit font-bold">Session Created!</h1>
+            <h1 className="text-3xl font-outfit font-bold text-white">Session Created!</h1>
             <p className="text-white/70">Share this link with your group</p>
           </div>
 
