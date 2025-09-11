@@ -279,16 +279,30 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
 
   return (
     <div className="h-screen bg-gradient-primary flex flex-col" style={{ height: '100dvh' }}>
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 flex justify-between items-center">
-        <button
-          onClick={() => router.push('/streaming')}
-          className="text-white/70 hover:text-white transition-colors"
-        >
-          <X className="h-6 w-6" />
-        </button>
-        <div className="text-white/70 text-sm">
-          {currentIndex + 1} of {candidates.length}
+      {/* Header - matching restaurant style */}
+      <div className="bg-black/20 backdrop-blur-md border-0 rounded-none px-4 py-4">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-between text-white">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-base">Streaming Session</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-orange text-white px-3 py-2 rounded-full font-bold text-sm">
+                {candidates.length - currentIndex}
+              </div>
+              
+              <button
+                onClick={() => router.push('/streaming')}
+                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all transform hover:scale-110 active:scale-95"
+                title="Back to setup"
+              >
+                <X className="h-5 w-5 text-white" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -483,13 +497,13 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
       </div>
 
       {/* Info Section */}
-      <div className="flex-shrink-0 p-6 space-y-3 bg-gradient-to-t from-black/90 to-transparent">
+      <div className="flex-shrink-0 p-6 space-y-3">
         <div>
-          <h1 className="text-white text-2xl font-bold leading-tight mb-2">
+          <h1 className="text-gray-900 text-2xl font-bold leading-tight mb-2">
             {candidate.title}
           </h1>
           
-          <div className="flex items-center gap-4 text-white/70 text-sm mb-3">
+          <div className="flex items-center gap-4 text-gray-600 text-sm mb-3">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               {candidate.year}
@@ -503,7 +517,7 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
             )}
 
             {candidate.us_rating && (
-              <div className="bg-white/20 px-2 py-1 rounded text-xs font-bold">
+              <div className="bg-gray-200 px-2 py-1 rounded text-xs font-bold text-gray-700">
                 {candidate.us_rating}
               </div>
             )}
@@ -515,7 +529,7 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
               {candidate.genre_names.slice(0, 3).map((genre) => (
                 <span
                   key={genre}
-                  className="bg-white/20 text-white px-3 py-1 rounded-full text-sm"
+                  className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm"
                 >
                   {genre}
                 </span>
@@ -525,7 +539,7 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
 
           {/* Plot */}
           {candidate.plot_overview && (
-            <p className="text-white/80 text-sm leading-relaxed line-clamp-3">
+            <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
               {candidate.plot_overview}
             </p>
           )}

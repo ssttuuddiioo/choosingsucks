@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
 
     // Build search parameters
     const searchParams: any = {
-      sort_by: 'popularity_desc', // Sort by popularity as requested
-      limit: 20, // Get 20 titles for good variety
+      sort_by: 'popularity_desc', // Get popular content, then we'll sort by rating
+      limit: 50, // Get more titles so we can filter for the best rated ones
     }
 
     // Set content types
@@ -145,12 +145,19 @@ export async function POST(request: NextRequest) {
       })
     )
 
-    const candidates = detailedCandidates
+    // Sort candidates by rating (best to worst) and take top 20
+    const sortedCandidates = detailedCandidates
+      .filter(candidate => candidate.user_rating && candidate.user_rating > 0) // Only include rated content
+      .sort((a, b) => (b.user_rating || 0) - (a.user_rating || 0)) // Sort by rating descending
+      .slice(0, 20) // Take only the top 20 highest rated
+
+    const candidates = sortedCandidates
 
     // TODO: Store candidates in database for session
     // For now, we'll return the data directly
     
     console.log(`📺 Prepared ${candidates.length} streaming candidates for session ${sessionId}`)
+    console.log(`🏆 Top rated content: ${candidates.slice(0, 3).map(c => `${c.title} (${c.user_rating})`).join(', ')}`)
 
     return NextResponse.json({
       success: true,

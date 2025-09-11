@@ -396,39 +396,39 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
 
       {/* Info - fixed height to ensure visibility */}
       <div 
-        className="flex-shrink-0 p-4 md:p-6 space-y-3 bg-gradient-to-t from-black/95 via-black/80 to-black/60 backdrop-blur-sm"
+        className="flex-shrink-0 p-4 md:p-6 space-y-3"
         style={{ 
           minHeight: '140px', // Ensure minimum space for content
           maxHeight: '180px'  // Prevent info from taking too much space
         }}
       >
-        <h2 className="text-xl md:text-2xl font-outfit font-bold text-white line-clamp-2 drop-shadow-lg">
+        <h2 className="text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2">
           {candidate.name}
         </h2>
 
         <div className="flex items-center gap-3 text-sm">
           {/* Rating */}
           {candidate.rating && (
-            <div className="flex items-center gap-1 bg-white/10 px-2 md:px-3 py-1 rounded-full">
-              <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-400 fill-current" />
-              <span className="font-bold text-white text-xs md:text-sm">{candidate.rating}</span>
+            <div className="flex items-center gap-1 bg-gray-200 px-2 md:px-3 py-1 rounded-full">
+              <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500 fill-current" />
+              <span className="font-bold text-gray-900 text-xs md:text-sm">{candidate.rating}</span>
               {candidate.user_ratings_total && (
-                <span className="text-white/50 text-xs">({candidate.user_ratings_total})</span>
+                <span className="text-gray-600 text-xs">({candidate.user_ratings_total})</span>
               )}
             </div>
           )}
 
           {/* Price Level */}
           {candidate.price_level && (
-            <div className="flex items-center bg-white/10 px-2 md:px-3 py-1 rounded-full">
+            <div className="flex items-center bg-gray-200 px-2 md:px-3 py-1 rounded-full">
               {Array.from({ length: 4 }).map((_, i) => (
                 <DollarSign
                   key={i}
                   className={cn(
                     "h-3 w-3 md:h-4 md:w-4",
                     i < (candidate.price_level || 0)
-                      ? "text-lime-green"
-                      : "text-white/30"
+                      ? "text-green-600"
+                      : "text-gray-400"
                   )}
                 />
               ))}

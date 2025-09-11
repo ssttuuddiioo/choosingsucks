@@ -156,7 +156,7 @@ export default function RestaurantSetupPage() {
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="md:glass-card p-8 max-w-md w-full text-center space-y-6"
+          className="p-8 max-w-md w-full text-center space-y-6"
         >
           <div className="space-y-2">
             <h1 className="text-3xl font-outfit font-bold text-white">Session Created!</h1>
