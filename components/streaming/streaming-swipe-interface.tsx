@@ -5,6 +5,9 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-mo
 import { useDrag } from '@use-gesture/react'
 import { useRouter } from 'next/navigation'
 import { X, Heart, Star, Clock, Calendar, Play, Clipboard, Check } from 'lucide-react'
+import { PiHandFistLight, PiHandPeaceLight } from 'react-icons/pi'
+import { LiaHandPaper } from 'react-icons/lia'
+import { FaHeartBroken } from 'react-icons/fa'
 import { cn } from '@/lib/utils/cn'
 
 interface StreamingCandidate {
@@ -200,7 +203,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     return (
       <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
-          <div className="text-6xl">🤔</div>
+          <FaHeartBroken className="text-6xl text-white mx-auto" />
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-white">No matches found!</h1>
             <p className="text-white/70">
@@ -222,7 +225,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
                   console.log('Starting RPS game with Rock')
                 }}
               >
-                <div className="text-4xl">🪨</div>
+                <PiHandFistLight className="text-4xl text-white transform -rotate-90" />
                 <span className="text-white font-bold text-sm">Rock</span>
               </motion.button>
 
@@ -235,7 +238,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
                   console.log('Starting RPS game with Paper')
                 }}
               >
-                <div className="text-4xl">📄</div>
+                <LiaHandPaper className="text-4xl text-white transform -rotate-90" />
                 <span className="text-white font-bold text-sm">Paper</span>
               </motion.button>
 
@@ -248,30 +251,19 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
                   console.log('Starting RPS game with Scissors')
                 }}
               >
-                <div className="text-4xl">✂️</div>
+                <PiHandPeaceLight className="text-4xl text-white transform -rotate-90" />
                 <span className="text-white font-bold text-sm">Scissors</span>
               </motion.button>
             </div>
           </div>
 
           {/* Alternative Options */}
-          <div className="space-y-3 pt-4 border-t border-white/10">
+          <div className="pt-4 border-t border-white/10">
             <button
               onClick={() => router.push('/streaming')}
               className="w-full bg-gradient-electric text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
             >
-              Try Different Preferences
-            </button>
-            
-            <button
-              onClick={() => {
-                // TODO: Create a broader swipe session with relaxed filters
-                console.log('Creating broader swipe session')
-                router.push('/streaming')
-              }}
-              className="w-full bg-white/20 text-white py-3 rounded-xl font-bold hover:bg-white/30 transition-colors"
-            >
-              Create Swipe Session Instead
+              Create New Swipe Session
             </button>
           </div>
         </div>
@@ -335,13 +327,6 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
                 </AnimatePresence>
               </button>
               
-              <button
-                onClick={() => router.push('/streaming')}
-                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all transform hover:scale-110 active:scale-95"
-                title="Back to setup"
-              >
-                <X className="h-5 w-5 text-white" />
-              </button>
             </div>
           </div>
         </div>
