@@ -101,6 +101,9 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
   const handleSwipeComplete = (vote: boolean) => {
     if (!currentCandidate || isAnimating) return
     
+    // Prevent double-swiping the same card
+    if (animatingCardId === currentCandidate.id.toString()) return
+    
     setIsAnimating(true)
     setAnimatingCardId(currentCandidate.id.toString())
     
@@ -111,13 +114,13 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     
     onSwipe(currentCandidate.id.toString(), vote)
     
-    // Atomic state update after animation completes
+    // Faster state update for responsive swiping
     setTimeout(() => {
       setCurrentIndex(prev => prev + 1)
       setAnimatingCardId(null)
       x.set(0) // Reset position for next card
       setIsAnimating(false)
-    }, 300)
+    }, 150) // Reduced from 300ms to 150ms
   }
 
   const handleButtonSwipe = (vote: boolean) => {

@@ -44,6 +44,8 @@ export default function StreamingSessionPage() {
   const [showRockPaperScissors, setShowRockPaperScissors] = useState(false)
   const [rpsGameId, setRpsGameId] = useState<string | null>(null)
   const [pendingMove, setPendingMove] = useState<string | null>(null)
+  const [swipeQueue, setSwipeQueue] = useState<Array<{candidateId: string, vote: boolean}>>([])
+  const [isProcessingSwipes, setIsProcessingSwipes] = useState(false)
 
   const supabase = createBrowserClient()
 
@@ -76,6 +78,77 @@ export default function StreamingSessionPage() {
       handleJoin() // Auto-join without name
     }
   }, [session, participant, loading])
+
+  // Process swipe queue in batches with adaptive throttling
+  useEffect(() => {
+    if (swipeQueue.length > 0 && !isProcessingSwipes && participant) {
+      // Adaptive throttling: immediate for single swipes, batched for rapid swiping
+      const delay = swipeQueue.length >= 3 ? 300 : 100 // Faster processing for rapid swipes
+      
+      const timer = setTimeout(() => {
+        processSwipeQueue()
+      }, delay)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [swipeQueue, isProcessingSwipes, participant])
+
+  const processSwipeQueue = async () => {
+    if (isProcessingSwipes || swipeQueue.length === 0 || !participant) return
+    
+    setIsProcessingSwipes(true)
+    
+    try {
+      // Process all queued swipes in a single batch
+      const swipesToProcess = [...swipeQueue]
+      setSwipeQueue([]) // Clear queue immediately for next batch
+      
+      console.log(`🔄 Processing ${swipesToProcess.length} queued "no" votes`)
+      
+      // Only process "no" votes in batches (yes votes are handled immediately)
+      const noVotes = swipesToProcess.filter(s => !s.vote)
+      
+      if (noVotes.length > 0) {
+        // Insert "no" votes in a single database call
+        const swipeRecords = noVotes.map(swipe => ({
+          session_id: sessionId,
+          participant_id: participant.id,
+          candidate_id: swipe.candidateId,
+          vote: 0,
+        }))
+
+        const { error: swipeError } = await supabase
+          .from('swipes')
+          .insert(swipeRecords)
+
+        if (swipeError) {
+          console.error('Error batch inserting no votes:', swipeError)
+          // Re-queue failed swipes
+          setSwipeQueue(prev => [...noVotes, ...prev])
+          return
+        }
+      }
+
+      // Check if all candidates have been swiped
+      const totalSwiped = swipedCandidateIds.size + swipesToProcess.length
+      if (totalSwiped >= candidates.length) {
+        // Mark participant as submitted
+        await supabase
+          .from('participants')
+          .update({ submitted_at: new Date().toISOString() })
+          .eq('id', participant.id)
+
+        // Refresh session status
+        await fetchSessionStatus()
+        broadcast('participant_update', { type: 'submitted' })
+      }
+      
+    } catch (err) {
+      console.error('Error processing swipe queue:', err)
+    } finally {
+      setIsProcessingSwipes(false)
+    }
+  }
 
   const initializeSession = async () => {
     try {
@@ -181,70 +254,59 @@ export default function StreamingSessionPage() {
   const handleSwipe = async (candidateId: string, vote: boolean) => {
     if (!participant) return
 
-    try {
-      // Record swipe in database
-      const { error: swipeError } = await supabase
-        .from('swipes')
-        .insert({
-          session_id: sessionId,
-          participant_id: participant.id,
-          candidate_id: candidateId,
-          vote: vote ? 1 : 0,
-        })
-
-      if (swipeError) throw swipeError
-
-      // Update local state
-      setSwipedCandidateIds(prev => new Set(Array.from(prev).concat(candidateId)))
-
-      // Track analytics
+    // 1. IMMEDIATE: Optimistic UI update - cards move instantly
+    setSwipedCandidateIds(prev => new Set(Array.from(prev).concat(candidateId)))
+    
+    // 2. IMMEDIATE: Check for match if this was a "yes" vote (critical path)
+    if (vote) {
       const candidate = candidates.find(c => c.id === candidateId)
       if (candidate) {
-        analytics.swipe(sessionId, candidate.place_id, vote)
-      }
-
-      // Check for match if this was a like
-      if (vote && candidate) {
-        console.log('❤️ Checking for match after like:', candidate.title || candidate.name)
+        console.log('❤️ Checking for immediate match:', candidate.title || candidate.name)
+        
+        // Record the swipe immediately for match detection
         try {
-          const matchResponse = await fetch('/api/check-match', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              sessionId,
-              candidateId: candidateId,
-              participantId: participant.id
+          const { error: swipeError } = await supabase
+            .from('swipes')
+            .insert({
+              session_id: sessionId,
+              participant_id: participant.id,
+              candidate_id: candidateId,
+              vote: 1,
             })
-          })
-          
-          const matchResult = await matchResponse.json()
-          console.log('🎯 Match check result:', matchResult)
-          
-          if (matchResult.match) {
-            console.log('🎉 MATCH FOUND! Session will update via realtime')
-            return
+
+          if (!swipeError) {
+            // Check for match immediately
+            const matchResponse = await fetch('/api/check-match', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sessionId,
+                candidateId: candidateId,
+                participantId: participant.id
+              })
+            })
+            
+            const matchResult = await matchResponse.json()
+            if (matchResult.match) {
+              console.log('🎯 IMMEDIATE MATCH FOUND!', candidate.title || candidate.name)
+              return // Stop here, match found
+            }
           }
-        } catch (matchError) {
-          console.error('Error checking for match:', matchError)
+        } catch (error) {
+          console.error('Error in immediate match check:', error)
+          // Fall back to queue system
+          setSwipeQueue(prev => [...prev, { candidateId, vote }])
         }
       }
-
-      // Check if all candidates have been swiped
-      if (swipedCandidateIds.size + 1 >= candidates.length) {
-        // Mark participant as submitted
-        await supabase
-          .from('participants')
-          .update({ submitted_at: new Date().toISOString() })
-          .eq('id', participant.id)
-
-        // Refresh session status immediately
-        await fetchSessionStatus()
-
-        // Broadcast update
-        broadcast('participant_update', { type: 'submitted' })
-      }
-    } catch (err) {
-      console.error('Error recording swipe:', err)
+    } else {
+      // 3. BATCHED: Queue "no" votes for batch processing (non-critical)
+      setSwipeQueue(prev => [...prev, { candidateId, vote }])
+    }
+    
+    // Track analytics immediately (lightweight)
+    const candidate = candidates.find(c => c.id === candidateId)
+    if (candidate) {
+      analytics.swipe(sessionId, candidate.place_id, vote)
     }
   }
 
