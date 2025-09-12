@@ -103,7 +103,7 @@ export default function StreamingSessionPage() {
       const swipesToProcess = [...swipeQueue]
       setSwipeQueue([]) // Clear queue immediately for next batch
       
-      console.log(`🔄 Processing ${swipesToProcess.length} queued "no" votes`)
+      console.log(`🔄 Processing ${swipesToProcess.length} queued "no" votes in batch`)
       
       // Only process "no" votes in batches (yes votes are handled immediately)
       const noVotes = swipesToProcess.filter(s => !s.vote)
