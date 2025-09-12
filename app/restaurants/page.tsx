@@ -270,7 +270,7 @@ export default function RestaurantSetupPage() {
           <button
             onClick={handleCreateSession}
             disabled={loading || !isLocationReady}
-            className="flex-1 btn-gradient text-xl py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 btn-gradient-pink text-xl py-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

@@ -82,7 +82,7 @@ export default function SetupPageTemplate({
                 w-full py-4 rounded-2xl font-bold text-xl transition-all duration-300 transform
                 flex items-center justify-center gap-3
                 ${canStartSession && !isCreatingSession
-                  ? 'bg-gradient-electric text-white shadow-lg hover:scale-105 active:scale-95' 
+                  ? 'bg-gradient-pink text-white shadow-lg hover:scale-105 active:scale-95' 
                   : 'bg-white/20 text-white/50 cursor-not-allowed'
                 }
               `}
