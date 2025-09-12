@@ -42,7 +42,7 @@ export default function ContentTypeSection({
             className={`
               flex-1 py-3 rounded-xl font-bold text-xl transition-all duration-300
               ${contentTypes.includes(option.value)
-                ? 'bg-gradient-electric text-white shadow-lg' 
+                ? 'bg-gradient-pink text-white shadow-lg' 
                 : 'bg-white/10 text-white/70 hover:bg-white/20'
               }
             `}
