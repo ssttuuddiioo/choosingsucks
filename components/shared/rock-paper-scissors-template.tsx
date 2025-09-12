@@ -46,11 +46,11 @@ const moveNames = {
 }
 
 const winnerMessages = [
-  "Victory is yours! 🎉",
-  "Winner winner! 🏆",
-  "You've got the power! ⚡",
-  "Democracy has spoken! 🗳️",
-  "Fate has decided! ✨"
+  "Victory is yours!",
+  "Winner winner!",
+  "You've got the power!",
+  "Democracy has spoken!",
+  "Fate has decided!"
 ]
 
 const categoryMessages = {

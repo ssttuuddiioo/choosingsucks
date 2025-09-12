@@ -55,7 +55,8 @@ export default function StreamingPage() {
     setIsCreatingSession(true)
     
     try {
-      const newSessionId = nanoid()
+      // Generate UUID for session ID to match database schema
+      const newSessionId = crypto.randomUUID()
       const shareToken = generateShareToken()
       const newShareLink = `${window.location.origin}/streaming/${newSessionId}?t=${shareToken}`
       

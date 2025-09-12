@@ -52,12 +52,12 @@ const moveNames = {
 }
 
 const winnerMessages = [
-  "Victory is yours! 🎉",
-  "Winner winner, chicken dinner! 🍗",
-  "You've got the power! ⚡",
-  "Democracy has spoken! 🗳️",
-  "The RPS gods have chosen! 🎲",
-  "Fate has decided! ✨"
+  "Victory is yours!",
+  "Winner winner, chicken dinner!",
+  "You've got the power!",
+  "Democracy has spoken!",
+  "The RPS gods have chosen!",
+  "Fate has decided!"
 ]
 
 export default function RockPaperScissors({ session, participant, onBack, initialMove, gameId }: RockPaperScissorsProps) {
@@ -553,7 +553,7 @@ export default function RockPaperScissors({ session, participant, onBack, initia
           >
             {isTie ? (
               <>
-                <div className="text-6xl">🤝</div>
+                <div className="text-6xl text-white/30">=</div>
                 <h2 className="text-2xl font-outfit font-bold gradient-text">
                   It's a tie!
                 </h2>
@@ -563,7 +563,7 @@ export default function RockPaperScissors({ session, participant, onBack, initia
               </>
             ) : (
               <>
-                <div className="text-6xl">{isWinner ? '🎉' : '😅'}</div>
+                <div className="text-6xl text-white/30">{isWinner ? '✓' : '×'}</div>
                 <h2 className="text-2xl font-outfit font-bold gradient-text">
                   {isWinner ? 'You won!' : 'You lost!'}
                 </h2>

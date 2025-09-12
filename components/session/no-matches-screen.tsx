@@ -20,10 +20,10 @@ interface NoMatchesScreenProps {
 export default function NoMatchesScreen({ session, participant, onStartOver, onExpandSearch, onRockPaperScissors, onRPSMove, onNewSession }: NoMatchesScreenProps) {
   // Fun "no match" messages
   const noMatchMessages = [
-    "Tough crowd! 🤷‍♀️",
+    "Tough crowd!",
     "No unanimous winners this time!",
     "Your group has... diverse tastes!",
-    "Democracy is hard! 😅",
+    "Democracy is hard!",
     "Plot twist: No perfect match!"
   ]
   
@@ -50,7 +50,7 @@ export default function NoMatchesScreen({ session, participant, onStartOver, onE
       >
         {/* Main message */}
         <div className="space-y-3">
-          <div className="text-6xl">🤔</div>
+          <div className="text-6xl text-white/30">×</div>
           <h1 className="text-2xl font-outfit font-bold gradient-text">{randomMessage}</h1>
           <p className="text-white/70 text-lg">
             Nobody agreed on the same restaurant. Let's settle this!

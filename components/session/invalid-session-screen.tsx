@@ -29,11 +29,11 @@ export default function InvalidSessionScreen({ message }: InvalidSessionScreenPr
       >
         <div className="space-y-3">
           <motion.div
-            className="text-8xl"
+            className="text-8xl text-white/30"
             animate={{ rotate: [0, -6, 6, -6, 0] }}
             transition={{ duration: 1.6, repeat: 0 }}
           >
-            🧭
+            ⚠
           </motion.div>
           <h1 className="text-3xl font-outfit font-bold gradient-text">
             Oops—link problem
