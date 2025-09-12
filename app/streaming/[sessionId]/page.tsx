@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import StreamingSwipeInterface from '@/components/streaming/streaming-swipe-interface'
+import StreamingMatchScreen from '@/components/streaming/streaming-match-screen'
 import GenericRockPaperScissors from '@/components/shared/rock-paper-scissors-template'
 import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
 import CardLoader from '@/components/ui/card-loader'
@@ -360,40 +361,10 @@ export default function StreamingSessionPage() {
     return <InvalidSessionScreen message={error || 'Session not found'} />
   }
 
-  // Match state
+  // Match state - use dedicated match screen component
   if (session.status === 'matched' && session.match_place_id) {
     const matchedCandidate = candidates.find(c => c.place_id === session.match_place_id)
-    return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="text-6xl">🎉</div>
-          <h1 className="text-3xl font-bold text-white">It's a Match!</h1>
-          {matchedCandidate && (
-            <div className="bg-white/10 rounded-2xl p-6 space-y-4">
-              {matchedCandidate.poster && (
-                <img 
-                  src={matchedCandidate.poster} 
-                  alt={matchedCandidate.title || matchedCandidate.name}
-                  className="w-32 h-48 object-cover rounded-lg mx-auto"
-                />
-              )}
-              <h2 className="text-xl font-bold text-white">
-                {matchedCandidate.title || matchedCandidate.name}
-              </h2>
-              {matchedCandidate.year && (
-                <p className="text-white/70">({matchedCandidate.year})</p>
-              )}
-            </div>
-          )}
-          <button
-            onClick={() => router.push('/streaming')}
-            className="bg-gradient-electric text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform"
-          >
-            Start New Session
-          </button>
-        </div>
-      </div>
-    )
+    return <StreamingMatchScreen session={session} candidate={matchedCandidate} />
   }
 
   // Join flow
