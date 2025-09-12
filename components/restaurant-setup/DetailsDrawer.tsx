@@ -94,6 +94,7 @@ export default function DetailsDrawer({
       <DrawerContent className="bg-gradient-primary border-white/20">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader className="pb-4">
+            <DrawerTitle className="text-xl font-bold text-white">Filter Options</DrawerTitle>
           </DrawerHeader>
           
           <div className="p-4 pb-0 space-y-6">

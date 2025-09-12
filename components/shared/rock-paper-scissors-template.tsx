@@ -8,6 +8,7 @@ import { Trophy, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRealtime } from '@/lib/hooks/use-realtime'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
+import CardLoader from '@/components/ui/card-loader'
 import type { Tables } from '@/types/supabase'
 
 type Move = 'rock' | 'paper' | 'scissors'
@@ -372,10 +373,7 @@ export default function GenericRockPaperScissors({
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white/70">Setting up the game...</p>
-        </div>
+        <CardLoader message="Setting up the game..." />
       </div>
     )
   }

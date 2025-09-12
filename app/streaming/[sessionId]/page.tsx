@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import StreamingSwipeInterface from '@/components/streaming/streaming-swipe-interface'
 import GenericRockPaperScissors from '@/components/shared/rock-paper-scissors-template'
 import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
+import CardLoader from '@/components/ui/card-loader'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
 import { getClientFingerprint, getParticipantToken, storeParticipantToken } from '@/lib/utils/session'
 import type { Tables } from '@/types/supabase'
@@ -106,23 +107,29 @@ export default function StreamingSessionPage() {
       
       // If no stored data, wait a bit and check again (background loading might still be in progress)
       let retries = 0
-      const maxRetries = 10
+      const maxRetries = 60 // Increased from 10 to 60 (30 seconds total)
       const checkInterval = 500 // 500ms intervals
       
       const checkForData = () => {
         const data = sessionStorage.getItem(`streaming-session-${sessionId}`)
         if (data) {
-          const parsedCandidates = JSON.parse(data)
-          setCandidates(parsedCandidates)
-          setLoading(false)
-          return
+          try {
+            const parsedCandidates = JSON.parse(data)
+            setCandidates(parsedCandidates)
+            setLoading(false)
+            return
+          } catch (parseError) {
+            console.error('Error parsing session data:', parseError)
+            // Clear corrupted data and continue waiting
+            sessionStorage.removeItem(`streaming-session-${sessionId}`)
+          }
         }
         
         retries++
         if (retries < maxRetries) {
           setTimeout(checkForData, checkInterval)
         } else {
-          // After 5 seconds of waiting, show error
+          // After 30 seconds of waiting, show error
           setError('Session expired or not found. Please go back and create a new session.')
           setLoading(false)
         }
@@ -173,10 +180,7 @@ export default function StreamingSessionPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white/70">Shuffling cards...</p>
-        </div>
+        <CardLoader message="Shuffling cards..." />
       </div>
     )
   }

@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     // Process in smaller batches to avoid overwhelming the API
     console.log('🔍 Fetching detailed information with controlled concurrency...')
     
-    const batchSize = 3 // Smaller batches to avoid timeouts
+    const batchSize = 5 // Increased batch size for better performance
     const detailedCandidates: any[] = []
     
     for (let i = 0; i < searchResults.titles.length; i += batchSize) {
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
       
       // Small delay between batches to be nice to the API
       if (i + batchSize < searchResults.titles.length) {
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, 100)) // Reduced delay from 200ms to 100ms
       }
     }
 

@@ -8,6 +8,7 @@ import { X, Heart, Star, Clock, Calendar, Play, Clipboard, Check } from 'lucide-
 import { PiHandFistLight, PiHandPeaceLight } from 'react-icons/pi'
 import { LiaHandPaper } from 'react-icons/lia'
 import { FaHeartBroken } from 'react-icons/fa'
+import CardLoader from '@/components/ui/card-loader'
 import { cn } from '@/lib/utils/cn'
 
 interface StreamingCandidate {
@@ -227,10 +228,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
   if (!hasCandidates) {
     return (
       <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white/70">Shuffling cards...</p>
-        </div>
+        <CardLoader message="Shuffling cards..." />
       </div>
     )
   }
