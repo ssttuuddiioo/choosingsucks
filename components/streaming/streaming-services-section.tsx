@@ -42,7 +42,7 @@ export default function StreamingServicesSection({
               min-h-[100px] cursor-pointer
               ${selectedServices.includes(service.id)
                 ? 'ring-4 ring-electric-purple/50 shadow-lg bg-gradient-to-br from-white to-gray-50' 
-                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-gray-300 to-gray-400 filter grayscale opacity-40'
+                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-gray-600 to-gray-700 filter grayscale opacity-25'
               }
               hover:scale-102
             `}
@@ -53,7 +53,11 @@ export default function StreamingServicesSection({
             <img 
               src={service.logo} 
               alt={service.name}
-              className="h-12 object-contain transition-all duration-300"
+              className={`object-contain transition-all duration-300 ${
+                ['Disney+', 'Amazon Prime'].includes(service.name)
+                  ? 'h-16' // Larger for Disney+ and Prime Video
+                  : 'h-12' // Standard height for others
+              }`}
               style={{ maxWidth: '80px' }}
               onError={(e) => {
                 // Fallback to text if logo fails to load
