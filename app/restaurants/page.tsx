@@ -202,7 +202,7 @@ export default function RestaurantSetupPage() {
             >
             <div>
               <span className="gradient-text">CHOOSING </span>
-              <span className="text-white">FOOD </span>
+              <span className="text-white">RESTAURANTS </span>
               <span className="gradient-text">SUCKS</span>
             </div>
             </h1>

@@ -1,7 +1,12 @@
 # Foonder Project Plan - Current State & Future Vision
 
-## 🎯 **Mission**
-Help small groups decide on activities with near-zero friction. Starting with restaurants and streaming content, expanding to all decision-making scenarios.
+## 🎯 **Mission & Core Insight**
+
+**Mission**: Make group decision-making as fast and simple as possible by eliminating the burden of considering what others want.
+
+**Core Insight**: It's easy to make decisions for yourself, but difficult to also consider what others want. We remove that cognitive load by letting everyone vote privately, then revealing only the overlaps.
+
+**Strategy**: Always reduce clicks, eliminate friction, make everything intuitive. Every feature should make decisions faster, not slower.
 
 ## 🏗️ **Current Implementation Status**
 
@@ -29,11 +34,19 @@ Help small groups decide on activities with near-zero friction. Starting with re
 
 ## 🎨 **Design Principles**
 
-- **Mobile First**: One primary action per screen
-- **Fewer Choices**: Reduce fields and decision fatigue  
-- **Obvious Progress**: Always show "what happens next"
-- **Real-time When Helpful**: Live updates without distraction
-- **Subtle Delight**: Brief animations, haptic feedback
+### **Core UX Philosophy**
+- **Friction Elimination**: Always reduce clicks, make everything intuitive
+- **Cognitive Load Reduction**: Remove the burden of considering others' preferences
+- **Speed Over Features**: Every addition must make decisions faster, not slower
+- **Gen Z Native**: Designed for mobile-first, gesture-driven users
+
+### **UI Guidelines**
+- **Mobile First**: One primary action per screen, thumb-friendly interactions
+- **Fewer Choices**: Reduce fields and decision fatigue at every step
+- **Obvious Progress**: Always show "what happens next" 
+- **Real-time When Helpful**: Live updates that build momentum, silent otherwise
+- **Subtle Delight**: Brief animations, haptic feedback, no gimmicks
+- **Zero Emojis**: Clean, modern aesthetic without childish elements
 - **Accessibility**: Large targets, high contrast, screen reader support
 
 ## 🔧 **Technical Architecture**
@@ -67,6 +80,24 @@ Help small groups decide on activities with near-zero friction. Starting with re
 - **Supabase Realtime** on `session:{sessionId}` channels
 - **Events**: participant_update, match_found, no_matches_detected
 - **Live Updates**: Vote counts, participant status, match results
+
+---
+
+## 🎯 **Target Audience & Brand**
+
+### **Primary Users: Gen Z (18-26)**
+- **Mobile Native**: Expect gesture-first, app-like web experiences
+- **Decision Fatigue**: Overwhelmed by endless options, crave simplicity
+- **Social**: Make decisions in groups, value shared experiences
+- **Authentic**: Prefer direct, honest communication over corporate speak
+- **Efficiency**: Want immediate results, low tolerance for slow experiences
+
+### **Brand Positioning**
+- **Name**: "choosing.sucks" - Direct acknowledgment of decision paralysis
+- **Tone**: Playful but not childish, confident, slightly irreverent
+- **Visual**: Bold gradients, glassmorphism, no emojis (clean, modern aesthetic)
+- **Voice**: "Let's make it simple" - helpful without being condescending
+- **Promise**: Turn group indecision into instant clarity
 
 ## 🗄️ **Database Architecture (Current)**
 
@@ -284,6 +315,13 @@ NEXT_PUBLIC_ENABLE_MULTI_PERSON=false # Default: 2-person sessions
 - Group size optimization
 - Enhanced real-time features
 - Social sharing improvements
+
+### **Phase 4: Monetization**
+- **Promoted Content**: Local businesses can ensure placement in candidate decks
+- **Premium Photos**: Businesses can curate custom photos for their listings
+- **Priority Placement**: Sponsored candidates appear higher in swipe order
+- **Analytics Dashboard**: Business insights on voting patterns and preferences
+- **API Access**: Third-party integrations for business management tools
 
 ---
 

@@ -8,7 +8,7 @@ import { ReactNode } from 'react'
 interface SetupPageTemplateProps {
   title: {
     choosing: string // "CHOOSING"
-    subject: string // "FOOD" or "SHOWS" 
+    subject: string // "RESTAURANTS" or "SHOWS" 
     sucks: string   // "SUCKS"
   }
   subtitle: string
