@@ -31,16 +31,16 @@ export default function GenresSection({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {GENRES.map((genre, index) => (
           <motion.button
             key={genre.id}
             onClick={() => toggleGenre(genre.id)}
             className={`
-              px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 transform
+              py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300
               ${selectedGenres.includes(genre.id)
-                ? 'bg-gradient-electric text-white shadow-lg scale-105' 
-                : 'bg-white/20 text-white hover:bg-white/30 hover:scale-102'
+                ? 'bg-gradient-electric text-white shadow-lg' 
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
               }
             `}
             initial={{ opacity: 0, scale: 0.9 }}
