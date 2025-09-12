@@ -10,30 +10,13 @@ import { LiaHandPaper } from 'react-icons/lia'
 import { FaHeartBroken } from 'react-icons/fa'
 import CardLoader from '@/components/ui/card-loader'
 import { cn } from '@/lib/utils/cn'
+import type { Tables } from '@/types/supabase'
 
-interface StreamingCandidate {
-  id: number
-  title: string
-  original_title: string
-  type: 'movie' | 'tv_series'
-  year: number
-  runtime_minutes?: number
-  plot_overview: string
-  genre_names: string[]
-  user_rating: number
-  critic_score?: number
-  poster: string
-  posterLarge?: string
-  backdrop?: string
-  trailer?: string
-  us_rating?: string
-  sources: any[]
-  session_id: string
-}
+type Candidate = Tables<'candidates'>
 
 interface StreamingSwipeInterfaceProps {
-  candidates: StreamingCandidate[]
-  onSwipe: (candidateId: number, vote: boolean) => void
+  candidates: Candidate[]
+  onSwipe: (candidateId: string, vote: boolean) => void
 }
 
 export default function StreamingSwipeInterface({ candidates, onSwipe }: StreamingSwipeInterfaceProps) {
@@ -41,7 +24,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
   const [currentIndex, setCurrentIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
-  const [animatingCardId, setAnimatingCardId] = useState<number | null>(null)
+  const [animatingCardId, setAnimatingCardId] = useState<string | null>(null)
   const buttonsRef = useRef<HTMLDivElement | null>(null)
   const [bottomBarHeight, setBottomBarHeight] = useState<number>(0)
   const [copied, setCopied] = useState(false)
@@ -104,11 +87,12 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
   useEffect(() => {
     const imagesToPreload = [currentCandidate, nextCandidate, nextNextCandidate].filter(Boolean)
     imagesToPreload.forEach(candidate => {
-      if (candidate?.poster && !preloadedImages.has(candidate.poster)) {
+      const imageUrl = candidate?.poster || candidate?.image_url
+      if (imageUrl && !preloadedImages.has(imageUrl)) {
         const img = new Image()
-        img.src = candidate.poster
+        img.src = imageUrl
         img.onload = () => {
-          setPreloadedImages(prev => new Set(Array.from(prev).concat(candidate.poster)))
+          setPreloadedImages(prev => new Set(Array.from(prev).concat(imageUrl)))
         }
       }
     })
@@ -118,14 +102,14 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     if (!currentCandidate || isAnimating) return
     
     setIsAnimating(true)
-    setAnimatingCardId(currentCandidate.id)
+    setAnimatingCardId(currentCandidate.id.toString())
     
     // Haptic feedback for mobile devices
     if ('vibrate' in navigator) {
       navigator.vibrate(vote ? [50] : [30, 30, 30])
     }
     
-    onSwipe(currentCandidate.id, vote)
+    onSwipe(currentCandidate.id.toString(), vote)
     
     // Atomic state update after animation completes
     setTimeout(() => {
@@ -325,7 +309,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
                   zIndex: 3
                 }}
                 {...bind() as any}
-                animate={animatingCardId === currentCandidate.id ? {
+                animate={animatingCardId === currentCandidate.id.toString() ? {
                   x: 0,
                   rotate: 0,
                   opacity: 1,
@@ -385,7 +369,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
 }
 
 interface StreamingCardProps {
-  candidate: StreamingCandidate
+  candidate: Candidate
   dragX?: any
   className?: string
   style?: React.CSSProperties
@@ -439,11 +423,11 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
           maxHeight: 'calc(100% - 200px)'
         }}
       >
-        {candidate.poster && !imageError ? (
+        {(candidate.poster || candidate.image_url) && !imageError ? (
           <>
             <img
-              src={candidate.posterLarge || candidate.poster}
-              alt={candidate.title}
+              src={candidate.backdrop || candidate.poster || candidate.image_url || ''}
+              alt={candidate.title || candidate.name}
               className="absolute inset-0 w-full h-full object-cover"
               onError={() => setImageError(true)}
             />
@@ -453,7 +437,7 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-mesh animate-gradient">
             <div className="text-center">
               <div className="text-8xl font-outfit font-bold text-white/20">
-                {candidate.title.charAt(0)}
+                {(candidate.title || candidate.name || '?').charAt(0)}
               </div>
             </div>
           </div>
@@ -461,14 +445,14 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
 
         {/* Type Badge */}
         <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-bold">
-          {candidate.type === 'tv_series' ? 'TV Series' : 'Movie'}
+          {candidate.content_type === 'tv_series' ? 'TV Series' : 'Movie'}
         </div>
 
         {/* Rating */}
         {candidate.user_rating && (
           <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            {candidate.user_rating.toFixed(1)}
+            {Number(candidate.user_rating).toFixed(1)}
           </div>
         )}
       </div>
@@ -477,7 +461,7 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
       <div className="flex-shrink-0 p-6 space-y-3">
         <div>
           <h1 className="text-gray-900 text-2xl font-bold leading-tight mb-2">
-            {candidate.title}
+            {candidate.title || candidate.name}
           </h1>
           
           <div className="flex items-center gap-4 text-gray-600 text-sm mb-3">
@@ -501,9 +485,9 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
           </div>
 
           {/* Genres */}
-          {candidate.genre_names.length > 0 && (
+          {candidate.genre_names && candidate.genre_names.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
-              {candidate.genre_names.slice(0, 3).map((genre) => (
+              {candidate.genre_names.slice(0, 3).map((genre: string) => (
                 <span
                   key={genre}
                   className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm"
@@ -515,9 +499,9 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
           )}
 
           {/* Plot */}
-          {candidate.plot_overview && (
+          {(candidate.plot_overview || candidate.description) && (
             <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
-              {candidate.plot_overview}
+              {candidate.plot_overview || candidate.description}
             </p>
           )}
         </div>

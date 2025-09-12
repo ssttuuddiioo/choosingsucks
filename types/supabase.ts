@@ -43,49 +43,118 @@ export type Database = {
       }
       candidates: {
         Row: {
+          availability_info: Json | null
+          backdrop: string | null
+          category: string | null
+          content_type: string
           created_at: string | null
+          critic_score: number | null
           cuisines: string[] | null
+          description: string | null
+          external_id: string | null
+          genre_names: string[] | null
           id: string
+          image_url: string | null
+          is_active: boolean | null
           lat: number
           lng: number
+          metadata: Json | null
           name: string
+          original_title: string | null
           photo_ref: string | null
           place_id: string
+          plot_overview: string | null
+          poster: string | null
           price_level: number | null
+          price_range: string | null
           rating: number | null
+          runtime_minutes: number | null
           session_id: string
+          sources: Json | null
+          tags: string[] | null
+          title: string | null
+          trailer: string | null
           url: string | null
+          us_rating: string | null
+          user_rating: number | null
           user_ratings_total: number | null
+          year: number | null
         }
         Insert: {
+          availability_info?: Json | null
+          backdrop?: string | null
+          category?: string | null
+          content_type?: string
           created_at?: string | null
+          critic_score?: number | null
           cuisines?: string[] | null
+          description?: string | null
+          external_id?: string | null
+          genre_names?: string[] | null
           id?: string
+          image_url?: string | null
+          is_active?: boolean | null
           lat: number
           lng: number
+          metadata?: Json | null
           name: string
+          original_title?: string | null
           photo_ref?: string | null
           place_id: string
+          plot_overview?: string | null
+          poster?: string | null
           price_level?: number | null
+          price_range?: string | null
           rating?: number | null
+          runtime_minutes?: number | null
           session_id: string
+          sources?: Json | null
+          tags?: string[] | null
+          title?: string | null
+          trailer?: string | null
           url?: string | null
+          us_rating?: string | null
+          user_rating?: number | null
           user_ratings_total?: number | null
+          year?: number | null
         }
         Update: {
+          availability_info?: Json | null
+          backdrop?: string | null
+          category?: string | null
+          content_type?: string
           created_at?: string | null
+          critic_score?: number | null
           cuisines?: string[] | null
+          description?: string | null
+          external_id?: string | null
+          genre_names?: string[] | null
           id?: string
+          image_url?: string | null
+          is_active?: boolean | null
           lat?: number
           lng?: number
+          metadata?: Json | null
           name?: string
+          original_title?: string | null
           photo_ref?: string | null
           place_id?: string
+          plot_overview?: string | null
+          poster?: string | null
           price_level?: number | null
+          price_range?: string | null
           rating?: number | null
+          runtime_minutes?: number | null
           session_id?: string
+          sources?: Json | null
+          tags?: string[] | null
+          title?: string | null
+          trailer?: string | null
           url?: string | null
+          us_rating?: string | null
+          user_rating?: number | null
           user_ratings_total?: number | null
+          year?: number | null
         }
         Relationships: [
           {
@@ -96,6 +165,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_sources: {
+        Row: {
+          api_config: Json | null
+          category: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          rate_limit_config: Json | null
+        }
+        Insert: {
+          api_config?: Json | null
+          category: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          rate_limit_config?: Json | null
+        }
+        Update: {
+          api_config?: Json | null
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          rate_limit_config?: Json | null
+        }
+        Relationships: []
       }
       participants: {
         Row: {
@@ -135,9 +234,97 @@ export type Database = {
           },
         ]
       }
+      rps_games: {
+        Row: {
+          created_at: string
+          id: string
+          round_number: number
+          session_id: string
+          status: string
+          updated_at: string
+          winner_participant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          round_number?: number
+          session_id: string
+          status?: string
+          updated_at?: string
+          winner_participant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          round_number?: number
+          session_id?: string
+          status?: string
+          updated_at?: string
+          winner_participant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rps_games_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rps_games_winner_participant_id_fkey"
+            columns: ["winner_participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rps_moves: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          move: string
+          participant_id: string
+          round_number: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          move: string
+          participant_id: string
+          round_number: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          move?: string
+          participant_id?: string
+          round_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rps_moves_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "rps_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rps_moves_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
           allow_multiple_matches: boolean | null
+          category: string | null
           created_at: string | null
           host_notify_email: string | null
           host_notify_phone: string | null
@@ -147,6 +334,7 @@ export type Database = {
           match_reason: string | null
           match_requirement: string | null
           place_search_center: unknown | null
+          preferences: Json | null
           radius_m: number | null
           require_names: boolean | null
           search_radius_miles: number | null
@@ -155,6 +343,7 @@ export type Database = {
         }
         Insert: {
           allow_multiple_matches?: boolean | null
+          category?: string | null
           created_at?: string | null
           host_notify_email?: string | null
           host_notify_phone?: string | null
@@ -164,6 +353,7 @@ export type Database = {
           match_reason?: string | null
           match_requirement?: string | null
           place_search_center?: unknown | null
+          preferences?: Json | null
           radius_m?: number | null
           require_names?: boolean | null
           search_radius_miles?: number | null
@@ -172,6 +362,7 @@ export type Database = {
         }
         Update: {
           allow_multiple_matches?: boolean | null
+          category?: string | null
           created_at?: string | null
           host_notify_email?: string | null
           host_notify_phone?: string | null
@@ -181,6 +372,7 @@ export type Database = {
           match_reason?: string | null
           match_requirement?: string | null
           place_search_center?: unknown | null
+          preferences?: Json | null
           radius_m?: number | null
           require_names?: boolean | null
           search_radius_miles?: number | null
@@ -262,6 +454,78 @@ export type Database = {
           },
         ]
       }
+      user_activity: {
+        Row: {
+          action: string | null
+          candidate_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          candidate_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          candidate_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_activity_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          preferences: Json | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          preferences?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          preferences?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       geography_columns: {
@@ -275,93 +539,6 @@ export type Database = {
           type: string | null
         }
         Relationships: []
-      }
-      rps_games: {
-        Row: {
-          created_at: string
-          id: string
-          round_number: number
-          session_id: string
-          status: string
-          updated_at: string
-          winner_participant_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          round_number?: number
-          session_id: string
-          status?: string
-          updated_at?: string
-          winner_participant_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          round_number?: number
-          session_id?: string
-          status?: string
-          updated_at?: string
-          winner_participant_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rps_games_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rps_games_winner_participant_id_fkey"
-            columns: ["winner_participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      rps_moves: {
-        Row: {
-          created_at: string
-          game_id: string
-          id: string
-          move: string
-          participant_id: string
-          round_number: number
-        }
-        Insert: {
-          created_at?: string
-          game_id: string
-          id?: string
-          move: string
-          participant_id: string
-          round_number: number
-        }
-        Update: {
-          created_at?: string
-          game_id?: string
-          id?: string
-          move?: string
-          participant_id?: string
-          round_number?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rps_moves_game_id_fkey"
-            columns: ["game_id"]
-            isOneToOne: false
-            referencedRelation: "rps_games"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rps_moves_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          }
-        ]
       }
       geometry_columns: {
         Row: {
@@ -395,41 +572,26 @@ export type Database = {
       }
     }
     Functions: {
-      check_for_match: {
+      get_session_status: {
         Args: { p_session_id: string }
         Returns: {
-          match_name: string
-          match_place_id: string
+          category: string
+          invited_count: number
+          joined_count: number
+          remaining_candidates: number
+          session_id: string
+          status: "active" | "matched" | "closed"
+          submitted_count: number
+          total_candidates: number
         }[]
       }
       find_session_matches: {
         Args: { p_session_id: string }
         Returns: {
           candidate_id: string
-          place_id: string
           name: string
-          yes_count: number
+          place_id: string
           total_participants: number
-        }[]
-      }
-      get_session_status: {
-        Args: { p_session_id: string }
-        Returns: {
-          invited_count: number
-          joined_count: number
-          match_name: string
-          match_place_id: string
-          status: Database["public"]["Enums"]["session_status"]
-          submitted_count: number
-        }[]
-      }
-      get_top_overlaps: {
-        Args: { p_limit?: number; p_session_id: string }
-        Returns: {
-          distance_m: number
-          name: string
-          place_id: string
-          rating: number
           yes_count: number
         }[]
       }
@@ -438,7 +600,15 @@ export type Database = {
       session_status: "active" | "matched" | "closed"
     }
     CompositeTypes: {
-      [_ in never]: never
+      geometry_dump: {
+        path: number[] | null
+        geom: unknown | null
+      }
+      valid_detail: {
+        valid: boolean | null
+        reason: string | null
+        location: unknown | null
+      }
     }
   }
 }

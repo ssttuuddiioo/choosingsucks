@@ -82,10 +82,7 @@ export default function StreamingPage() {
 
           if (response.ok) {
             const data = await response.json()
-            if (data.success && data.candidates) {
-              sessionStorage.setItem(`streaming-session-${newSessionId}`, JSON.stringify(data.candidates))
-              console.log(`✅ Stored ${data.candidates.length} candidates for session ${newSessionId}`)
-            }
+            console.log(`✅ Created streaming session with ${data.candidatesAdded} candidates`)
           } else {
             console.error('❌ Background API response not ok:', response.status)
           }

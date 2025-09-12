@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { WatchmodeClient } from '@/lib/utils/watchmode-client'
 import { StreamingPreferences } from '@/lib/constants/streaming'
+import { createServerClient } from '@/lib/utils/supabase-server'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -173,10 +174,93 @@ export async function POST(request: NextRequest) {
       .sort((a, b) => (b.user_rating || 0) - (a.user_rating || 0))
       .slice(0, 20)
 
-    // TODO: Store candidates in database for session
-    // For now, we'll return the data directly
+    // Store candidates in database for session
+    const supabase = createServerClient()
     
-    console.log(`📺 Prepared ${candidates.length} streaming candidates for session ${sessionId}`)
+    // First, create or verify the session exists
+    const { data: existingSession, error: sessionError } = await supabase
+      .from('sessions')
+      .select('id')
+      .eq('id', sessionId)
+      .single()
+    
+    if (sessionError && sessionError.code === 'PGRST116') {
+      // Session doesn't exist, create it
+      const { error: createSessionError } = await supabase
+        .from('sessions')
+        .insert({
+          id: sessionId,
+          status: 'active',
+          category: 'streaming',
+          invite_count_hint: 2, // Default for streaming sessions
+          require_names: false,
+          preferences: preferences as any
+        })
+      
+      if (createSessionError) {
+        console.error('Error creating session:', createSessionError)
+        return NextResponse.json(
+          { error: 'Failed to create session' },
+          { status: 500, headers: corsHeaders }
+        )
+      }
+    } else if (sessionError) {
+      console.error('Error checking session:', sessionError)
+      return NextResponse.json(
+        { error: 'Failed to verify session' },
+        { status: 500, headers: corsHeaders }
+      )
+    }
+
+    // Store candidates in database
+    const candidateRecords = candidates.map(candidate => ({
+      session_id: sessionId,
+      category: 'streaming',
+      content_type: candidate.type as 'movie' | 'tv_series',
+      place_id: candidate.id.toString(), // Use Watchmode ID as place_id
+      external_id: candidate.id.toString(),
+      name: candidate.title,
+      title: candidate.title,
+      original_title: candidate.original_title,
+      year: candidate.year,
+      runtime_minutes: candidate.runtime_minutes,
+      plot_overview: candidate.plot_overview,
+      description: candidate.plot_overview,
+      genre_names: candidate.genre_names,
+      user_rating: candidate.user_rating,
+      critic_score: candidate.critic_score,
+      poster: candidate.poster,
+      image_url: candidate.poster,
+      backdrop: candidate.backdrop,
+      trailer: candidate.trailer,
+      us_rating: candidate.us_rating,
+      sources: candidate.sources,
+      metadata: {
+        sources: candidate.sources,
+        backdrop: candidate.backdrop,
+        trailer: candidate.trailer,
+        us_rating: candidate.us_rating,
+        critic_score: candidate.critic_score
+      },
+      tags: candidate.genre_names,
+      // Required fields for compatibility (will be null for streaming)
+      lat: 0,
+      lng: 0
+    }))
+
+    const { error: candidatesError } = await supabase
+      .from('candidates')
+      .insert(candidateRecords)
+
+    if (candidatesError) {
+      console.error('Error storing candidates:', candidatesError)
+      return NextResponse.json(
+        { error: 'Failed to store candidates' },
+        { status: 500, headers: corsHeaders }
+      )
+    }
+    
+    console.log(`📺 Stored ${candidates.length} streaming candidates for session ${sessionId}`)
     console.log(`🎬 Content: ${candidates.slice(0, 3).map(c => `${c.title} (${c.year})`).join(', ')}`)
 
     return NextResponse.json({
@@ -187,7 +271,6 @@ export async function POST(request: NextRequest) {
         preferences.contentTypes.length === 2 ? 'titles' : 
         preferences.contentTypes.includes('movie') ? 'movies' : 'TV shows'
       } to explore`,
-      candidates, // Include candidates in response for now
     }, {
       status: 200,
       headers: corsHeaders
