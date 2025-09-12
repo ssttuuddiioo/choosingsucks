@@ -42,7 +42,7 @@ export default function StreamingServicesSection({
               min-h-[100px] cursor-pointer
               ${selectedServices.includes(service.id)
                 ? 'ring-4 ring-electric-purple/50 shadow-lg bg-gradient-to-br from-white to-gray-50' 
-                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-gray-600 to-gray-700 filter grayscale opacity-25'
+                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-gray-300 to-gray-400 filter grayscale opacity-40'
               }
               hover:scale-102
             `}
