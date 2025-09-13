@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { X, Heart, Star, Clock, Calendar, Play, Clipboard, Check } from 'lucide-react'
 import { PiHandFistLight, PiHandPeaceLight } from 'react-icons/pi'
 import { LiaHandPaper } from 'react-icons/lia'
-import { FaHeartBroken } from 'react-icons/fa'
 import CardLoader from '@/components/ui/card-loader'
 import { cn } from '@/lib/utils/cn'
 import type { Tables } from '@/types/supabase'
@@ -186,30 +185,9 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     return `${hours}h ${mins}m`
   }
 
-  // Show exhausted screen when no more candidates - this should trigger RPS game
+  // When no more candidates, let parent component handle the exhausted state
   if (currentIndex >= candidates.length) {
-    // This should be handled by the parent component to show the RPS game
-    // For now, show a simple message
-    return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-6">
-          <FaHeartBroken className="text-6xl text-white mx-auto" />
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white">Session Complete!</h1>
-            <p className="text-white/70">
-              You've gone through all the content. Time to make a decision!
-            </p>
-          </div>
-
-          <button
-            onClick={() => router.push('/streaming')}
-            className="w-full bg-gradient-electric text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
-          >
-            Create New Swipe Session
-          </button>
-        </div>
-      </div>
-    )
+    return null // Parent will show ExhaustedScreenTemplate
   }
 
   if (!hasCandidates) {

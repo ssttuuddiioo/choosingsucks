@@ -482,6 +482,11 @@ export default function StreamingSessionPage() {
   useEffect(() => {
     if (participant) {
       console.log(`🎬 Streaming session status: ${swipedCandidateIds.size}/${candidates.length} swiped, ${remainingCandidates.length} remaining`)
+      
+      // Debug exhausted state detection
+      if (remainingCandidates.length === 0 && candidates.length > 0) {
+        console.log('🏁 All candidates swiped! Should show exhausted screen')
+      }
     }
   }, [swipedCandidateIds.size, candidates.length, remainingCandidates.length, participant])
 
