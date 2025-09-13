@@ -46,6 +46,7 @@ export default function StreamingSessionPage() {
   const [pendingMove, setPendingMove] = useState<string | null>(null)
   const [swipeQueue, setSwipeQueue] = useState<Array<{candidateId: string, vote: boolean}>>([])
   const [isProcessingSwipes, setIsProcessingSwipes] = useState(false)
+  const [isRetrying, setIsRetrying] = useState(false)
 
   const supabase = createBrowserClient()
 
@@ -176,29 +177,41 @@ export default function StreamingSessionPage() {
         if (sessionError.code === 'PGRST116') {
           console.log('🔄 Session not found, might be new session. Retrying in 2 seconds...')
           
+          // Keep loading state during retry
+          setLoading(true)
+          setIsRetrying(true)
+          
           // Retry after a short delay for new sessions
           setTimeout(async () => {
             console.log('🔄 Retrying session fetch...')
-            const { data: retrySessionData, error: retryError } = await supabase
-              .from('sessions')
-              .select('*')
-              .eq('id', sessionId)
-              .single()
-            
-            if (retryError || !retrySessionData) {
-              console.error('❌ Retry failed:', retryError)
+            try {
+              const { data: retrySessionData, error: retryError } = await supabase
+                .from('sessions')
+                .select('*')
+                .eq('id', sessionId)
+                .single()
+              
+              if (retryError || !retrySessionData) {
+                console.error('❌ Retry failed:', retryError)
+                setError('Session not found or expired')
+                setLoading(false)
+                return
+              }
+              
+              console.log('✅ Retry successful! Session found:', retrySessionData.id)
+              setSession(retrySessionData)
+              
+              // Continue with initialization
+              await fetchCandidates()
+              await fetchSessionStatus()
+              setLoading(false)
+              setIsRetrying(false)
+            } catch (err) {
+              console.error('❌ Retry exception:', err)
               setError('Session not found or expired')
               setLoading(false)
-              return
+              setIsRetrying(false)
             }
-            
-            console.log('✅ Retry successful! Session found:', retrySessionData.id)
-            setSession(retrySessionData)
-            
-            // Continue with initialization
-            await fetchCandidates()
-            await fetchSessionStatus()
-            setLoading(false)
           }, 2000)
           
           return // Don't set error immediately, wait for retry
@@ -476,7 +489,7 @@ export default function StreamingSessionPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
-        <CardLoader message="Loading session..." />
+        <CardLoader message={isRetrying ? "Session loading, please wait..." : "Loading session..."} />
       </div>
     )
   }
