@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (preferences.contentTypes.length > 0) {
       searchParams.types = preferences.contentTypes.join(',')
     } else {
-      searchParams.types = 'movie,tv_series' // Fallback to both
+      searchParams.types = 'movie,tv_series,tv_miniseries,tv_special' // Include all types
     }
 
     // Set streaming services
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
     const candidateRecords = candidates.map(candidate => ({
       session_id: sessionId,
       category: 'streaming',
-      content_type: candidate.type as 'movie' | 'tv_series',
+      content_type: candidate.type as 'movie' | 'tv_series' | 'tv_miniseries' | 'tv_special',
       place_id: candidate.id.toString(), // Use Watchmode ID as place_id
       external_id: candidate.id.toString(),
       name: candidate.title,

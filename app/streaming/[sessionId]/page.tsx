@@ -269,7 +269,7 @@ export default function StreamingSessionPage() {
       setLoading(false)
     } catch (err) {
       console.error('❌ Session initialization failed:', err)
-      setError(`Failed to initialize session: ${err.message}`)
+      setError(`Failed to initialize session: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setLoading(false)
     }
   }
@@ -281,7 +281,7 @@ export default function StreamingSessionPage() {
         .from('candidates')
         .select('*')
         .eq('session_id', sessionId)
-        .in('content_type', ['movie', 'tv_series'])
+        .in('content_type', ['movie', 'tv_series', 'tv_miniseries', 'tv_special'])
         .order('user_rating', { ascending: false })
 
       console.log('📊 Candidates query result:', { 

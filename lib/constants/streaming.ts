@@ -48,15 +48,27 @@ export const GENRES: Genre[] = [
 
 export type SortPreference = 'new_releases' | 'most_popular'
 
+export interface ContentType {
+  id: string
+  name: string
+}
+
+export const CONTENT_TYPES: ContentType[] = [
+  { id: 'movie', name: 'Movies' },
+  { id: 'tv_series', name: 'TV Shows' },
+  { id: 'tv_miniseries', name: 'Miniseries' },
+  { id: 'tv_special', name: 'TV Specials' }
+]
+
 export interface StreamingPreferences {
-  contentTypes: ('movie' | 'tv_series')[]
+  contentTypes: ('movie' | 'tv_series' | 'tv_miniseries' | 'tv_special')[]
   streamingServices: number[]
   genres: number[]
   sortBy: SortPreference
 }
 
 export const DEFAULT_PREFERENCES: StreamingPreferences = {
-  contentTypes: ['movie', 'tv_series'], // Both selected by default
+  contentTypes: ['movie', 'tv_series', 'tv_miniseries', 'tv_special'], // All content types by default
   streamingServices: [203, 157, 390, 26, 387, 444, 371, 73], // Major services selected by default
   genres: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 14, 15, 17, 18, 19], // All genres selected by default
   sortBy: 'new_releases', // Default to new releases

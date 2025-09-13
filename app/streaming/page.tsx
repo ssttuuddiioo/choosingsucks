@@ -29,7 +29,7 @@ export default function StreamingPage() {
   const [sessionId, setSessionId] = useState('')
   const [shareLink, setShareLink] = useState('')
 
-  const updateContentTypes = (contentTypes: ('movie' | 'tv_series')[]) => {
+  const updateContentTypes = (contentTypes: ('movie' | 'tv_series' | 'tv_miniseries' | 'tv_special')[]) => {
     setPreferences(prev => ({ ...prev, contentTypes }))
   }
 

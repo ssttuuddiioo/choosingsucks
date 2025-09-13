@@ -426,7 +426,9 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
 
         {/* Type Badge */}
         <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-bold">
-          {candidate.content_type === 'tv_series' ? 'TV Series' : 'Movie'}
+          {candidate.content_type === 'tv_series' ? 'TV Series' : 
+           candidate.content_type === 'tv_miniseries' ? 'Limited Series' :
+           candidate.content_type === 'tv_special' ? 'TV Special' : 'Movie'}
         </div>
 
         {/* Rating */}

@@ -1,22 +1,18 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { CONTENT_TYPES } from '@/lib/constants/streaming'
 
 interface ContentTypeSectionProps {
-  contentTypes: ('movie' | 'tv_series')[]
-  onContentTypesChange: (types: ('movie' | 'tv_series')[]) => void
+  contentTypes: ('movie' | 'tv_series' | 'tv_miniseries' | 'tv_special')[]
+  onContentTypesChange: (types: ('movie' | 'tv_series' | 'tv_miniseries' | 'tv_special')[]) => void
 }
 
 export default function ContentTypeSection({ 
   contentTypes, 
   onContentTypesChange 
 }: ContentTypeSectionProps) {
-  const options = [
-    { value: 'tv_series' as const, label: 'TV Shows' },
-    { value: 'movie' as const, label: 'Movies' },
-  ]
-
-  const toggleContentType = (type: 'movie' | 'tv_series') => {
+  const toggleContentType = (type: 'movie' | 'tv_series' | 'tv_miniseries' | 'tv_special') => {
     if (contentTypes.includes(type)) {
       // Don't allow removing if it's the only one selected
       if (contentTypes.length > 1) {
@@ -34,20 +30,20 @@ export default function ContentTypeSection({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      <div className="flex gap-3">
-        {options.map((option) => (
+      <div className="grid grid-cols-2 gap-3">
+        {CONTENT_TYPES.map((contentType) => (
           <button
-            key={option.value}
-            onClick={() => toggleContentType(option.value)}
+            key={contentType.id}
+            onClick={() => toggleContentType(contentType.id as any)}
             className={`
-              flex-1 py-3 rounded-xl font-bold text-xl transition-all duration-300
-              ${contentTypes.includes(option.value)
+              py-3 px-4 rounded-xl font-bold text-lg transition-all duration-300
+              ${contentTypes.includes(contentType.id as any)
                 ? 'bg-gradient-electric text-white shadow-lg' 
                 : 'bg-white/10 text-white/70 hover:bg-white/20'
               }
             `}
           >
-            {option.label}
+            {contentType.name}
           </button>
         ))}
       </div>

@@ -5,7 +5,7 @@ export interface WatchmodeTitle {
   title: string
   original_title: string
   plot_overview: string
-  type: 'movie' | 'tv_series'
+  type: 'movie' | 'tv_series' | 'tv_miniseries' | 'tv_special'
   runtime_minutes?: number
   year: number
   end_year?: number
