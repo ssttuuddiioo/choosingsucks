@@ -152,26 +152,76 @@ export default function StreamingSessionPage() {
 
   const initializeSession = async () => {
     try {
+      console.log('🔍 Initializing streaming session:', sessionId)
       const fingerprint = await getClientFingerprint()
       let participantToken = getParticipantToken(sessionId)
 
-      // Fetch session from database
+      // Fetch session from database with detailed logging
+      console.log('📡 Fetching session from database...')
       const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
         .select('*')
         .eq('id', sessionId)
         .single()
 
-      if (sessionError || !sessionData) {
-        setError('Session not found or expired')
+      console.log('📊 Session query result:', { 
+        sessionData: sessionData ? { id: sessionData.id, status: sessionData.status, category: sessionData.category } : null,
+        error: sessionError 
+      })
+
+      if (sessionError) {
+        console.error('❌ Session fetch error:', sessionError)
+        
+        // If session not found (PGRST116), it might be a new session still being created
+        if (sessionError.code === 'PGRST116') {
+          console.log('🔄 Session not found, might be new session. Retrying in 2 seconds...')
+          
+          // Retry after a short delay for new sessions
+          setTimeout(async () => {
+            console.log('🔄 Retrying session fetch...')
+            const { data: retrySessionData, error: retryError } = await supabase
+              .from('sessions')
+              .select('*')
+              .eq('id', sessionId)
+              .single()
+            
+            if (retryError || !retrySessionData) {
+              console.error('❌ Retry failed:', retryError)
+              setError('Session not found or expired')
+              setLoading(false)
+              return
+            }
+            
+            console.log('✅ Retry successful! Session found:', retrySessionData.id)
+            setSession(retrySessionData)
+            
+            // Continue with initialization
+            await fetchCandidates()
+            await fetchSessionStatus()
+            setLoading(false)
+          }, 2000)
+          
+          return // Don't set error immediately, wait for retry
+        }
+        
+        setError(`Session fetch failed: ${sessionError.message} (Code: ${sessionError.code})`)
         setLoading(false)
         return
       }
 
+      if (!sessionData) {
+        console.error('❌ No session data returned')
+        setError('Session not found in database')
+        setLoading(false)
+        return
+      }
+
+      console.log('✅ Session data loaded successfully:', sessionData.id, sessionData.status)
       setSession(sessionData)
 
       // Check if participant exists
       if (participantToken) {
+        console.log('🔍 Checking for existing participant with token:', participantToken)
         const { data: participantData } = await supabase
           .from('participants')
           .select('*')
@@ -180,6 +230,7 @@ export default function StreamingSessionPage() {
           .single()
 
         if (participantData) {
+          console.log('✅ Found existing participant:', participantData.id, participantData.display_name)
           setParticipant(participantData)
           
           // Load existing swipes
@@ -189,8 +240,11 @@ export default function StreamingSessionPage() {
             .eq('participant_id', participantData.id)
 
           if (swipes) {
+            console.log(`📊 Loaded ${swipes.length} existing swipes for participant`)
             setSwipedCandidateIds(new Set(swipes.map(s => s.candidate_id)))
           }
+        } else {
+          console.log('ℹ️ No existing participant found, will need to join')
         }
       }
 
@@ -198,16 +252,18 @@ export default function StreamingSessionPage() {
       await fetchCandidates()
       await fetchSessionStatus()
       
+      console.log('🎉 Session initialization complete!')
       setLoading(false)
     } catch (err) {
-      console.error('Error initializing session:', err)
-      setError('Failed to initialize session')
+      console.error('❌ Session initialization failed:', err)
+      setError(`Failed to initialize session: ${err.message}`)
       setLoading(false)
     }
   }
 
   const fetchCandidates = async () => {
     try {
+      console.log('📡 Fetching streaming candidates for session:', sessionId)
       const { data: candidateData, error: candidateError } = await supabase
         .from('candidates')
         .select('*')
@@ -215,15 +271,22 @@ export default function StreamingSessionPage() {
         .in('content_type', ['movie', 'tv_series'])
         .order('user_rating', { ascending: false })
 
+      console.log('📊 Candidates query result:', { 
+        count: candidateData?.length || 0,
+        error: candidateError,
+        sampleTitles: candidateData?.slice(0, 3).map(c => c.title || c.name)
+      })
+
       if (candidateError) {
-        console.error('Error fetching candidates:', candidateError)
-        setError('Failed to load streaming content')
+        console.error('❌ Candidates fetch error:', candidateError)
+        setError(`Failed to load streaming content: ${candidateError.message}`)
         return
       }
 
       setCandidates(candidateData || [])
+      console.log(`✅ Loaded ${candidateData?.length || 0} streaming candidates`)
     } catch (err) {
-      console.error('Error fetching candidates:', err)
+      console.error('❌ Candidates fetch exception:', err)
       setError('Failed to load streaming content')
     }
   }
@@ -418,8 +481,15 @@ export default function StreamingSessionPage() {
     )
   }
 
-  // Error state
+  // Error state with detailed logging
   if (error || !session) {
+    console.log('🚨 Showing invalid session screen:', { 
+      error, 
+      hasSession: !!session,
+      sessionId,
+      loading,
+      candidateCount: candidates.length
+    })
     return <InvalidSessionScreen message={error || 'Session not found'} />
   }
 
