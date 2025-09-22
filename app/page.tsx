@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { 
   Utensils, 
   Truck, 
@@ -12,6 +13,7 @@ import {
   Calendar,
   Heart
 } from 'lucide-react'
+import { getRandomTagline } from '@/lib/utils/taglines'
 
 interface Category {
   id: string
@@ -81,6 +83,11 @@ const categories: Category[] = [
 
 export default function CategoryLandingPage() {
   const router = useRouter()
+  const [tagline, setTagline] = useState('')
+
+  useEffect(() => {
+    setTagline(getRandomTagline())
+  }, [])
 
   const handleCategoryClick = (category: Category) => {
     if (category.isActive) {
@@ -125,7 +132,7 @@ export default function CategoryLandingPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Let's make it simple
+            {tagline}
           </motion.p>
         </motion.div>
 
