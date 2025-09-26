@@ -132,7 +132,8 @@ export default function BuildYourOwnPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           description: aiDescription.trim(),
-          count: aiOptionCount
+          count: aiOptionCount,
+          sessionTitle: sessionTitle.trim()
         })
       })
 
@@ -387,11 +388,11 @@ export default function BuildYourOwnPage() {
                         ))}
                       </select>
                     </div>
-                    <button
-                      onClick={generateAiOptions}
-                      disabled={!aiDescription.trim() || isGenerating}
-                      className="flex items-center gap-2 bg-gradient-electric text-white px-4 py-2 rounded-xl text-sm font-medium hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
-                    >
+                  <button
+                    onClick={generateAiOptions}
+                    disabled={!aiDescription.trim() || !sessionTitle.trim() || isGenerating}
+                    className="flex items-center gap-2 bg-gradient-electric text-white px-4 py-2 rounded-xl text-sm font-medium hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
+                  >
                       {isGenerating ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -417,7 +418,8 @@ export default function BuildYourOwnPage() {
                 {/* Photo Upload */}
                 <ImageUpload 
                   onOptionsExtracted={handleImageOptionsExtracted}
-                  disabled={isCreating}
+                  disabled={isCreating || !sessionTitle.trim()}
+                  sessionTitle={sessionTitle.trim()}
                 />
               </div>
             )}

@@ -46,26 +46,18 @@ export async function POST(request: NextRequest) {
 - Activity options or places to go
 - Movies, shows, or entertainment options
 
-For each distinct option you identify, provide:
-1. A clear, concise title (2-8 words)
-2. A brief description if more context is needed (optional)
-3. Confidence level (high/medium/low)
+${body.context ? `Context: ${body.context}\n\n` : ''}
 
-Return your response as a JSON array with this structure:
-[
-  {
-    "title": "Option title",
-    "description": "Brief description if needed (optional)",
-    "confidence": "high|medium|low"
-  }
-]
+If you can extract clear options from the image, set success=true and provide the options. 
 
-${body.context ? `Additional context: ${body.context}` : ''}
+If it's not clear what you should infer from the photo, the image quality is poor, or if the photo is against content policies, you have two choices:
+1. Set success=false and provide a friendly error message explaining what went wrong (e.g., "I couldn't make out any clear options from this image. Try a clearer photo with more visible text or ideas.")
+2. OR set success=true and have some fun with it! Create relevant options based on whatever you can see or imagine from the image.
 
-Focus on extracting actionable, distinct options that people could vote on. Avoid duplicates and overly similar items. Maximum 20 options.`
+Focus on extracting actionable, distinct options that people could vote on. Avoid duplicates and overly similar items. Provide between 4-20 options when successful.`
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4o-2024-08-06',
       messages: [
         {
           role: 'user',
@@ -85,59 +77,146 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
         }
       ],
       max_tokens: 2000,
-      temperature: 0.1 // Low temperature for more consistent extraction
+      temperature: 0.8, // Higher temperature for more creativity
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "extracted_options",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              success: {
+                type: "boolean",
+                description: "Whether options were successfully extracted"
+              },
+              options: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: {
+                      type: "string",
+                      description: "A clear, concise title (2-8 words)"
+                    },
+                    description: {
+                      type: ["string", "null"],
+                      description: "Brief description if more context is needed"
+                    },
+                    confidence: {
+                      type: "string",
+                      enum: ["high", "medium", "low"],
+                      description: "Confidence level in the extraction"
+                    }
+                  },
+                  required: ["title", "description", "confidence"],
+                  additionalProperties: false
+                },
+                maxItems: 20,
+                description: "Array of extracted options"
+              },
+              error: {
+                type: ["string", "null"],
+                description: "User-friendly error message if extraction failed or image is problematic"
+              }
+            },
+            required: ["success", "options", "error"],
+            additionalProperties: false
+          }
+        }
+      }
     })
+
+    // Handle potential refusal
+    if (response.choices[0]?.message?.refusal) {
+      console.log('OpenAI refused the request:', response.choices[0].message.refusal)
+      // Even if refused, provide some creative fallback options
+      const fallbackOptions = [
+        { title: 'Option A', description: 'First choice', confidence: 'medium' as const },
+        { title: 'Option B', description: 'Second choice', confidence: 'medium' as const },
+        { title: 'Option C', description: 'Third choice', confidence: 'medium' as const },
+        { title: 'Option D', description: 'Fourth choice', confidence: 'medium' as const }
+      ]
+      
+      const validOptions = fallbackOptions.map((option, index) => ({
+        title: option.title,
+        description: option.description,
+        confidence: option.confidence,
+        source_type: 'ai_extracted' as const,
+        metadata: {
+          extraction_timestamp: new Date().toISOString(),
+          model_used: 'gpt-4o-2024-08-06',
+          confidence_level: option.confidence,
+          display_order: index,
+          fallback_used: true
+        }
+      }))
+
+      return NextResponse.json({
+        success: true,
+        options: validOptions,
+        metadata: {
+          total_extracted: validOptions.length,
+          model_used: 'gpt-4o-2024-08-06',
+          extraction_time: new Date().toISOString(),
+          fallback_used: true
+        }
+      })
+    }
 
     const content = response.choices[0]?.message?.content
     if (!content) {
       throw new Error('No response from OpenAI')
     }
 
-    // Try to parse the JSON response
-    let extractedOptions: ExtractedOption[]
+    // Parse the structured JSON response
+    let parsed: any
     try {
-      // Remove any markdown code block formatting if present
-      const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim()
-      extractedOptions = JSON.parse(cleanContent)
+      parsed = JSON.parse(content)
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', content)
+      console.error('Failed to parse structured response:', content)
       return NextResponse.json(
         { error: 'Failed to parse AI response. Please try again.' },
         { status: 500 }
       )
     }
 
-    // Validate the structure
-    if (!Array.isArray(extractedOptions)) {
+    // Check if the LLM reported an error
+    if (!parsed.success && parsed.error) {
       return NextResponse.json(
-        { error: 'Invalid response format from AI' },
-        { status: 500 }
+        { error: parsed.error },
+        { status: 400 }
       )
     }
 
-    // Clean and validate each option
-    const validOptions = extractedOptions
-      .filter(option => option.title && typeof option.title === 'string')
-      .slice(0, 20) // Limit to 20 options
-      .map((option, index) => ({
-        title: option.title.trim(),
-        description: option.description?.trim() || undefined,
-        confidence: ['high', 'medium', 'low'].includes(option.confidence) ? option.confidence : 'medium',
-        source_type: 'ai_extracted' as const,
-        metadata: {
-          extraction_timestamp: new Date().toISOString(),
-          model_used: 'gpt-4o',
-          confidence_level: option.confidence,
-          display_order: index
-        }
-      }))
+    // Ensure we have options
+    if (!parsed.options || parsed.options.length === 0) {
+      return NextResponse.json(
+        { error: 'No options could be extracted from this image. Try a different photo with clearer text or ideas.' },
+        { status: 400 }
+      )
+    }
+
+    // Clean and validate each option from structured output
+    const validOptions = parsed.options.map((option: any, index: number) => ({
+      title: option.title.trim(),
+      description: option.description?.trim() || undefined,
+      confidence: option.confidence,
+      source_type: 'ai_extracted' as const,
+      metadata: {
+        extraction_timestamp: new Date().toISOString(),
+        model_used: 'gpt-4o-2024-08-06',
+        confidence_level: option.confidence,
+        display_order: index
+      }
+    }))
 
     return NextResponse.json({
       success: true,
       options: validOptions,
       metadata: {
         total_extracted: validOptions.length,
-        model_used: 'gpt-4o',
+        model_used: 'gpt-4o-2024-08-06',
         extraction_time: new Date().toISOString()
       }
     })

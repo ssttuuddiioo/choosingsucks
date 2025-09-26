@@ -14,9 +14,10 @@ interface ExtractedOption {
 interface ImageUploadProps {
   onOptionsExtracted: (options: ExtractedOption[]) => void
   disabled?: boolean
+  sessionTitle?: string
 }
 
-export default function ImageUpload({ onOptionsExtracted, disabled = false }: ImageUploadProps) {
+export default function ImageUpload({ onOptionsExtracted, disabled = false, sessionTitle }: ImageUploadProps) {
   const [state, setState] = useState<{
     dragActive: boolean
     uploading: boolean
@@ -94,7 +95,9 @@ export default function ImageUpload({ onOptionsExtracted, disabled = false }: Im
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image_url: base64,
-          context: 'This image contains voting options or ideas from a workshop or brainstorming session'
+          context: sessionTitle 
+            ? `The user is trying to decide: "${sessionTitle}". This image contains voting options or ideas from a workshop or brainstorming session`
+            : 'This image contains voting options or ideas from a workshop or brainstorming session'
         })
       })
 
@@ -340,14 +343,10 @@ export default function ImageUpload({ onOptionsExtracted, disabled = false }: Im
       />
 
       {/* Help Text */}
-      <div className="text-xs text-white/50 space-y-1">
-        <p className="font-medium text-white/70">Best results with:</p>
-        <ul className="list-disc list-inside space-y-0.5 text-xs">
-          <li>Clear, well-lit photos of whiteboards or sticky notes</li>
-          <li>High contrast text (dark text on light background)</li>
-          <li>Multiple distinct options or ideas visible</li>
-          <li>Minimal background clutter</li>
-        </ul>
+      <div className="text-xs text-white/50">
+        <p className="text-center">
+          We'll get our robot to look at the image and do its best to come up with some options.
+        </p>
       </div>
     </div>
   )
