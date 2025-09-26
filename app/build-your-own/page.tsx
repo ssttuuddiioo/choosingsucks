@@ -118,7 +118,8 @@ export default function BuildYourOwnPage() {
       metadata: extracted.metadata
     }))
     
-    setOptions([...options, ...newOptions])
+    // Replace all existing options with new ones
+    setOptions(newOptions)
   }
 
   const generateAiOptions = async () => {
@@ -154,7 +155,8 @@ export default function BuildYourOwnPage() {
         metadata: generated.metadata
       }))
       
-      setOptions([...options, ...newOptions])
+      // Replace all existing options with new ones
+      setOptions(newOptions)
       setAiDescription('')
       
     } catch (err) {
@@ -259,7 +261,7 @@ export default function BuildYourOwnPage() {
               type="text"
               value={sessionTitle}
               onChange={(e) => setSessionTitle(e.target.value)}
-              placeholder="e.g., What should we watch tonight?"
+              placeholder="e.g., Who's the most superior superhero?"
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-electric-purple focus:border-transparent"
             />
             
