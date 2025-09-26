@@ -28,9 +28,9 @@
 3. **Delivery** 🚚 - Food delivery (DoorDash, UberEats)
 4. **Movies** 🎭 - Theater showtimes (Fandango)  
 5. **Music** 🎵 - Songs/artists (Spotify, Apple Music)
-6. **Gifts** 🎁 - Gift ideas (Amazon, Etsy)
-7. **Activities** 🎯 - Local events (Eventbrite, Meetup)
-8. **Dates** 💕 - Date ideas (Yelp, Foursquare)
+6. **Activities** 🎯 - Local events (Eventbrite, Meetup)
+7. **Dates** 💕 - Date ideas (Yelp, Foursquare)
+8. **Build Your Own** ➕ - Custom category creation
 
 ## 🎨 **Design Principles**
 
@@ -298,9 +298,9 @@ NEXT_PUBLIC_ENABLE_MULTI_PERSON=false # Default: 2-person sessions
 - **Delivery**: DoorDash/UberEats API integration
 - **Movies**: Fandango showtimes API
 - **Music**: Spotify/Apple Music integration
-- **Gifts**: Amazon/Etsy product APIs
 - **Activities**: Eventbrite/Meetup event APIs
 - **Dates**: Curated date idea database
+- **Build Your Own**: Custom category creation system
 
 ### **Phase 2: User Accounts & Personalization**
 - Supabase Auth integration

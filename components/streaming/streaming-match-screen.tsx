@@ -42,7 +42,7 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary md:flex md:items-center md:justify-center md:p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4 relative overflow-hidden">
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50">
@@ -63,7 +63,7 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
           damping: 15,
           duration: 0.8 
         }}
-        className="md:glass-card md:max-w-md w-full overflow-hidden min-h-screen md:min-h-0 flex flex-col"
+        className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl max-w-md w-full overflow-hidden max-h-[90vh] flex flex-col"
       >
         {/* Success Header */}
         <div className="bg-gradient-lime p-6 text-center">
@@ -99,14 +99,14 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
           </div>
         )}
 
-        {/* Content Details */}
-        <div className="flex-1 p-6 space-y-4 flex flex-col">
+        {/* Content Details - Scrollable */}
+        <div className="flex-1 p-6 space-y-4 flex flex-col overflow-y-auto">
           <div>
-            <h2 className="text-2xl font-outfit font-bold text-white">
+            <h2 className="text-2xl font-outfit font-bold text-gray-900">
               {candidate.title || candidate.name}
             </h2>
             {candidate.original_title && candidate.original_title !== candidate.title && (
-              <p className="text-white/70 text-sm mt-1">
+              <p className="text-gray-600 text-sm mt-1">
                 {candidate.original_title}
               </p>
             )}
@@ -115,23 +115,23 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
           {/* Stats */}
           <div className="flex flex-wrap gap-2">
             {candidate.user_rating && (
-              <div className="flex items-center gap-1 bg-white/10 px-3 py-2 rounded-lg">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="font-bold text-white">{Number(candidate.user_rating).toFixed(1)}</span>
+              <div className="flex items-center gap-1 bg-gray-100 px-3 py-2 rounded-lg">
+                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                <span className="font-bold text-gray-900">{Number(candidate.user_rating).toFixed(1)}</span>
               </div>
             )}
 
             {candidate.year && (
-              <div className="flex items-center gap-1 bg-white/10 px-3 py-2 rounded-lg">
-                <Calendar className="h-4 w-4 text-white/70" />
-                <span className="text-white font-bold">{candidate.year}</span>
+              <div className="flex items-center gap-1 bg-gray-100 px-3 py-2 rounded-lg">
+                <Calendar className="h-4 w-4 text-gray-600" />
+                <span className="text-gray-900 font-bold">{candidate.year}</span>
               </div>
             )}
 
             {candidate.runtime_minutes && (
-              <div className="flex items-center gap-1 bg-white/10 px-3 py-2 rounded-lg">
-                <Clock className="h-4 w-4 text-white/70" />
-                <span className="text-white font-bold">{formatRuntime(candidate.runtime_minutes)}</span>
+              <div className="flex items-center gap-1 bg-gray-100 px-3 py-2 rounded-lg">
+                <Clock className="h-4 w-4 text-gray-600" />
+                <span className="text-gray-900 font-bold">{formatRuntime(candidate.runtime_minutes)}</span>
               </div>
             )}
           </div>
@@ -149,7 +149,7 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
               {candidate.genre_names.slice(0, 3).map((genre, i) => (
                 <span
                   key={i}
-                  className="px-3 py-1 bg-white/10 text-white text-xs rounded-full font-semibold"
+                  className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full font-semibold"
                 >
                   {genre}
                 </span>
@@ -157,10 +157,10 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
             </div>
           )}
 
-          {/* Plot Overview */}
+          {/* Plot Overview - Scrollable */}
           {(candidate.plot_overview || candidate.description) && (
-            <div className="bg-white/5 rounded-lg p-4">
-              <p className="text-white/80 text-sm leading-relaxed">
+            <div className="bg-gray-50 rounded-lg p-4 max-h-32 overflow-y-auto">
+              <p className="text-gray-700 text-sm leading-relaxed">
                 {candidate.plot_overview || candidate.description}
               </p>
             </div>
@@ -183,7 +183,7 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
             {/* Subtle New Session Button */}
             <button
               onClick={() => router.push('/streaming')}
-              className="w-full flex items-center justify-center gap-2 py-3 px-6 text-white/60 hover:text-white/80 transition-all text-sm"
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 text-gray-600 hover:text-gray-800 transition-all text-sm"
             >
               <Plus className="h-4 w-4" />
               Start a new streaming session

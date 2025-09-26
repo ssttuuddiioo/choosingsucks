@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Loader2, Utensils } from 'lucide-react'
+import { Copy, Loader2, Utensils, ArrowLeft } from 'lucide-react'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
 import { generateShareToken } from '@/lib/utils/session'
 import { analytics } from '@/lib/utils/analytics'
@@ -195,25 +195,33 @@ export default function RestaurantSetupPage() {
     <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden" style={{ height: '100dvh' }}>
       {/* Header - Fixed */}
       <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary backdrop-blur border-b border-white/10 relative z-20">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push('/')}
+            className="text-white/70 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <div>
             <h1 
-            className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
+              className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
               onClick={() => router.push('/')}
             >
-            <div>
-              <span className="gradient-text">CHOOSING </span>
-              <span className="text-white">RESTAURANTS </span>
-              <span className="gradient-text">SUCKS</span>
-            </div>
+              <div>
+                <span className="gradient-text">CHOOSING </span>
+                <span className="text-white">RESTAURANTS </span>
+                <span className="gradient-text">SUCKS</span>
+              </div>
             </h1>
-          <p className="text-white/70 text-sm font-semibold">
+            <p className="text-white/70 text-sm font-semibold">
               Set your preferences and we'll find the perfect match
-          </p>
+            </p>
+          </div>
         </div>
         <div className="p-2 rounded-xl">
-            <Utensils className="h-6 w-6 text-white/70" />
+          <Utensils className="h-6 w-6 text-white/70" />
         </div>
-            </div>
+      </div>
 
       {/* Main Content - Takes remaining space */}
       <div className="flex-1 relative overflow-hidden">

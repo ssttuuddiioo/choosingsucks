@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Loader2, Play } from 'lucide-react'
+import { Loader2, Play, ArrowLeft } from 'lucide-react'
 import { ReactNode } from 'react'
 
 interface SetupPageTemplateProps {
@@ -40,20 +40,28 @@ export default function SetupPageTemplate({
     <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden" style={{ height: '100dvh' }}>
       {/* Header - Fixed */}
       <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary backdrop-blur border-b border-white/10 relative z-20">
-        <div>
-          <h1 
-            className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
+        <div className="flex items-center gap-3">
+          <button
             onClick={() => router.push('/')}
+            className="text-white/70 hover:text-white transition-colors"
           >
-            <div>
-              <span className="gradient-text">{title.choosing} </span>
-              <span className="text-white">{title.subject} </span>
-              <span className="gradient-text">{title.sucks}</span>
-            </div>
-          </h1>
-          <p className="text-white/70 text-sm font-semibold">
-            {subtitle}
-          </p>
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 
+              className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => router.push('/')}
+            >
+              <div>
+                <span className="gradient-text">{title.choosing} </span>
+                <span className="text-white">{title.subject} </span>
+                <span className="gradient-text">{title.sucks}</span>
+              </div>
+            </h1>
+            <p className="text-white/70 text-sm font-semibold">
+              {subtitle}
+            </p>
+          </div>
         </div>
         <div className="p-2 rounded-xl">
           {icon}

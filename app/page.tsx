@@ -9,9 +9,9 @@ import {
   Tv, 
   Film, 
   Music, 
-  Gift, 
   Calendar,
-  Heart
+  Heart,
+  Plus
 } from 'lucide-react'
 import { getRandomTagline } from '@/lib/utils/taglines'
 
@@ -38,6 +38,13 @@ const categories: Category[] = [
     comingSoon: false,
   },
   {
+    id: 'build-your-own',
+    name: 'Build Your Own',
+    icon: Plus,
+    isActive: true,
+    comingSoon: false,
+  },
+  {
     id: 'delivery',
     name: 'Delivery',
     icon: Truck,
@@ -55,13 +62,6 @@ const categories: Category[] = [
     id: 'music',
     name: 'Music',
     icon: Music,
-    isActive: true,
-    comingSoon: true,
-  },
-  {
-    id: 'gifts',
-    name: 'Gift Ideas',
-    icon: Gift,
     isActive: true,
     comingSoon: true,
   },

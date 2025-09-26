@@ -2,10 +2,124 @@ import { NextRequest, NextResponse } from 'next/server'
 import { WatchmodeClient } from '@/lib/utils/watchmode-client'
 import { StreamingPreferences } from '@/lib/constants/streaming'
 import { createServerClient } from '@/lib/utils/supabase-server'
+import { generateSessionId, generateShareToken } from '@/lib/utils/session'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+interface BuildYourOwnRequest {
+  category: 'build-your-own'
+  sessionTitle: string
+  requireNames: boolean
+  inviteCount: number
+  customOptions: Array<{
+    title: string
+    description?: string
+    source_type: 'manual' | 'ai_extracted' | 'ai_generated'
+    metadata?: Record<string, any>
+  }>
+}
+
+async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
+  const { sessionTitle, requireNames, inviteCount, customOptions } = body
+  
+  // Validate required parameters
+  if (!sessionTitle?.trim() || !customOptions || customOptions.length < 2) {
+    return NextResponse.json(
+      { error: 'Missing required parameters: sessionTitle and at least 2 customOptions' },
+      { status: 400, headers: corsHeaders }
+    )
+  }
+
+  if (customOptions.length > 20) {
+    return NextResponse.json(
+      { error: 'Maximum 20 options allowed' },
+      { status: 400, headers: corsHeaders }
+    )
+  }
+
+  try {
+    const supabase = createServerClient()
+    const sessionId = generateSessionId()
+    const shareToken = generateShareToken()
+
+    // Create session
+    const { error: sessionError } = await supabase
+      .from('sessions')
+      .insert({
+        id: sessionId,
+        status: 'active',
+        category: 'build-your-own',
+        invite_count_hint: inviteCount,
+        require_names: requireNames,
+        preferences: {
+          sessionTitle: sessionTitle.trim(),
+          customOptionsCount: customOptions.length
+        }
+      })
+    
+    if (sessionError) {
+      console.error('Error creating Build Your Own session:', sessionError)
+      return NextResponse.json(
+        { error: 'Failed to create session' },
+        { status: 500, headers: corsHeaders }
+      )
+    }
+
+    // Create candidates from custom options
+    const candidateRecords = customOptions.map((option, index) => ({
+      session_id: sessionId,
+      category: 'build-your-own',
+      content_type: 'custom_option',
+      place_id: `custom_${sessionId}_${index}`,
+      external_id: `custom_${sessionId}_${index}`,
+      name: option.title,
+      title: option.title,
+      description: option.description,
+      metadata: {
+        source_type: option.source_type,
+        display_order: index,
+        ...(option.metadata || {})
+      },
+      // Required fields for compatibility
+      lat: 0,
+      lng: 0
+    }))
+
+    const { error: candidatesError } = await supabase
+      .from('candidates')
+      .insert(candidateRecords)
+
+    if (candidatesError) {
+      console.error('Error storing Build Your Own candidates:', candidatesError)
+      return NextResponse.json(
+        { error: 'Failed to store options' },
+        { status: 500, headers: corsHeaders }
+      )
+    }
+
+    console.log(`🎯 Created Build Your Own session ${sessionId} with ${customOptions.length} custom options`)
+
+    return NextResponse.json({
+      success: true,
+      sessionId,
+      shareToken,
+      candidatesAdded: customOptions.length,
+      message: `Created session with ${customOptions.length} custom options`,
+    }, {
+      status: 200,
+      headers: corsHeaders
+    })
+
+  } catch (error) {
+    console.error('Build Your Own session error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: corsHeaders }
+    )
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -16,10 +130,18 @@ export async function POST(request: NextRequest) {
 
   try {
     // Parse request body
+    const body = await request.json()
+    
+    // Handle Build Your Own category
+    if (body.category === 'build-your-own') {
+      return handleBuildYourOwnSession(body)
+    }
+    
+    // Handle streaming category (existing logic)
     const { sessionId, preferences }: { 
       sessionId: string
       preferences: StreamingPreferences 
-    } = await request.json()
+    } = body
     
     // Validate required parameters
     if (!sessionId || !preferences) {

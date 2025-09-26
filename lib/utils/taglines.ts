@@ -17,3 +17,4 @@ export function getRandomTagline(): string {
   const randomIndex = Math.floor(Math.random() * taglines.length);
   return taglines[randomIndex];
 }
+

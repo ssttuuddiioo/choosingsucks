@@ -23,7 +23,10 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
   const handleShare = async () => {
     // Generate a new share token for security
     const shareToken = generateShareToken()
-    const shareUrl = `${window.location.origin}/session/${session.id}?t=${shareToken}`
+    // Detect if this is a streaming session based on current URL
+    const isStreamingSession = window.location.pathname.includes('/streaming/')
+    const sessionPath = isStreamingSession ? 'streaming' : 'session'
+    const shareUrl = `${window.location.origin}/${sessionPath}/${session.id}?t=${shareToken}`
     
     // Always copy to clipboard
     copyToClipboard(shareUrl)

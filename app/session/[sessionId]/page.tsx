@@ -16,7 +16,7 @@ import MatchScreen from '@/components/session/match-screen'
 import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
 import InvalidSessionScreen from '@/components/session/invalid-session-screen'
 import NoMatchesScreen from '@/components/session/no-matches-screen'
-import RockPaperScissors from '@/components/session/rock-paper-scissors'
+import GenericRockPaperScissors from '@/components/shared/rock-paper-scissors-template'
 
 type Session = Tables<'sessions'>
 type Participant = Tables<'participants'>
@@ -469,12 +469,14 @@ export default function SessionPage() {
   // Rock Paper Scissors game
   if (showRockPaperScissors && participant) {
     return (
-      <RockPaperScissors
+      <GenericRockPaperScissors
         session={session}
         participant={participant}
+        category="restaurants"
         onBack={handleBackFromRPS}
         initialMove={pendingMove}
         gameId={rpsGameId}
+        winnerContent={candidates.filter(c => swipedCandidateIds.has(c.id))} // Liked restaurants
       />
     )
   }

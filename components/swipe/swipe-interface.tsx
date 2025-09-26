@@ -136,21 +136,11 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
       if (active) {
         x.set(mx)
       } else {
-        // More forgiving swipe detection - especially for right swipes
-        const absVx = Math.abs(vx)
+        // Simplified swipe detection - fixed threshold like thisnotthat
         const absMx = Math.abs(mx)
+        const SWIPE_THRESHOLD = 100 // Fixed 100px threshold for reliability
         
-        // Different thresholds for left vs right to help with "yea" swipes
-        const isRightSwipe = mx > 0
-        const velocityThreshold = isRightSwipe ? 0.1 : 0.15
-        const distanceThreshold = isRightSwipe ? 30 : 40
-        
-        const trigger = absVx > velocityThreshold || absMx > distanceThreshold
-        
-        // Debug logging (remove in production)
-        console.log('Swipe attempt:', { mx, vx, trigger, isRightSwipe, absVx, absMx })
-        
-        if (trigger) {
+        if (absMx > SWIPE_THRESHOLD) {
           const vote = mx > 0
           // Animate to final position
           x.set(mx > 0 ? 400 : -400)
@@ -216,7 +206,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
                 opacity: 0.4
               }}
             >
-              <RestaurantCard candidate={nextNextCandidate} />
+              <CandidateCard candidate={nextNextCandidate} />
             </div>
           )}
 
@@ -231,7 +221,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
                 opacity: 0.7
               }}
             >
-              <RestaurantCard candidate={nextCandidate} />
+              <CandidateCard candidate={nextCandidate} />
             </div>
           )}
           
@@ -256,7 +246,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
               }}
               {...bind() as any}
             >
-              <RestaurantCard 
+              <CandidateCard 
                 candidate={currentCandidate} 
                 dragX={animatingCardId === currentCandidate.id ? x : undefined} 
               />
@@ -308,32 +298,18 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   )
 }
 
-interface RestaurantCardProps {
+interface CandidateCardProps {
   candidate: Tables<'candidates'>
   dragX?: any
 }
 
-function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
+function CandidateCard({ candidate, dragX }: CandidateCardProps) {
   const [imageError, setImageError] = useState(false)
-  const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
   
   // Reset image error state when candidate changes
   useEffect(() => {
     setImageError(false)
   }, [candidate.id])
-  
-  // Debug logging for photo references
-  if (candidate.photo_ref && !photoUrl) {
-    console.warn('Photo reference found but no URL generated:', candidate.photo_ref)
-  }
-  
-  // Debug: Log photo URL generation
-  console.log(`🖼️ ${candidate.name}:`, {
-    hasPhotoRef: !!candidate.photo_ref,
-    photoRef: candidate.photo_ref,
-    photoUrl: photoUrl,
-    imageError: imageError
-  })
 
   // Transform drag position to overlay opacity and color
   // Always call hooks - use motionValue(0) as fallback to maintain hook order
@@ -341,20 +317,36 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
   const likeOpacity = useTransform(dragX || fallbackX, [0, 150], [0, 0.8])
   const nopeOpacity = useTransform(dragX || fallbackX, [-150, 0], [0.8, 0])
 
+  // Determine content type and render accordingly
+  if (candidate.category === 'build-your-own' || candidate.content_type === 'custom_option') {
+    return <CustomOptionCard candidate={candidate} dragX={dragX} likeOpacity={likeOpacity} nopeOpacity={nopeOpacity} />
+  } else if (candidate.category === 'streaming') {
+    return <StreamingCard candidate={candidate} dragX={dragX} likeOpacity={likeOpacity} nopeOpacity={nopeOpacity} />
+  } else {
+    // Default to restaurant card
+    return <RestaurantCard candidate={candidate} dragX={dragX} likeOpacity={likeOpacity} nopeOpacity={nopeOpacity} imageError={imageError} setImageError={setImageError} />
+  }
+}
+
+// Custom Option Card for Build Your Own
+function CustomOptionCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
+  candidate: Tables<'candidates'>
+  dragX?: any
+  likeOpacity: any
+  nopeOpacity: any
+}) {
+  
   return (
     <div className="h-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
       {/* Drag feedback overlays */}
       {dragX && (
         <>
-          {/* Like overlay */}
           <motion.div
             className="absolute inset-0 bg-gradient-lime flex items-center justify-center z-10 rounded-2xl"
             style={{ opacity: likeOpacity }}
           >
             <Heart className="h-24 w-24 text-white fill-current animate-pulse" />
           </motion.div>
-
-          {/* Nope overlay */}
           <motion.div
             className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center z-10 rounded-2xl"
             style={{ opacity: nopeOpacity }}
@@ -364,15 +356,151 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
         </>
       )}
 
-      {/* Image - takes available space but leaves room for info */}
-      <div 
-        className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20"
-        style={{ 
-          flex: '1 1 0',
-          minHeight: '200px', // Ensure minimum image height
-          maxHeight: 'calc(100% - 180px)' // Reserve space for info section
-        }}
-      >
+      {/* Main content area */}
+      <div className="flex-1 relative bg-gradient-mesh animate-gradient flex items-center justify-center p-8">
+        <div className="text-center space-y-4 max-w-sm">
+          <div className="text-3xl md:text-4xl font-outfit font-bold text-white/90 leading-tight">
+            {candidate.name}
+          </div>
+        </div>
+      </div>
+
+      {/* Info section */}
+      <div className="flex-shrink-0 p-4 md:p-6 space-y-3" style={{ minHeight: '140px', maxHeight: '180px' }}>
+        {candidate.description && (
+          <p className="text-sm text-gray-600 line-clamp-4 leading-relaxed">
+            {candidate.description}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Streaming Card
+function StreamingCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
+  candidate: Tables<'candidates'>
+  dragX?: any
+  likeOpacity: any
+  nopeOpacity: any
+}) {
+  const [imageError, setImageError] = useState(false)
+  const posterUrl = candidate.poster || candidate.image_url
+  
+  return (
+    <div className="h-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+      {/* Drag feedback overlays */}
+      {dragX && (
+        <>
+          <motion.div
+            className="absolute inset-0 bg-gradient-lime flex items-center justify-center z-10 rounded-2xl"
+            style={{ opacity: likeOpacity }}
+          >
+            <Heart className="h-24 w-24 text-white fill-current animate-pulse" />
+          </motion.div>
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center z-10 rounded-2xl"
+            style={{ opacity: nopeOpacity }}
+          >
+            <X className="h-24 w-24 text-white animate-pulse" />
+          </motion.div>
+        </>
+      )}
+
+      {/* Poster/Image */}
+      <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20" style={{ flex: '1 1 0', minHeight: '200px', maxHeight: 'calc(100% - 180px)' }}>
+        {posterUrl && !imageError ? (
+          <>
+            <img
+              src={posterUrl}
+              alt={candidate.title || candidate.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={() => setImageError(true)}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-mesh animate-gradient">
+            <div className="text-center">
+              <div className="text-8xl font-outfit font-bold text-white/20">
+                {(candidate.title || candidate.name)?.charAt(0)}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-shrink-0 p-4 md:p-6 space-y-3" style={{ minHeight: '140px', maxHeight: '180px' }}>
+        <h2 className="text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2">
+          {candidate.title || candidate.name}
+        </h2>
+
+        <div className="flex items-center gap-3 text-sm">
+          {candidate.year && (
+            <div className="bg-gray-200 px-2 md:px-3 py-1 rounded-full">
+              <span className="font-bold text-gray-900 text-xs md:text-sm">{candidate.year}</span>
+            </div>
+          )}
+          
+          {candidate.user_rating && (
+            <div className="flex items-center gap-1 bg-gray-200 px-2 md:px-3 py-1 rounded-full">
+              <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500 fill-current" />
+              <span className="font-bold text-gray-900 text-xs md:text-sm">{candidate.user_rating}</span>
+            </div>
+          )}
+        </div>
+
+        {candidate.genre_names && candidate.genre_names.length > 0 && (
+          <div className="flex flex-wrap gap-1 md:gap-2 overflow-hidden" style={{ maxHeight: '60px' }}>
+            {candidate.genre_names.slice(0, 3).map((genre, i) => (
+              <span
+                key={i}
+                className="px-2 md:px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold whitespace-nowrap"
+              >
+                {genre}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Restaurant Card
+function RestaurantCard({ candidate, dragX, likeOpacity, nopeOpacity, imageError, setImageError }: {
+  candidate: Tables<'candidates'>
+  dragX?: any
+  likeOpacity: any
+  nopeOpacity: any
+  imageError: boolean
+  setImageError: (error: boolean) => void
+}) {
+  const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
+  
+  return (
+    <div className="h-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+      {/* Drag feedback overlays */}
+      {dragX && (
+        <>
+          <motion.div
+            className="absolute inset-0 bg-gradient-lime flex items-center justify-center z-10 rounded-2xl"
+            style={{ opacity: likeOpacity }}
+          >
+            <Heart className="h-24 w-24 text-white fill-current animate-pulse" />
+          </motion.div>
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center z-10 rounded-2xl"
+            style={{ opacity: nopeOpacity }}
+          >
+            <X className="h-24 w-24 text-white animate-pulse" />
+          </motion.div>
+        </>
+      )}
+
+      {/* Image */}
+      <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20" style={{ flex: '1 1 0', minHeight: '200px', maxHeight: 'calc(100% - 180px)' }}>
         {photoUrl && !imageError ? (
           <>
             <img
@@ -394,20 +522,13 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
         )}
       </div>
 
-      {/* Info - fixed height to ensure visibility */}
-      <div 
-        className="flex-shrink-0 p-4 md:p-6 space-y-3"
-        style={{ 
-          minHeight: '140px', // Ensure minimum space for content
-          maxHeight: '180px'  // Prevent info from taking too much space
-        }}
-      >
+      {/* Info */}
+      <div className="flex-shrink-0 p-4 md:p-6 space-y-3" style={{ minHeight: '140px', maxHeight: '180px' }}>
         <h2 className="text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2">
           {candidate.name}
         </h2>
 
         <div className="flex items-center gap-3 text-sm">
-          {/* Rating */}
           {candidate.rating && (
             <div className="flex items-center gap-1 bg-gray-200 px-2 md:px-3 py-1 rounded-full">
               <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500 fill-current" />
@@ -418,7 +539,6 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
             </div>
           )}
 
-          {/* Price Level */}
           {candidate.price_level && (
             <div className="flex items-center bg-gray-200 px-2 md:px-3 py-1 rounded-full">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -436,7 +556,6 @@ function RestaurantCard({ candidate, dragX }: RestaurantCardProps) {
           )}
         </div>
 
-        {/* Cuisines - limited to prevent overflow */}
         {candidate.cuisines && candidate.cuisines.length > 0 && (
           <div className="flex flex-wrap gap-1 md:gap-2 overflow-hidden" style={{ maxHeight: '60px' }}>
             {candidate.cuisines.slice(0, 3).map((cuisine, i) => (

@@ -1,5 +1,10 @@
 import { nanoid } from 'nanoid'
 
+// Generate a session ID using crypto UUID
+export function generateSessionId(): string {
+  return crypto.randomUUID()
+}
+
 // Generate a short, URL-safe token
 export function generateShareToken(): string {
   return nanoid(8)

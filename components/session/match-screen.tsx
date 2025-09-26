@@ -74,7 +74,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
           damping: 15,
           duration: 0.8 
         }}
-        className="md:glass-card md:max-w-md w-full overflow-hidden min-h-screen md:min-h-0 flex flex-col"
+        className="md:bg-white/95 md:backdrop-blur-xl md:rounded-2xl md:shadow-2xl md:max-w-md w-full overflow-hidden min-h-screen md:min-h-0 flex flex-col"
       >
         {/* Success Header */}
         <div className="bg-gradient-lime p-6 text-center">
@@ -113,7 +113,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
         {/* Restaurant Details */}
         <div className="flex-1 p-6 space-y-4 flex flex-col">
           <div>
-            <h2 className="text-2xl font-outfit font-bold text-white">
+            <h2 className="text-2xl font-outfit font-bold text-gray-900">
               {candidate.name}
             </h2>
           </div>
@@ -121,25 +121,25 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
           {/* Stats */}
           <div className="flex flex-wrap gap-2">
             {candidate.rating && (
-              <div className="flex items-center gap-1 bg-white/10 px-3 py-2 rounded-lg">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="font-bold text-white">{candidate.rating}</span>
+              <div className="flex items-center gap-1 bg-gray-100 px-3 py-2 rounded-lg">
+                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                <span className="font-bold text-gray-900">{candidate.rating}</span>
                 {candidate.user_ratings_total && (
-                  <span className="text-white/50 text-sm">({candidate.user_ratings_total})</span>
+                  <span className="text-gray-600 text-sm">({candidate.user_ratings_total})</span>
                 )}
               </div>
             )}
 
             {candidate.price_level && (
-              <div className="flex items-center bg-white/10 px-3 py-2 rounded-lg">
+              <div className="flex items-center bg-gray-100 px-3 py-2 rounded-lg">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <DollarSign
                     key={i}
                     className={cn(
                       "h-4 w-4",
                       i < (candidate.price_level || 0)
-                        ? "text-lime-green"
-                        : "text-white/30"
+                        ? "text-green-600"
+                        : "text-gray-400"
                     )}
                   />
                 ))}
@@ -178,7 +178,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
                 href={candidate.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all"
+                className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-900 transition-all"
               >
                 <ExternalLink className="h-4 w-4" />
                 View on Google
@@ -188,7 +188,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
             {/* Subtle New Session Button */}
             <button
               onClick={() => router.push('/')}
-              className="w-full flex items-center justify-center gap-2 py-3 px-6 text-white/60 hover:text-white/80 transition-all text-sm"
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 text-gray-600 hover:text-gray-800 transition-all text-sm"
             >
               <Plus className="h-4 w-4" />
               Start a new swipe session
