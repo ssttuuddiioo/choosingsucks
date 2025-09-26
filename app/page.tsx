@@ -108,20 +108,13 @@ export default function CategoryLandingPage() {
           {/* Logo */}
           <h1 className="text-5xl font-outfit font-black leading-[0.9] tracking-tight">
             <motion.div 
-              className="gradient-text"
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
             >
-              CHOOSING
-            </motion.div>
-            <motion.div 
-              className="gradient-text"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              SUCKS
+              <span className="gradient-text">CHOOSING</span>
+              <span className="text-white">.</span>
+              <span className="gradient-text">SUCKS</span>
             </motion.div>
           </h1>
           
