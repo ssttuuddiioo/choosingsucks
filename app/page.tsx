@@ -11,7 +11,7 @@ import {
   Music, 
   Calendar,
   Heart,
-  Plus
+  Wrench
 } from 'lucide-react'
 import { getRandomTagline } from '@/lib/utils/taglines'
 
@@ -40,7 +40,7 @@ const categories: Category[] = [
   {
     id: 'build-your-own',
     name: 'Build Your Own',
-    icon: Plus,
+    icon: Wrench,
     isActive: true,
     comingSoon: false,
   },

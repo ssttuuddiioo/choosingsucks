@@ -13,7 +13,8 @@ import {
   GripVertical,
   Edit3,
   Loader2,
-  Play
+  Play,
+  Wrench
 } from 'lucide-react'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -239,7 +240,7 @@ export default function BuildYourOwnPage() {
           </div>
         </div>
         <div className="p-2 rounded-xl">
-          <Plus className="h-6 w-6 text-white/70" />
+          <Wrench className="h-6 w-6 text-white/70" />
         </div>
       </div>
       
