@@ -369,7 +369,7 @@ export default function BuildYourOwnPage() {
                   <textarea
                     value={aiDescription}
                     onChange={(e) => setAiDescription(e.target.value)}
-                    placeholder="Describe what you're trying to decide... (e.g., 'We want to watch something funny tonight' or 'Looking for a good restaurant for date night')"
+                    placeholder="Describe what you're trying to decide... (e.g., 'Superheroes from the Marvel Cinematic Universe')"
                     rows={3}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-electric-purple focus:border-transparent resize-none"
                   />
