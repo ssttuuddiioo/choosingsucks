@@ -44,6 +44,7 @@ export default function BuildYourOwnPage() {
   
   // UI state
   const [isCreating, setIsCreating] = useState(false)
+  const [showAddOptions, setShowAddOptions] = useState(false)
   const [activeTab, setActiveTab] = useState<'manual' | 'ai-generate'>('manual')
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null)
@@ -83,6 +84,19 @@ export default function BuildYourOwnPage() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       addManualOption()
+    }
+  }
+
+  const handleSessionTitleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && sessionTitle.trim()) {
+      e.preventDefault()
+      setShowAddOptions(true)
+    }
+  }
+
+  const handleAddOptionsClick = () => {
+    if (sessionTitle.trim()) {
+      setShowAddOptions(true)
     }
   }
 
@@ -256,13 +270,31 @@ export default function BuildYourOwnPage() {
             className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
           >
             <h2 className="text-lg font-bold text-white mb-4">What are you trying to decide?</h2>
-            <input
-              type="text"
-              value={sessionTitle}
-              onChange={(e) => setSessionTitle(e.target.value)}
-              placeholder="e.g., Who's the most superior superhero?"
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-electric-purple focus:border-transparent"
-            />
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={sessionTitle}
+                onChange={(e) => setSessionTitle(e.target.value)}
+                onKeyPress={handleSessionTitleKeyPress}
+                placeholder="e.g., Who's the most superior superhero?"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-electric-purple focus:border-transparent"
+              />
+              
+              {!showAddOptions && (
+                <button
+                  onClick={handleAddOptionsClick}
+                  disabled={!sessionTitle.trim()}
+                  className={`w-full py-3 rounded-xl font-semibold text-lg transition-all duration-300 transform flex items-center justify-center gap-2 ${
+                    sessionTitle.trim()
+                      ? 'bg-gradient-electric text-white hover:scale-105 active:scale-95'
+                      : 'bg-white/20 text-white/50 cursor-not-allowed'
+                  }`}
+                >
+                  <Plus className="h-5 w-5" />
+                  Add Options
+                </button>
+              )}
+            </div>
             
             {isMultiPersonEnabled && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -299,12 +331,13 @@ export default function BuildYourOwnPage() {
           </motion.div>
 
           {/* Add Options */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
-          >
+          {showAddOptions && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+            >
             <h2 className="text-lg font-bold text-white mb-4">Add Options</h2>
             
             {/* Tab Navigation */}
@@ -422,9 +455,10 @@ export default function BuildYourOwnPage() {
               </div>
             )}
           </motion.div>
+          )}
 
           {/* Options Preview */}
-          {options.length > 0 && (
+          {showAddOptions && options.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -482,12 +516,13 @@ export default function BuildYourOwnPage() {
           )}
 
           {/* Start Button */}
-          <motion.div 
-            className="space-y-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
+          {showAddOptions && (
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
             <button
               onClick={createSession}
               disabled={!canStartSession() || isCreating}
@@ -519,6 +554,7 @@ export default function BuildYourOwnPage() {
               </p>
             )}
           </motion.div>
+          )}
         </div>
       </div>
     </div>
