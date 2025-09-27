@@ -253,7 +253,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
               <StreamingCard
                 key={`${nextNextCandidate.id}-bg2`}
                 candidate={nextNextCandidate}
-                className="absolute inset-0 scale-95 opacity-30"
+                className="absolute inset-0 scale-95 opacity-15"
                 style={{ zIndex: 1 }}
               />
             )}
@@ -262,7 +262,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
               <StreamingCard
                 key={`${nextCandidate.id}-bg1`}
                 candidate={nextCandidate}
-                className="absolute inset-0 scale-98 opacity-60"
+                className="absolute inset-0 scale-98 opacity-25"
                 style={{ zIndex: 2 }}
               />
             )}
@@ -363,7 +363,7 @@ function StreamingCard({ candidate, dragX, className, style }: StreamingCardProp
   const nopeOpacity = useTransform(dragX || fallbackX, [-150, 0], [0.8, 0])
 
   return (
-    <div className={cn("h-full glass-card overflow-hidden flex flex-col relative", className)} style={style}>
+    <div className={cn("h-full bg-white overflow-hidden flex flex-col relative rounded-2xl shadow-2xl", className)} style={style}>
       {/* Drag feedback overlays */}
       {dragX && (
         <>

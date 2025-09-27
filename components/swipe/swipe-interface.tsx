@@ -193,7 +193,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
               style={{ 
                 zIndex: 1,
                 transform: 'scale(0.85) translateY(20px)',
-                opacity: 0.4
+                opacity: 0.12,
+                filter: 'blur(2px)'
               }}
             >
               <CandidateCard candidate={nextNextCandidate} />
@@ -208,7 +209,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
               style={{ 
                 zIndex: 2,
                 transform: 'scale(0.92) translateY(10px)',
-                opacity: 0.7
+                opacity: 0.25,
+                filter: 'blur(1px)'
               }}
             >
               <CandidateCard candidate={nextCandidate} />
@@ -327,7 +329,7 @@ function CustomOptionCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
 }) {
   
   return (
-    <div className="h-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+    <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
       {/* Drag feedback overlays */}
       {dragX && (
         <>
@@ -378,7 +380,7 @@ function StreamingCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
   const posterUrl = candidate.poster || candidate.image_url
   
   return (
-    <div className="h-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+    <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
       {/* Drag feedback overlays */}
       {dragX && (
         <>
@@ -470,7 +472,7 @@ function RestaurantCard({ candidate, dragX, likeOpacity, nopeOpacity, imageError
   const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
   
   return (
-    <div className="h-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+    <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
       {/* Drag feedback overlays */}
       {dragX && (
         <>
