@@ -214,6 +214,9 @@ export default function BuildYourOwnPage() {
 
       const result = await response.json()
       
+      // Small delay to ensure database transaction is committed
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       // Redirect to session page
       router.push(`/session/${result.sessionId}?t=${result.shareToken}`)
       

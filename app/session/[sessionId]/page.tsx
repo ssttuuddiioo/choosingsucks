@@ -102,10 +102,18 @@ export default function SessionPage() {
         .single()
 
       if (sessionError || !sessionData) {
+        console.error('Session lookup error:', { sessionError, sessionId, hasData: !!sessionData })
         setError('Session not found')
         setLoading(false)
         return
       }
+
+      console.log('✅ Session found:', { 
+        id: sessionData.id, 
+        category: sessionData.category, 
+        status: sessionData.status,
+        shareToken 
+      })
 
       setSession(sessionData)
 

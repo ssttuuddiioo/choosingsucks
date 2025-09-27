@@ -23,8 +23,8 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
   const handleShare = async () => {
     // Generate a new share token for security
     const shareToken = generateShareToken()
-    // Detect if this is a streaming session based on current URL
-    const isStreamingSession = window.location.pathname.includes('/streaming/')
+    // Detect session type based on current URL or session category
+    const isStreamingSession = window.location.pathname.includes('/streaming/') || session.category === 'streaming'
     const sessionPath = isStreamingSession ? 'streaming' : 'session'
     const shareUrl = `${window.location.origin}/${sessionPath}/${session.id}?t=${shareToken}`
     
