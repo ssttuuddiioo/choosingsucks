@@ -20,7 +20,6 @@ interface StreamingSwipeInterfaceProps {
 
 export default function StreamingSwipeInterface({ candidates, onSwipe }: StreamingSwipeInterfaceProps) {
   const router = useRouter()
-  const [currentIndex, setCurrentIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
   const [animatingCardId, setAnimatingCardId] = useState<string | null>(null)
@@ -62,19 +61,11 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     }
   }, [])
 
-  // Reset indices whenever the filtered candidates list changes length
-  useEffect(() => {
-    setCurrentIndex(0)
-    setAnimatingCardId(null)
-    x.set(0)
-  }, [candidates.length])
-
-  // Calculate card candidates
+  // Calculate card candidates (parent is the source of truth)
   const hasCandidates = candidates.length > 0
-  const safeCurrentIndex = hasCandidates ? Math.min(currentIndex, candidates.length - 1) : 0
-  const currentCandidate = hasCandidates ? candidates[safeCurrentIndex] : undefined
-  const nextCandidate = hasCandidates ? candidates[safeCurrentIndex + 1] : undefined
-  const nextNextCandidate = hasCandidates ? candidates[safeCurrentIndex + 2] : undefined
+  const currentCandidate = hasCandidates ? candidates[0] : undefined
+  const nextCandidate = hasCandidates ? candidates[1] : undefined
+  const nextNextCandidate = hasCandidates ? candidates[2] : undefined
   
   // Motion values for smooth animations
   const x = useMotionValue(0)
@@ -82,7 +73,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0])
   const scale = useTransform(x, [-150, 0, 150], [0.95, 1, 0.95])
 
-  // Preload next images based on current index
+  // Preload next images based on current/next candidates
   useEffect(() => {
     const imagesToPreload = [currentCandidate, nextCandidate, nextNextCandidate].filter(Boolean)
     imagesToPreload.forEach(candidate => {
@@ -95,7 +86,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
         }
       }
     })
-  }, [currentIndex, preloadedImages])
+  }, [currentCandidate?.id, nextCandidate?.id, nextNextCandidate?.id, preloadedImages])
 
   const handleSwipeComplete = (vote: boolean) => {
     if (!currentCandidate || isAnimating) return
@@ -113,9 +104,8 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
     
     onSwipe(currentCandidate.id.toString(), vote)
     
-    // Faster state update for responsive swiping
+    // Reset local animation state after exit duration
     setTimeout(() => {
-      setCurrentIndex(prev => prev + 1)
       setAnimatingCardId(null)
       x.set(0) // Reset position for next card
       setIsAnimating(false)
@@ -186,7 +176,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
   }
 
   // When no more candidates, let parent component handle the exhausted state
-  if (currentIndex >= candidates.length) {
+  if (candidates.length === 0) {
     return null // Parent will show ExhaustedScreenTemplate
   }
 
@@ -212,7 +202,7 @@ export default function StreamingSwipeInterface({ candidates, onSwipe }: Streami
 
             <div className="flex items-center gap-3">
               <div className="bg-gradient-orange text-white px-3 py-2 rounded-full font-bold text-sm">
-                {candidates.length - currentIndex}
+                {candidates.length}
               </div>
               
               <button

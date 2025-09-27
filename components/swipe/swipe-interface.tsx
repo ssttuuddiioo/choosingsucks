@@ -16,7 +16,6 @@ interface SwipeInterfaceProps {
 
 export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfaceProps) {
   const router = useRouter()
-  const [currentIndex, setCurrentIndex] = useState(0)
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
   const [isAnimating, setIsAnimating] = useState(false)
   const [animatingCardId, setAnimatingCardId] = useState<string | null>(null)
@@ -59,19 +58,11 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     }
   }, [])
 
-  // Reset indices whenever the filtered candidates list changes length
-  useEffect(() => {
-    setCurrentIndex(0)
-    setAnimatingCardId(null)
-    x.set(0)
-  }, [candidates.length])
-
-  // Calculate card candidates using single index source
+  // Calculate card candidates based on props (parent is source of truth)
   const hasCandidates = candidates.length > 0
-  const safeCurrentIndex = hasCandidates ? Math.min(currentIndex, candidates.length - 1) : 0
-  const currentCandidate = hasCandidates ? candidates[safeCurrentIndex] : undefined
-  const nextCandidate = hasCandidates ? candidates[safeCurrentIndex + 1] : undefined
-  const nextNextCandidate = hasCandidates ? candidates[safeCurrentIndex + 2] : undefined
+  const currentCandidate = hasCandidates ? candidates[0] : undefined
+  const nextCandidate = hasCandidates ? candidates[1] : undefined
+  const nextNextCandidate = hasCandidates ? candidates[2] : undefined
   
   // Motion values for smooth animations
   const x = useMotionValue(0)
@@ -79,7 +70,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0])
   const scale = useTransform(x, [-150, 0, 150], [0.95, 1, 0.95])
 
-  // Preload next images based on current index
+  // Preload next images based on current/next candidates
   useEffect(() => {
     const imagesToPreload = [currentCandidate, nextCandidate, nextNextCandidate].filter(Boolean)
     imagesToPreload.forEach(candidate => {
@@ -91,7 +82,7 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
         }
       }
     })
-  }, [currentIndex, preloadedImages])
+  }, [currentCandidate?.id, nextCandidate?.id, nextNextCandidate?.id, preloadedImages])
 
   const handleSwipeComplete = (vote: boolean) => {
     if (!currentCandidate || isAnimating) return
@@ -106,9 +97,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     
     onSwipe(currentCandidate.id, vote)
     
-    // Atomic state update after animation completes
+    // Reset local animation state after exit duration
     setTimeout(() => {
-      setCurrentIndex(prev => prev + 1)
       setAnimatingCardId(null)
       x.set(0) // Reset position for next card
       setIsAnimating(false)
