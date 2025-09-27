@@ -18,7 +18,7 @@ const jetbrains = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'choosing.sucks - We\'ll choose for you.',
+  title: "choosing.sucks - Let's decide.",
   description: 'Stop arguing. Start eating. We make choosing suck less.',
   manifest: '/manifest.json',
   icons: {
