@@ -18,10 +18,23 @@ interface ExtractedOption {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  const requestId = crypto.randomUUID()
+  
+  console.log(`🤖 [${requestId}] Image analysis request started`)
+  
   try {
     const body: AnalyzeImageRequest = await request.json()
 
+    console.log(`📊 [${requestId}] Request details:`, {
+      hasImageUrl: !!body.image_url,
+      imageSize: body.image_url ? `${Math.round(body.image_url.length / 1024)}KB` : 'N/A',
+      hasContext: !!body.context,
+      context: body.context ? body.context.substring(0, 100) + '...' : 'None'
+    })
+
     if (!body.image_url) {
+      console.log(`❌ [${requestId}] Missing image URL`)
       return NextResponse.json(
         { error: 'Image URL is required' },
         { status: 400 }
@@ -29,6 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.OPENAI_API_KEY) {
+      console.log(`❌ [${requestId}] OpenAI API key not configured`)
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
@@ -55,6 +69,9 @@ If it's not clear what you should infer from the photo, the image quality is poo
 2. OR set success=true and have some fun with it! Create relevant options based on whatever you can see or imagine from the image.
 
 Focus on extracting actionable, distinct options that people could vote on. Avoid duplicates and overly similar items. Provide between 4-20 options when successful.`
+
+    console.log(`🚀 [${requestId}] Sending request to OpenAI...`)
+    const apiStartTime = Date.now()
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
@@ -127,9 +144,12 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
       }
     })
 
+    const apiDuration = Date.now() - apiStartTime
+    console.log(`⚡ [${requestId}] OpenAI API response received in ${apiDuration}ms`)
+
     // Handle potential refusal
     if (response.choices[0]?.message?.refusal) {
-      console.log('OpenAI refused the request:', response.choices[0].message.refusal)
+      console.log(`🚫 [${requestId}] OpenAI refused the request:`, response.choices[0].message.refusal)
       // Even if refused, provide some creative fallback options
       const fallbackOptions = [
         { title: 'Option A', description: 'First choice', confidence: 'medium' as const },
@@ -152,6 +172,8 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
         }
       }))
 
+      console.log(`🔄 [${requestId}] Using fallback options due to refusal - returned ${validOptions.length} options`)
+
       return NextResponse.json({
         success: true,
         options: validOptions,
@@ -173,8 +195,12 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
     let parsed: any
     try {
       parsed = JSON.parse(content)
+      console.log(`✅ [${requestId}] Successfully parsed structured response`)
     } catch (parseError) {
-      console.error('Failed to parse structured response:', content)
+      console.error(`❌ [${requestId}] Failed to parse structured response:`, {
+        error: parseError,
+        content: content.substring(0, 500) + '...'
+      })
       return NextResponse.json(
         { error: 'Failed to parse AI response. Please try again.' },
         { status: 500 }
@@ -183,6 +209,7 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
 
     // Check if the LLM reported an error
     if (!parsed.success && parsed.error) {
+      console.log(`⚠️ [${requestId}] LLM reported error:`, parsed.error)
       return NextResponse.json(
         { error: parsed.error },
         { status: 400 }
@@ -191,6 +218,7 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
 
     // Ensure we have options
     if (!parsed.options || parsed.options.length === 0) {
+      console.log(`❌ [${requestId}] No options extracted from response`)
       return NextResponse.json(
         { error: 'No options could be extracted from this image. Try a different photo with clearer text or ideas.' },
         { status: 400 }
@@ -211,18 +239,37 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
       }
     }))
 
+    const totalDuration = Date.now() - startTime
+    console.log(`🎉 [${requestId}] Image analysis completed successfully:`, {
+      optionsExtracted: validOptions.length,
+      confidenceLevels: validOptions.reduce((acc: any, opt: any) => {
+        acc[opt.confidence] = (acc[opt.confidence] || 0) + 1
+        return acc
+      }, {}),
+      apiDuration: apiDuration,
+      totalDuration: totalDuration,
+      averageOptionLength: Math.round(validOptions.reduce((acc: number, opt: any) => acc + opt.title.length, 0) / validOptions.length)
+    })
+
     return NextResponse.json({
       success: true,
       options: validOptions,
       metadata: {
         total_extracted: validOptions.length,
         model_used: 'gpt-4o-2024-08-06',
-        extraction_time: new Date().toISOString()
+        extraction_time: new Date().toISOString(),
+        api_duration_ms: apiDuration,
+        total_duration_ms: totalDuration
       }
     })
 
   } catch (error) {
-    console.error('Error analyzing image:', error)
+    const totalDuration = Date.now() - startTime
+    console.error(`💥 [${requestId}] Image analysis error after ${totalDuration}ms:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: totalDuration
+    })
     
     if (error instanceof Error && error.message.includes('API key')) {
       return NextResponse.json(

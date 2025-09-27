@@ -106,7 +106,7 @@ export default function CategoryLandingPage() {
           className="text-center space-y-2"
         >
           {/* Logo */}
-          <h1 className="text-5xl font-outfit font-black leading-[0.9] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-outfit font-black leading-[0.9] tracking-tight">
             <motion.div 
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}

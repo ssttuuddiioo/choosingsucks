@@ -192,7 +192,7 @@ export default function RestaurantSetupPage() {
   const showLocationSearch = locationState === 'denied' || locationState === 'unavailable'
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-primary overflow-hidden" style={{ height: '100dvh' }}>
+    <div className="min-h-screen flex flex-col bg-gradient-primary no-overscroll" style={{ minHeight: '100dvh' }}>
       {/* Header - Fixed */}
       <div className="flex justify-between items-center p-4 flex-shrink-0 bg-gradient-primary backdrop-blur border-b border-white/10 relative z-20">
         <div className="flex items-center gap-3">
@@ -204,14 +204,12 @@ export default function RestaurantSetupPage() {
           </button>
           <div>
             <h1 
-              className="text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform"
+              className="text-lg sm:text-xl md:text-2xl font-outfit font-black leading-tight logo-chunky cursor-pointer hover:scale-105 transition-transform whitespace-nowrap"
               onClick={() => router.push('/')}
             >
-              <div>
-                <span className="gradient-text">CHOOSING </span>
-                <span className="text-white">RESTAURANTS </span>
-                <span className="gradient-text">SUCKS</span>
-              </div>
+              <span className="gradient-text">CHOOSING </span>
+              <span className="text-white">RESTAURANTS </span>
+              <span className="gradient-text">SUCKS</span>
             </h1>
             <p className="text-white/70 text-sm font-semibold">
               Set your preferences and we'll find the perfect match

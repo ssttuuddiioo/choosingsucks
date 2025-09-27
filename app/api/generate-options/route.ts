@@ -18,10 +18,24 @@ interface GeneratedOption {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  const requestId = crypto.randomUUID()
+  
+  console.log(`🤖 [${requestId}] Text generation request started`)
+  
   try {
     const body: GenerateOptionsRequest = await request.json()
 
+    console.log(`📊 [${requestId}] Request details:`, {
+      descriptionLength: body.description?.trim().length || 0,
+      hasSessionTitle: !!body.sessionTitle,
+      sessionTitle: body.sessionTitle ? body.sessionTitle.substring(0, 50) + '...' : 'None',
+      requestedCount: body.count || 8,
+      description: body.description ? body.description.substring(0, 100) + '...' : 'None'
+    })
+
     if (!body.description?.trim()) {
+      console.log(`❌ [${requestId}] Missing description`)
       return NextResponse.json(
         { error: 'Description is required' },
         { status: 400 }
@@ -29,6 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.OPENAI_API_KEY) {
+      console.log(`❌ [${requestId}] OpenAI API key not configured`)
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
@@ -59,6 +74,9 @@ Examples of good responses:
 - For "What feature should we build next?": success=true with options like "Dark Mode", "Push Notifications", etc.
 
 Make the options diverse and cover different aspects of the decision when successful.`
+
+    console.log(`🚀 [${requestId}] Sending text generation request to OpenAI...`)
+    const apiStartTime = Date.now()
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
@@ -115,9 +133,12 @@ Make the options diverse and cover different aspects of the decision when succes
       }
     })
 
+    const apiDuration = Date.now() - apiStartTime
+    console.log(`⚡ [${requestId}] OpenAI API response received in ${apiDuration}ms`)
+
     // Handle potential refusal
     if (response.choices[0]?.message?.refusal) {
-      console.log('OpenAI refused the request:', response.choices[0].message.refusal)
+      console.log(`🚫 [${requestId}] OpenAI refused the request:`, response.choices[0].message.refusal)
       // Provide creative fallback options based on the count requested
       const fallbackOptions = Array.from({ length: Math.min(count, 4) }, (_, i) => ({
         title: `Option ${String.fromCharCode(65 + i)}`, // A, B, C, D
@@ -131,6 +152,8 @@ Make the options diverse and cover different aspects of the decision when succes
           fallback_used: true
         }
       }))
+
+      console.log(`🔄 [${requestId}] Using fallback options due to refusal - returned ${fallbackOptions.length} options`)
 
       return NextResponse.json({
         success: true,
@@ -154,8 +177,12 @@ Make the options diverse and cover different aspects of the decision when succes
     let parsed: any
     try {
       parsed = JSON.parse(content)
+      console.log(`✅ [${requestId}] Successfully parsed structured response`)
     } catch (parseError) {
-      console.error('Failed to parse structured response:', content)
+      console.error(`❌ [${requestId}] Failed to parse structured response:`, {
+        error: parseError,
+        content: content.substring(0, 500) + '...'
+      })
       return NextResponse.json(
         { error: 'Failed to parse AI response. Please try again.' },
         { status: 500 }
@@ -164,6 +191,7 @@ Make the options diverse and cover different aspects of the decision when succes
 
     // Check if the LLM reported an error
     if (!parsed.success && parsed.error) {
+      console.log(`⚠️ [${requestId}] LLM reported error:`, parsed.error)
       return NextResponse.json(
         { error: parsed.error },
         { status: 400 }
@@ -172,6 +200,7 @@ Make the options diverse and cover different aspects of the decision when succes
 
     // Ensure we have options
     if (!parsed.options || parsed.options.length === 0) {
+      console.log(`❌ [${requestId}] No options generated from response`)
       return NextResponse.json(
         { error: 'Could not generate options from that description. Try being more specific about what you want to decide.' },
         { status: 400 }
@@ -191,19 +220,37 @@ Make the options diverse and cover different aspects of the decision when succes
       }
     }))
 
+    const totalDuration = Date.now() - startTime
+    console.log(`🎉 [${requestId}] Text generation completed successfully:`, {
+      optionsGenerated: validOptions.length,
+      requestedCount: count,
+      hasDescriptions: validOptions.filter((opt: any) => opt.description).length,
+      apiDuration: apiDuration,
+      totalDuration: totalDuration,
+      averageOptionLength: Math.round(validOptions.reduce((acc: number, opt: any) => acc + opt.title.length, 0) / validOptions.length),
+      sessionTitleProvided: !!body.sessionTitle
+    })
+
     return NextResponse.json({
       success: true,
       options: validOptions,
       metadata: {
         total_generated: validOptions.length,
         original_description: body.description.trim(),
-        model_used: 'gpt-4o',
-        generation_time: new Date().toISOString()
+        model_used: 'gpt-4o-2024-08-06',
+        generation_time: new Date().toISOString(),
+        api_duration_ms: apiDuration,
+        total_duration_ms: totalDuration
       }
     })
 
   } catch (error) {
-    console.error('Error generating options:', error)
+    const totalDuration = Date.now() - startTime
+    console.error(`💥 [${requestId}] Text generation error after ${totalDuration}ms:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: totalDuration
+    })
     
     if (error instanceof Error && error.message.includes('API key')) {
       return NextResponse.json(
