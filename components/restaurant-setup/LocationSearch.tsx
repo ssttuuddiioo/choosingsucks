@@ -25,11 +25,14 @@ export default function LocationSearch({
   // Initialize Google Places services
   useEffect(() => {
     if (window.google && window.google.maps && window.google.maps.places) {
+      console.debug('[LocationSearch] Initializing Places services')
       autocompleteService.current = new google.maps.places.AutocompleteService()
       
       // Create a dummy div for PlacesService (required by Google Maps API)
       const dummyDiv = document.createElement('div')
       placesService.current = new google.maps.places.PlacesService(dummyDiv)
+    } else {
+      console.warn('[LocationSearch] Google Maps Places not available on window at mount')
     }
   }, [])
 
@@ -41,6 +44,7 @@ export default function LocationSearch({
     }
 
     const timer = setTimeout(() => {
+      console.debug('[LocationSearch] Fetching place predictions for input', inputValue)
       autocompleteService.current?.getPlacePredictions(
         {
           input: inputValue,
@@ -49,8 +53,10 @@ export default function LocationSearch({
         },
         (results, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            console.debug('[LocationSearch] Predictions OK', { count: results.length })
             setPredictions(results.slice(0, 5)) // Limit to 5 results
           } else {
+            console.warn('[LocationSearch] Predictions returned no results', { status })
             setPredictions([])
           }
         }
@@ -64,6 +70,7 @@ export default function LocationSearch({
     if (!placesService.current) return
 
     setIsLoading(true)
+    console.debug('[LocationSearch] getDetails for place', { placeId, description })
     
     placesService.current.getDetails(
       { placeId, fields: ['geometry', 'formatted_address'] },
@@ -71,6 +78,10 @@ export default function LocationSearch({
         setIsLoading(false)
         
         if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+          console.debug('[LocationSearch] getDetails OK', {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+          })
           onLocationSelect({
             lat: place.geometry.location.lat(),
             lng: place.geometry.location.lng(),
@@ -78,6 +89,8 @@ export default function LocationSearch({
           })
           setInputValue('')
           setPredictions([])
+        } else {
+          console.error('[LocationSearch] getDetails failed', { status, hasPlace: Boolean(place) })
         }
       }
     )
@@ -155,6 +168,7 @@ export default function LocationSearch({
 export function loadGoogleMapsPlaces(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (window.google && window.google.maps && window.google.maps.places) {
+      console.debug('[LocationSearch] Places already loaded')
       resolve()
       return
     }
@@ -164,8 +178,14 @@ export function loadGoogleMapsPlaces(): Promise<void> {
     script.async = true
     script.defer = true
     
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('Failed to load Google Maps Places API'))
+    script.onload = () => {
+      console.debug('[LocationSearch] Places script loaded')
+      resolve()
+    }
+    script.onerror = () => {
+      console.error('[LocationSearch] Failed to load Google Maps Places API')
+      reject(new Error('Failed to load Google Maps Places API'))
+    }
     
     document.head.appendChild(script)
   })

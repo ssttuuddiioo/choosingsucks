@@ -41,6 +41,7 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
   // Initialize map
   useEffect(() => {
     if (ref.current && !map) {
+      console.debug('[MapInterface] Initializing Google Map', { center })
       const newMap = new google.maps.Map(ref.current, {
         center,
         zoom: 13,
@@ -59,13 +60,18 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
         ]
       })
       setMap(newMap)
-      onMapReady(newMap)
+      try {
+        onMapReady(newMap)
+      } catch (err) {
+        console.error('[MapInterface] onMapReady handler threw', err)
+      }
     }
   }, [ref, map, center, onMapReady])
 
   // Update map center when prop changes (only for initial load)
   useEffect(() => {
     if (map) {
+      console.debug('[MapInterface] Updating map center', { center })
       map.setCenter(center)
     }
   }, [map, center])
@@ -87,6 +93,15 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
   className = '' 
 }, ref) => {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+  
+  // Log environment/API availability on mount
+  useEffect(() => {
+    const hasGoogle = typeof window !== 'undefined' && (window as any).google && (window as any).google.maps
+    console.debug('[MapInterface] Mounted', {
+      hasGoogleMapsOnWindow: Boolean(hasGoogle),
+      hasApiKey: Boolean(env.google.mapsApiKey),
+    })
+  }, [])
 
   useImperativeHandle(ref, () => ({
     getCurrentMapState: () => {
@@ -107,7 +122,17 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
       }
     }
   }), [mapInstance])
+  const handleMapReady = useCallback((map: google.maps.Map) => {
+    const centerNow = map.getCenter()
+    console.debug('[MapInterface] Map ready', {
+      center: centerNow ? { lat: centerNow.lat(), lng: centerNow.lng() } : null,
+      zoom: map.getZoom(),
+    })
+    setMapInstance(map)
+  }, [])
+
   const render = useCallback((status: any) => {
+    console.debug('[MapInterface] Wrapper status', status)
     if (status === 'LOADING') {
       return (
         <div className="flex items-center justify-center h-full bg-gradient-to-br from-electric-purple/20 to-hot-pink/20">
@@ -135,16 +160,12 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
       )
     }
 
-    return (
-      <GoogleMapComponent
-        center={center}
-        style={{ width: '100%', height: '100%' }}
-        onMapReady={setMapInstance}
-      />
-    )
-  }, [center])
+    // Return null so the Wrapper renders its children when scripts are ready
+    return null
+  }, [])
 
   if (!env.google.mapsApiKey) {
+    console.error('[MapInterface] Missing Google Maps API key')
     return (
       <div className="flex items-center justify-center h-full bg-gradient-to-br from-red-500/20 to-red-700/20">
         <div className="text-center">
@@ -156,7 +177,13 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
 
   return (
     <div className={`relative ${className}`}>
-      <Wrapper apiKey={env.google.mapsApiKey} render={render} />
+      <Wrapper apiKey={env.google.mapsApiKey} render={render}>
+        <GoogleMapComponent
+          center={center}
+          style={{ width: '100%', height: '100%' }}
+          onMapReady={handleMapReady}
+        />
+      </Wrapper>
       
       {/* Fixed Circle Overlay - Always centered on screen */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">

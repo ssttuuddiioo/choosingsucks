@@ -120,18 +120,25 @@ export default function SessionPage() {
       // Check if already joined
       const existingToken = getParticipantToken(sessionId)
       if (existingToken) {
-        // Try to find existing participant
-        const { data: existingParticipant } = await supabase
-          .from('participants')
-          .select('*')
-          .eq('session_id', sessionId)
-          .eq('client_fingerprint', getClientFingerprint())
-          .single()
+        // Try to find existing participant - handle RLS policy limitations
+        try {
+          const { data: existingParticipant, error: participantError } = await supabase
+            .from('participants')
+            .select('*')
+            .eq('session_id', sessionId)
+            .eq('client_fingerprint', getClientFingerprint())
+            .single()
 
-        if (existingParticipant) {
-          setParticipant(existingParticipant)
-          await loadCandidates()
-          await loadSwipeHistory(existingParticipant.id)
+          if (existingParticipant && !participantError) {
+            setParticipant(existingParticipant)
+            await loadCandidates()
+            await loadSwipeHistory(existingParticipant.id)
+          } else {
+            console.log('No existing participant found or RLS policy blocked query:', participantError)
+          }
+        } catch (participantLookupError) {
+          console.log('Participant lookup failed (likely RLS policy):', participantLookupError)
+          // Continue without existing participant - will auto-join for anonymous sessions
         }
       }
 

@@ -43,6 +43,7 @@ export default function RestaurantSetupPage() {
   // Update map center when location is obtained
   useEffect(() => {
     if (location?.coordinates) {
+      console.debug('[RestaurantsPage] Location ready, updating map center', location.coordinates)
       setMapCenter(location.coordinates)
     }
   }, [location])
@@ -50,7 +51,10 @@ export default function RestaurantSetupPage() {
   // Load Google Maps Places API for location search
   useEffect(() => {
     if (locationState === 'denied' || locationState === 'unavailable') {
-      loadGoogleMapsPlaces().catch(console.error)
+      console.debug('[RestaurantsPage] Loading Places API due to state', locationState)
+      loadGoogleMapsPlaces().catch((err) => {
+        console.error('[RestaurantsPage] Failed to load Places API', err)
+      })
     }
   }, [locationState])
 
@@ -67,6 +71,7 @@ export default function RestaurantSetupPage() {
     const mapState = mapRef.current?.getCurrentMapState()
     if (!mapState) {
       setError('Please wait for the map to load')
+      console.warn('[RestaurantsPage] Map state not ready when creating session')
       return
     }
 
@@ -91,6 +96,7 @@ export default function RestaurantSetupPage() {
         .single()
 
       if (sessionError) throw sessionError
+      console.debug('[RestaurantsPage] Session created', { id: session.id })
 
       // Create host participant
       const { error: participantError } = await supabase
@@ -101,6 +107,7 @@ export default function RestaurantSetupPage() {
         })
 
       if (participantError) throw participantError
+      console.debug('[RestaurantsPage] Host participant created')
 
       // Generate share token
       const shareToken = generateShareToken()
@@ -128,11 +135,13 @@ export default function RestaurantSetupPage() {
       })
 
       if (!placesResponse.ok) {
-        console.error('Failed to fetch places')
+        console.error('[RestaurantsPage] Failed to fetch places', { status: placesResponse.status })
+      } else {
+        console.debug('[RestaurantsPage] Places search kicked off')
       }
 
     } catch (err) {
-      console.error('Error creating session:', err)
+      console.error('[RestaurantsPage] Error creating session', err)
       setError('Failed to create session. Please try again.')
     } finally {
       setLoading(false)

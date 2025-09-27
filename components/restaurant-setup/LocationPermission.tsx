@@ -28,9 +28,11 @@ export function useLocationPermission(): UseLocationPermissionReturn {
   const [error, setError] = useState<string | null>(null)
 
   const requestLocation = async () => {
+    console.debug('[LocationPermission] requestLocation called')
     if (!navigator.geolocation) {
       setState('unavailable')
       setError('Geolocation is not supported by this browser')
+      console.error('[LocationPermission] Geolocation not supported')
       return
     }
 
@@ -54,6 +56,7 @@ export function useLocationPermission(): UseLocationPermissionReturn {
         lat: position.coords.latitude,
         lng: position.coords.longitude
       }
+      console.debug('[LocationPermission] Got coordinates', coordinates)
 
       // Try to get a readable location name
       try {
@@ -67,6 +70,7 @@ export function useLocationPermission(): UseLocationPermissionReturn {
         if (response.ok) {
           const data = await response.json()
           locationName = data.city || data.zipCode || 'Current Location'
+          console.debug('[LocationPermission] Reverse geocode success', { data, locationName })
         }
 
         setLocation({
@@ -75,6 +79,7 @@ export function useLocationPermission(): UseLocationPermissionReturn {
         })
         setState('granted')
       } catch (reverseGeocodeError) {
+        console.error('[LocationPermission] Reverse geocode failed', reverseGeocodeError)
         // Even if reverse geocoding fails, we still have coordinates
         setLocation({
           coordinates,
@@ -105,6 +110,7 @@ export function useLocationPermission(): UseLocationPermissionReturn {
       }
 
       setError(errorMessage)
+      console.error('[LocationPermission] Geolocation error', { error, errorMessage })
     }
   }
 
@@ -116,6 +122,7 @@ export function useLocationPermission(): UseLocationPermissionReturn {
 
   // Auto-request location on mount
   useEffect(() => {
+    console.debug('[LocationPermission] Auto request on mount')
     requestLocation()
   }, [])
 
