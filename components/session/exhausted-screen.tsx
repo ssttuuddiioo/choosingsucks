@@ -93,7 +93,7 @@ export default function ExhaustedScreen({ session, sessionStatus }: ExhaustedScr
                 <div className="text-3xl text-white/20">/</div>
                 <div className="text-center">
                   <div className="text-4xl font-outfit font-bold text-white">
-                    {joinedCount}
+                    {isMultiPerson ? joinedCount : 2}
                   </div>
                   <div className="text-white/50 text-sm">Total</div>
                 </div>

@@ -23,7 +23,11 @@ interface BuildYourOwnRequest {
 }
 
 async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
-  const { sessionTitle, requireNames, inviteCount, customOptions } = body
+  const { sessionTitle, requireNames, customOptions } = body
+  
+  // Respect multi-person feature flag
+  const isMultiPersonEnabled = process.env.NEXT_PUBLIC_ENABLE_MULTI_PERSON === 'true'
+  const inviteCount = isMultiPersonEnabled ? body.inviteCount : 2
   
   // Validate required parameters
   if (!sessionTitle?.trim() || !customOptions || customOptions.length < 2) {

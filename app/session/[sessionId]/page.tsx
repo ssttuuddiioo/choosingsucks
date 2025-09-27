@@ -194,6 +194,21 @@ export default function SessionPage() {
 
   async function handleJoin(displayName?: string) {
     try {
+      // Check if session is at capacity (especially for 2-person mode)
+      const isMultiPersonEnabled = process.env.NEXT_PUBLIC_ENABLE_MULTI_PERSON === 'true'
+      if (!isMultiPersonEnabled && session) {
+        // For 2-person mode, check current participant count
+        const { data: existingParticipants } = await supabase
+          .from('participants')
+          .select('id')
+          .eq('session_id', sessionId)
+        
+        if (existingParticipants && existingParticipants.length >= 2) {
+          setError('This session is full (2 people maximum)')
+          return
+        }
+      }
+
       // Create participant
       const { data: newParticipant, error: participantError } = await supabase
         .from('participants')
