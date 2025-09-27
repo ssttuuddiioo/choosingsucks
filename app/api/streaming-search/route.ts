@@ -49,8 +49,10 @@ async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
     const sessionId = generateSessionId()
     const shareToken = generateShareToken()
 
-    // Create session
-    const { error: sessionError } = await supabase
+    console.log(`🎯 Creating Build Your Own session ${sessionId} with ${customOptions.length} options`)
+
+    // Create session first
+    const { data: sessionData, error: sessionError } = await supabase
       .from('sessions')
       .insert({
         id: sessionId,
@@ -63,14 +65,18 @@ async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
           customOptionsCount: customOptions.length
         }
       })
+      .select()
+      .single()
     
     if (sessionError) {
-      console.error('Error creating Build Your Own session:', sessionError)
+      console.error('❌ Error creating Build Your Own session:', sessionError)
       return NextResponse.json(
         { error: 'Failed to create session' },
         { status: 500, headers: corsHeaders }
       )
     }
+
+    console.log(`✅ Session created successfully:`, sessionData)
 
     // Create candidates from custom options
     const candidateRecords = customOptions.map((option, index) => ({
@@ -92,25 +98,42 @@ async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
       lng: 0
     }))
 
-    const { error: candidatesError } = await supabase
+    const { data: candidatesData, error: candidatesError } = await supabase
       .from('candidates')
       .insert(candidateRecords)
+      .select()
 
     if (candidatesError) {
-      console.error('Error storing Build Your Own candidates:', candidatesError)
+      console.error('❌ Error storing Build Your Own candidates:', candidatesError)
+      // Try to clean up the session if candidates failed
+      await supabase.from('sessions').delete().eq('id', sessionId)
       return NextResponse.json(
         { error: 'Failed to store options' },
         { status: 500, headers: corsHeaders }
       )
     }
 
-    console.log(`🎯 Created Build Your Own session ${sessionId} with ${customOptions.length} custom options`)
+    console.log(`✅ Stored ${candidatesData?.length || 0} candidates for session ${sessionId}`)
+
+    // Verify session and candidates exist
+    const { data: verifySession } = await supabase
+      .from('sessions')
+      .select('id, category, status')
+      .eq('id', sessionId)
+      .single()
+
+    const { data: verifyCandidates } = await supabase
+      .from('candidates')
+      .select('id')
+      .eq('session_id', sessionId)
+
+    console.log(`🔍 Verification - Session:`, verifySession, `Candidates:`, verifyCandidates?.length)
 
     return NextResponse.json({
       success: true,
       sessionId,
       shareToken,
-      candidatesAdded: customOptions.length,
+      candidatesAdded: candidatesData?.length || 0,
       message: `Created session with ${customOptions.length} custom options`,
     }, {
       status: 200,
