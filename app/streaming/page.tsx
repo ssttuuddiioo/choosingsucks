@@ -11,7 +11,7 @@ import StreamingServicesSection from '@/components/streaming/streaming-services-
 import GenresSection from '@/components/streaming/genres-section'
 import SortPreferenceSection from '@/components/streaming/sort-preference-section'
 import SetupPageTemplate from '@/components/shared/setup-page-template'
-import SessionCreatedScreen from '@/components/streaming/session-created-screen'
+import SessionCreatedScreen from '@/components/shared/session-created-screen'
 import { Tv } from 'lucide-react'
 import { generateShareToken } from '@/lib/utils/session'
 import { 
@@ -112,6 +112,7 @@ export default function StreamingPage() {
         sessionId={sessionId}
         shareLink={shareLink}
         onJoinSession={handleJoinSession}
+        categoryName="streaming"
       />
     )
   }
