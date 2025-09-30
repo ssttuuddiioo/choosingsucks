@@ -287,7 +287,7 @@ export default function RestaurantSetupPage() {
               <span className="gradient-text">SUCKS</span>
             </h1>
             <p className="text-white/70 text-sm font-semibold">
-              Set your preferences and we'll find the perfect match
+              How far are you willing to travel for food?
             </p>
           </div>
         </div>
