@@ -318,11 +318,13 @@ export default function RestaurantSetupPage() {
         )}
 
         {isLocationReady && (
-          <MapInterface
-            ref={mapRef}
-            center={mapCenter}
-            className="h-full w-full"
-          />
+          <div className="absolute inset-0">
+            <MapInterface
+              ref={mapRef}
+              center={mapCenter}
+              className="h-full w-full"
+            />
+          </div>
         )}
                 </div>
 
