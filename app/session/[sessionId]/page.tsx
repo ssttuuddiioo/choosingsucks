@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { nanoid } from 'nanoid'
 import { useParams, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
 import { getClientFingerprint, getParticipantToken, storeParticipantToken } from '@/lib/utils/session'
@@ -44,6 +45,7 @@ export default function SessionPage() {
   const [showRockPaperScissors, setShowRockPaperScissors] = useState(false)
   const [rpsGameId, setRpsGameId] = useState<string | null>(null)
   const [pendingMove, setPendingMove] = useState<string | null>(null)
+  const [inFlightSwipes, setInFlightSwipes] = useState<Set<string>>(new Set())
 
   const supabase = createBrowserClient()
 
@@ -127,7 +129,8 @@ export default function SessionPage() {
             .select('*')
             .eq('session_id', sessionId)
             .eq('client_fingerprint', getClientFingerprint())
-            .single()
+            .limit(1)
+            .maybeSingle()
 
           if (existingParticipant && !participantError) {
             setParticipant(existingParticipant)
@@ -225,17 +228,33 @@ export default function SessionPage() {
       }
 
       // Create participant
-      const { data: newParticipant, error: participantError } = await supabase
+      const baseFingerprint = getClientFingerprint()
+      let insertResult = await supabase
         .from('participants')
         .insert({
           session_id: sessionId,
           display_name: displayName || null,
-          client_fingerprint: getClientFingerprint(),
+          client_fingerprint: baseFingerprint,
         })
         .select()
         .single()
 
-      if (participantError) throw participantError
+      // If duplicate fingerprint for this session (same device joining second time), retry with suffixed fingerprint
+      if (insertResult.error && insertResult.error.code === '23505') {
+        const altFingerprint = `${baseFingerprint}--${nanoid(6)}`
+        insertResult = await supabase
+          .from('participants')
+          .insert({
+            session_id: sessionId,
+            display_name: displayName || null,
+            client_fingerprint: altFingerprint,
+          })
+          .select()
+          .single()
+      }
+
+      if (insertResult.error) throw insertResult.error
+      const newParticipant = insertResult.data
 
       setParticipant(newParticipant)
       storeParticipantToken(sessionId, newParticipant.id)
@@ -258,17 +277,23 @@ export default function SessionPage() {
     if (!participant) return
 
     try {
+      // Prevent duplicate submissions for the same candidate locally
+      if (swipedCandidateIds.has(candidateId) || inFlightSwipes.has(candidateId)) {
+        return
+      }
+      setInFlightSwipes(prev => new Set(Array.from(prev).concat(candidateId)))
+
       // Record swipe
       const { error: swipeError } = await supabase
         .from('swipes')
-        .insert({
+        .upsert({
           session_id: sessionId,
           participant_id: participant.id,
           candidate_id: candidateId,
           vote: vote ? 1 : 0,
-        })
+        }, { onConflict: 'session_id,participant_id,candidate_id', ignoreDuplicates: true })
 
-      if (swipeError) throw swipeError
+      if (swipeError && swipeError.code !== '23505') throw swipeError
 
       // Update local state
       setSwipedCandidateIds(prev => new Set(Array.from(prev).concat(candidateId)))
@@ -324,6 +349,12 @@ export default function SessionPage() {
       }
     } catch (err) {
       console.error('Error recording swipe:', err)
+    } finally {
+      setInFlightSwipes(prev => {
+        const next = new Set(prev)
+        next.delete(candidateId)
+        return next
+      })
     }
   }
 
@@ -394,7 +425,7 @@ export default function SessionPage() {
           .select('id')
           .eq('session_id', session.id)
           .eq('status', 'waiting')
-          .single()
+          .maybeSingle()
 
         if (existingGame) {
           gameId = existingGame.id
