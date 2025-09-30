@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Copy, Loader2, Utensils, ArrowLeft, Share2 } from 'lucide-react'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
-import { generateShareToken } from '@/lib/utils/session'
+import { generateShareToken, getClientFingerprint } from '@/lib/utils/session'
 import { analytics } from '@/lib/utils/analytics'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -99,12 +99,13 @@ export default function RestaurantSetupPage() {
       if (sessionError) throw sessionError
       console.debug('[RestaurantsPage] Session created', { id: session.id })
 
-      // Create host participant
+      // Create host participant with fingerprint
       const { error: participantError } = await supabase
         .from('participants')
         .insert({
           session_id: session.id,
           is_host: true,
+          client_fingerprint: getClientFingerprint(), // Use consistent fingerprint
         })
 
       if (participantError) throw participantError
