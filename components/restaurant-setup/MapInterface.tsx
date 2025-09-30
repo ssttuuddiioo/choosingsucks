@@ -41,7 +41,14 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
   // Initialize map
   useEffect(() => {
     if (ref.current && !map) {
-      console.debug('[MapInterface] Initializing Google Map', { center })
+      console.debug('[MapInterface] Initializing Google Map', { 
+        center,
+        refCurrent: ref.current,
+        dimensions: {
+          width: ref.current.offsetWidth,
+          height: ref.current.offsetHeight
+        }
+      })
       const newMap = new google.maps.Map(ref.current, {
         center,
         zoom: 13,
@@ -66,7 +73,7 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
         console.error('[MapInterface] onMapReady handler threw', err)
       }
     }
-  }, [ref, map, center, onMapReady])
+  }, [ref, map, center, onMapReady, isMobile])
 
   // Update map center when prop changes (only for initial load)
   useEffect(() => {
@@ -76,7 +83,7 @@ function GoogleMapComponent({ center, style, onMapReady }: GoogleMapProps) {
     }
   }, [map, center])
 
-  return <div ref={ref} style={style} />
+  return <div ref={ref} style={{ ...style, minHeight: '100%' }} />
 }
 
 // Function to calculate radius from zoom level (supports fractional zoom)
@@ -177,13 +184,20 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
 
   return (
     <div className={`relative ${className}`}>
-      <Wrapper apiKey={env.google.mapsApiKey} render={render}>
-        <GoogleMapComponent
-          center={center}
-          style={{ width: '100%', height: '100%' }}
-          onMapReady={handleMapReady}
-        />
-      </Wrapper>
+      {/* Map Container - Base layer */}
+      <div className="absolute inset-0 z-0">
+        <Wrapper 
+          apiKey={env.google.mapsApiKey} 
+          render={render}
+          libraries={['places', 'geometry']}
+        >
+          <GoogleMapComponent
+            center={center}
+            style={{ width: '100%', height: '100%' }}
+            onMapReady={handleMapReady}
+          />
+        </Wrapper>
+      </div>
       
       {/* Fixed Circle Overlay - Always centered on screen */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">

@@ -42,6 +42,7 @@ export default function SessionPage() {
   })
   const [showNoMatches, setShowNoMatches] = useState(false)
   const [showRockPaperScissors, setShowRockPaperScissors] = useState(false)
+  const [isJoining, setIsJoining] = useState(false) // Guard against concurrent joins
   const [rpsGameId, setRpsGameId] = useState<string | null>(null)
   const [pendingMove, setPendingMove] = useState<string | null>(null)
 
@@ -208,7 +209,33 @@ export default function SessionPage() {
   }
 
   async function handleJoin(displayName?: string) {
+    // Prevent concurrent join attempts
+    if (isJoining) {
+      console.log('Join already in progress, skipping')
+      return
+    }
+
     try {
+      setIsJoining(true)
+      const fingerprint = getClientFingerprint()
+
+      // First check if this fingerprint already exists in the session
+      const { data: existingParticipant } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('client_fingerprint', fingerprint)
+        .maybeSingle()
+
+      if (existingParticipant) {
+        // Already a participant, just set state
+        console.log('Already a participant, rejoining:', existingParticipant.id)
+        setParticipant(existingParticipant)
+        storeParticipantToken(sessionId, existingParticipant.id)
+        await loadCandidates()
+        return
+      }
+
       // Check if session is at capacity (especially for 2-person mode)
       const isMultiPersonEnabled = process.env.NEXT_PUBLIC_ENABLE_MULTI_PERSON === 'true'
       if (!isMultiPersonEnabled && session) {
@@ -230,7 +257,7 @@ export default function SessionPage() {
         .insert({
           session_id: sessionId,
           display_name: displayName || null,
-          client_fingerprint: getClientFingerprint(),
+          client_fingerprint: fingerprint,
         })
         .select()
         .single()
@@ -251,6 +278,8 @@ export default function SessionPage() {
     } catch (err) {
       console.error('Error joining session:', err)
       throw err
+    } finally {
+      setIsJoining(false)
     }
   }
 

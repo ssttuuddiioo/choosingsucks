@@ -1,10 +1,9 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
-import { useDrag } from '@use-gesture/react'
+import React, { useState, useRef, useMemo, useEffect } from 'react'
+import TinderCard from 'react-tinder-card'
 import { useRouter } from 'next/navigation'
-import { X, Heart, Star, DollarSign, MapPin, Plus } from 'lucide-react'
+import { X, Heart, Star, DollarSign, Plus } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
 import { env } from '@/lib/utils/env'
@@ -16,22 +15,25 @@ interface SwipeInterfaceProps {
 
 export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfaceProps) {
   const router = useRouter()
-  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set())
+  const [currentIndex, setCurrentIndex] = useState(candidates.length - 1)
   const [isAnimating, setIsAnimating] = useState(false)
-  const [animatingCardId, setAnimatingCardId] = useState<string | null>(null)
   const buttonsRef = useRef<HTMLDivElement | null>(null)
   const [bottomBarHeight, setBottomBarHeight] = useState<number>(0)
 
+  // Create refs for programmatic swiping (button clicks)
+  const childRefs = useMemo(
+    () => Array(candidates.length).fill(0).map(() => React.createRef<any>()),
+    [candidates.length]
+  )
+
   // Prevent body scrolling on mobile
   useEffect(() => {
-    // Prevent scrolling on the body
     document.body.style.overflow = 'hidden'
     document.body.style.position = 'fixed'
     document.body.style.width = '100%'
     document.body.style.height = '100%'
     
     return () => {
-      // Restore scrolling when component unmounts
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
@@ -58,97 +60,40 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
     }
   }, [])
 
-  // Calculate card candidates based on props (parent is source of truth)
-  const hasCandidates = candidates.length > 0
-  const currentCandidate = hasCandidates ? candidates[0] : undefined
-  const nextCandidate = hasCandidates ? candidates[1] : undefined
-  const nextNextCandidate = hasCandidates ? candidates[2] : undefined
-  
-  // Motion values for smooth animations
-  const x = useMotionValue(0)
-  const rotate = useTransform(x, [-200, 200], [-25, 25])
-  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0])
-  const scale = useTransform(x, [-150, 0, 150], [0.95, 1, 0.95])
-
-  // Preload next images based on current/next candidates
+  // Update currentIndex when candidates change
   useEffect(() => {
-    const imagesToPreload = [currentCandidate, nextCandidate, nextNextCandidate].filter(Boolean)
-    imagesToPreload.forEach(candidate => {
-      if (candidate?.photo_ref && !preloadedImages.has(candidate.photo_ref)) {
-        const img = new Image()
-        img.src = getPhotoUrl(candidate.photo_ref)
-        img.onload = () => {
-          setPreloadedImages(prev => new Set(Array.from(prev).concat(candidate.photo_ref!)))
-        }
-      }
-    })
-  }, [currentCandidate?.id, nextCandidate?.id, nextNextCandidate?.id, preloadedImages])
+    setCurrentIndex(candidates.length - 1)
+  }, [candidates.length])
 
-  const handleSwipeComplete = (vote: boolean) => {
-    if (!currentCandidate || isAnimating) return
+  const handleSwipe = async (direction: string, candidateId: string, index: number) => {
+    if (isAnimating) return
     
     setIsAnimating(true)
-    setAnimatingCardId(currentCandidate.id)
-    
+    const vote = direction === 'right'
+
     // Haptic feedback for mobile devices
     if ('vibrate' in navigator) {
       navigator.vibrate(vote ? [50] : [30, 30, 30])
     }
+
+    // Call the onSwipe callback (handles DB insert and match checking)
+    onSwipe(candidateId, vote)
+
+    setCurrentIndex(index - 1)
     
-    onSwipe(currentCandidate.id, vote)
-    
-    // Reset local animation state after exit duration
+    // Reset animation lock
     setTimeout(() => {
-      setAnimatingCardId(null)
-      x.set(0) // Reset position for next card
       setIsAnimating(false)
     }, 300)
   }
 
-  const handleButtonSwipe = (vote: boolean) => {
-    if (!currentCandidate || isAnimating) return
-    
-    // Animate to final position first (same as gesture swipe)
-    x.set(vote ? 400 : -400)
-    
-    // Then complete the swipe
-    handleSwipeComplete(vote)
-  }
-
-  const bind = useDrag(
-    ({ active, movement: [mx], direction: [xDir], velocity: [vx], cancel, tap }) => {
-      if (isAnimating) {
-        cancel()
-        return
-      }
-
-      // Update x position during drag
-      if (active) {
-        x.set(mx)
-      } else {
-        // Simplified swipe detection - fixed threshold like thisnotthat
-        const absMx = Math.abs(mx)
-        const SWIPE_THRESHOLD = 100 // Fixed 100px threshold for reliability
-        
-        if (absMx > SWIPE_THRESHOLD) {
-          const vote = mx > 0
-          // Animate to final position
-          x.set(mx > 0 ? 400 : -400)
-          handleSwipeComplete(vote)
-        } else {
-          // Snap back to center with spring animation
-          x.set(0)
-        }
-      }
-    },
-    {
-      axis: 'x',
-      bounds: { left: -400, right: 400 },
-      rubberband: true,
-      filterTaps: true,
-      threshold: 5,
+  const swipe = (direction: 'left' | 'right') => {
+    if (currentIndex >= 0 && currentIndex < candidates.length && !isAnimating) {
+      const candidate = candidates[currentIndex]
+      childRefs[currentIndex].current?.swipe(direction)
+      // handleSwipe will be called by TinderCard's onSwipe callback
     }
-  )
+  }
 
   if (candidates.length === 0) {
     return (
@@ -175,90 +120,68 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
 
   return (
     <div className="h-screen flex flex-col bg-gradient-primary">
-      {/* Card Stack - flexible height with proper spacing */}
+      {/* Card Stack */}
       <div 
         className="flex-1 relative overflow-hidden p-2 md:p-4"
         style={{ 
           paddingBottom: bottomBarHeight ? bottomBarHeight + 16 : 80
         }}
       >
-        {/* Card container - constrained to available space */}
-        <div className="h-full relative" style={{ minHeight: '400px' }}>
-          <AnimatePresence mode="popLayout">
-          {/* Third card (far background) - positioned within available space */}
-          {nextNextCandidate && (
-            <div
-              key={`bg-far-${nextNextCandidate.id}`}
+        <div className="h-full relative max-w-md mx-auto" style={{ minHeight: '400px' }}>
+          {candidates.map((candidate, index) => (
+            <TinderCard
+              ref={childRefs[index]}
+              key={candidate.id}
+              onSwipe={(dir) => handleSwipe(dir, candidate.id, index)}
+              preventSwipe={['up', 'down']}
+              swipeRequirementType="position"
+              swipeThreshold={150}
               className="absolute inset-0"
-              style={{ 
-                zIndex: 1,
-                transform: 'scale(0.85) translateY(20px)',
-                opacity: 0.12,
-                filter: 'blur(2px)'
-              }}
             >
-              <CandidateCard candidate={nextNextCandidate} />
-            </div>
-          )}
-
-          {/* Next card (background) - positioned within available space */}
-          {nextCandidate && (
-            <div
-              key={`bg-next-${nextCandidate.id}`}
-              className="absolute inset-0"
-              style={{ 
-                zIndex: 2,
-                transform: 'scale(0.92) translateY(10px)',
-                opacity: 0.25,
-                filter: 'blur(1px)'
-              }}
-            >
-              <CandidateCard candidate={nextCandidate} />
-            </div>
-          )}
-          
-          {/* Current card - animated within available space */}
-          {currentCandidate && (
-            <motion.div
-              key={`current-${currentCandidate.id}`}
-              className="absolute inset-0 cursor-grab active:cursor-grabbing touch-none"
-              style={{ 
-                x, 
-                rotate, 
-                opacity: animatingCardId === currentCandidate.id ? opacity : 1,
-                scale: animatingCardId === currentCandidate.id ? scale : 1,
-                zIndex: 10
-              } as any}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ 
-                duration: 0.2,
-                ease: "easeOut"
-              }}
-              {...bind() as any}
-            >
-              <CandidateCard 
-                candidate={currentCandidate} 
-                dragX={animatingCardId === currentCandidate.id ? x : undefined} 
-              />
-            </motion.div>
-          )}
-          </AnimatePresence>
+              <div 
+                className="h-full w-full"
+                style={{
+                  zIndex: candidates.length - index,
+                  transform: index === currentIndex 
+                    ? 'scale(1) translateY(0)' 
+                    : index === currentIndex - 1
+                    ? 'scale(0.92) translateY(10px)'
+                    : index === currentIndex - 2
+                    ? 'scale(0.85) translateY(20px)'
+                    : 'scale(0.85) translateY(20px)',
+                  opacity: index === currentIndex 
+                    ? 1 
+                    : index === currentIndex - 1
+                    ? 0.25
+                    : index === currentIndex - 2
+                    ? 0.12
+                    : 0,
+                  filter: index === currentIndex 
+                    ? 'none' 
+                    : index === currentIndex - 1
+                    ? 'blur(1px)'
+                    : 'blur(2px)',
+                  transition: 'transform 0.2s ease-out, opacity 0.2s ease-out, filter 0.2s ease-out',
+                  pointerEvents: index === currentIndex ? 'auto' : 'none',
+                }}
+              >
+                <CandidateCard candidate={candidate} />
+              </div>
+            </TinderCard>
+          ))}
         </div>
       </div>
 
-      {/* Action Buttons - pinned to bottom and safe-area aware */}
+      {/* Action Buttons */}
       <div
         ref={buttonsRef}
         className="sticky bottom-0 left-0 right-0 z-20 max-w-md mx-auto w-full flex-shrink-0 bg-gradient-primary/95 backdrop-blur p-4 pt-3"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
       >
-        {/* Action Buttons - side by side with arrow styling */}
         <div className="flex gap-3">
           <button
-            onClick={() => handleButtonSwipe(false)}
-            disabled={isAnimating}
+            onClick={() => swipe('left')}
+            disabled={isAnimating || currentIndex < 0}
             aria-label="Reject this restaurant"
             className="flex-1 flex items-center justify-center gap-3 py-4 px-6 font-bold text-xl bg-gradient-to-r from-red-500 to-red-600 text-white transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 relative overflow-hidden shadow-lg focus:outline-none focus:ring-4 focus:ring-red-500/50"
             style={{
@@ -271,8 +194,8 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
           </button>
           
           <button
-            onClick={() => handleButtonSwipe(true)}
-            disabled={isAnimating}
+            onClick={() => swipe('right')}
+            disabled={isAnimating || currentIndex < 0}
             aria-label="Like this restaurant"
             className="flex-1 bg-gradient-lime text-white font-bold text-xl py-4 px-6 shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 relative overflow-hidden focus:outline-none focus:ring-4 focus:ring-lime-green/50"
             style={{
@@ -284,7 +207,6 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
             YEA
           </button>
         </div>
-        
       </div>
     </div>
   )
@@ -292,10 +214,9 @@ export default function SwipeInterface({ candidates, onSwipe }: SwipeInterfacePr
 
 interface CandidateCardProps {
   candidate: Tables<'candidates'>
-  dragX?: any
 }
 
-function CandidateCard({ candidate, dragX }: CandidateCardProps) {
+function CandidateCard({ candidate }: CandidateCardProps) {
   const [imageError, setImageError] = useState(false)
   
   // Reset image error state when candidate changes
@@ -303,51 +224,21 @@ function CandidateCard({ candidate, dragX }: CandidateCardProps) {
     setImageError(false)
   }, [candidate.id])
 
-  // Transform drag position to overlay opacity and color
-  // Always call hooks - use motionValue(0) as fallback to maintain hook order
-  const fallbackX = useMotionValue(0)
-  const likeOpacity = useTransform(dragX || fallbackX, [0, 150], [0, 0.8])
-  const nopeOpacity = useTransform(dragX || fallbackX, [-150, 0], [0.8, 0])
-
   // Determine content type and render accordingly
   if (candidate.category === 'build-your-own' || candidate.content_type === 'custom_option') {
-    return <CustomOptionCard candidate={candidate} dragX={dragX} likeOpacity={likeOpacity} nopeOpacity={nopeOpacity} />
+    return <CustomOptionCard candidate={candidate} />
   } else if (candidate.category === 'streaming') {
-    return <StreamingCard candidate={candidate} dragX={dragX} likeOpacity={likeOpacity} nopeOpacity={nopeOpacity} />
+    return <StreamingCard candidate={candidate} />
   } else {
     // Default to restaurant card
-    return <RestaurantCard candidate={candidate} dragX={dragX} likeOpacity={likeOpacity} nopeOpacity={nopeOpacity} imageError={imageError} setImageError={setImageError} />
+    return <RestaurantCard candidate={candidate} imageError={imageError} setImageError={setImageError} />
   }
 }
 
 // Custom Option Card for Build Your Own
-function CustomOptionCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
-  candidate: Tables<'candidates'>
-  dragX?: any
-  likeOpacity: any
-  nopeOpacity: any
-}) {
-  
+function CustomOptionCard({ candidate }: { candidate: Tables<'candidates'> }) {
   return (
     <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
-      {/* Drag feedback overlays */}
-      {dragX && (
-        <>
-          <motion.div
-            className="absolute inset-0 bg-gradient-lime flex items-center justify-center z-10 rounded-2xl"
-            style={{ opacity: likeOpacity }}
-          >
-            <Heart className="h-24 w-24 text-white fill-current animate-pulse" />
-          </motion.div>
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center z-10 rounded-2xl"
-            style={{ opacity: nopeOpacity }}
-          >
-            <X className="h-24 w-24 text-white animate-pulse" />
-          </motion.div>
-        </>
-      )}
-
       {/* Main content area */}
       <div className="flex-1 relative bg-gradient-mesh animate-gradient flex items-center justify-center p-8">
         <div className="text-center space-y-4 max-w-sm">
@@ -370,35 +261,12 @@ function CustomOptionCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
 }
 
 // Streaming Card
-function StreamingCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
-  candidate: Tables<'candidates'>
-  dragX?: any
-  likeOpacity: any
-  nopeOpacity: any
-}) {
+function StreamingCard({ candidate }: { candidate: Tables<'candidates'> }) {
   const [imageError, setImageError] = useState(false)
   const posterUrl = candidate.poster || candidate.image_url
   
   return (
     <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
-      {/* Drag feedback overlays */}
-      {dragX && (
-        <>
-          <motion.div
-            className="absolute inset-0 bg-gradient-lime flex items-center justify-center z-10 rounded-2xl"
-            style={{ opacity: likeOpacity }}
-          >
-            <Heart className="h-24 w-24 text-white fill-current animate-pulse" />
-          </motion.div>
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center z-10 rounded-2xl"
-            style={{ opacity: nopeOpacity }}
-          >
-            <X className="h-24 w-24 text-white animate-pulse" />
-          </motion.div>
-        </>
-      )}
-
       {/* Poster/Image */}
       <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20" style={{ flex: '1 1 0', minHeight: '200px', maxHeight: 'calc(100% - 180px)' }}>
         {posterUrl && !imageError ? (
@@ -461,11 +329,8 @@ function StreamingCard({ candidate, dragX, likeOpacity, nopeOpacity }: {
 }
 
 // Restaurant Card
-function RestaurantCard({ candidate, dragX, likeOpacity, nopeOpacity, imageError, setImageError }: {
+function RestaurantCard({ candidate, imageError, setImageError }: {
   candidate: Tables<'candidates'>
-  dragX?: any
-  likeOpacity: any
-  nopeOpacity: any
   imageError: boolean
   setImageError: (error: boolean) => void
 }) {
@@ -473,24 +338,6 @@ function RestaurantCard({ candidate, dragX, likeOpacity, nopeOpacity, imageError
   
   return (
     <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
-      {/* Drag feedback overlays */}
-      {dragX && (
-        <>
-          <motion.div
-            className="absolute inset-0 bg-gradient-lime flex items-center justify-center z-10 rounded-2xl"
-            style={{ opacity: likeOpacity }}
-          >
-            <Heart className="h-24 w-24 text-white fill-current animate-pulse" />
-          </motion.div>
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center z-10 rounded-2xl"
-            style={{ opacity: nopeOpacity }}
-          >
-            <X className="h-24 w-24 text-white animate-pulse" />
-          </motion.div>
-        </>
-      )}
-
       {/* Image */}
       <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20" style={{ flex: '1 1 0', minHeight: '200px', maxHeight: 'calc(100% - 180px)' }}>
         {photoUrl && !imageError ? (
