@@ -10,7 +10,8 @@ import type { Tables } from '@/types/supabase'
 
 // Components
 import JoinFlow from '@/components/session/join-flow'
-import SwipeInterface from '@/components/swipe/swipe-interface'
+import SwipeInterfaceTemplate from '@/components/shared/swipe-interface-template'
+import RestaurantCard from '@/components/swipe/restaurant-card'
 import SessionStatus from '@/components/session/session-status'
 import MatchScreen from '@/components/session/match-screen'
 import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
@@ -575,9 +576,11 @@ export default function SessionPage() {
         remainingCount={remainingCandidates.length}
       />
       
-      <SwipeInterface
+      <SwipeInterfaceTemplate
         candidates={remainingCandidates}
         onSwipe={handleSwipe}
+        renderCard={(candidate) => <RestaurantCard candidate={candidate} />}
+        categoryName="restaurants"
       />
     </div>
   )

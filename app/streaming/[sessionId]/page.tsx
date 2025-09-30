@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import StreamingSwipeInterface from '@/components/streaming/streaming-swipe-interface'
+import SwipeInterfaceTemplate from '@/components/shared/swipe-interface-template'
+import StreamingCard from '@/components/streaming/streaming-card'
 import StreamingMatchScreen from '@/components/streaming/streaming-match-screen'
 import GenericRockPaperScissors from '@/components/shared/rock-paper-scissors-template'
 import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
@@ -579,9 +580,11 @@ export default function StreamingSessionPage() {
   }
 
   return (
-    <StreamingSwipeInterface 
+    <SwipeInterfaceTemplate 
       candidates={remainingCandidates}
       onSwipe={handleSwipe}
+      renderCard={(candidate) => <StreamingCard candidate={candidate} />}
+      categoryName="streaming"
     />
   )
 }

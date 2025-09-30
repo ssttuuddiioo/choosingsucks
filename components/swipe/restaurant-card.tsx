@@ -1,0 +1,115 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Star, DollarSign } from 'lucide-react'
+import type { Tables } from '@/types/supabase'
+import { cn } from '@/lib/utils/cn'
+import { env } from '@/lib/utils/env'
+
+interface RestaurantCardProps {
+  candidate: Tables<'candidates'>
+}
+
+export default function RestaurantCard({ candidate }: RestaurantCardProps) {
+  const [imageError, setImageError] = useState(false)
+  
+  // Reset image error state when candidate changes
+  useEffect(() => {
+    setImageError(false)
+  }, [candidate.id])
+
+  const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
+  
+  return (
+    <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+      {/* Image */}
+      <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20" style={{ flex: '1 1 0', minHeight: '200px', maxHeight: 'calc(100% - 180px)' }}>
+        {photoUrl && !imageError ? (
+          <>
+            <img
+              src={photoUrl}
+              alt={candidate.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={() => setImageError(true)}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-mesh animate-gradient">
+            <div className="text-center">
+              <div className="text-8xl font-outfit font-bold text-white/20">
+                {candidate.name.charAt(0)}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-shrink-0 p-4 md:p-6 space-y-3" style={{ minHeight: '140px', maxHeight: '180px' }}>
+        <h2 className="text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2">
+          {candidate.name}
+        </h2>
+
+        <div className="flex items-center gap-3 text-sm">
+          {candidate.rating && (
+            <div className="flex items-center gap-1 bg-gray-200 px-2 md:px-3 py-1 rounded-full">
+              <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500 fill-current" />
+              <span className="font-bold text-gray-900 text-xs md:text-sm">{candidate.rating}</span>
+              {candidate.user_ratings_total && (
+                <span className="text-gray-600 text-xs">({candidate.user_ratings_total})</span>
+              )}
+            </div>
+          )}
+
+          {candidate.price_level && (
+            <div className="flex items-center bg-gray-200 px-2 md:px-3 py-1 rounded-full">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <DollarSign
+                  key={i}
+                  className={cn(
+                    "h-3 w-3 md:h-4 md:w-4",
+                    i < (candidate.price_level || 0)
+                      ? "text-green-600"
+                      : "text-gray-400"
+                  )}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {candidate.cuisines && candidate.cuisines.length > 0 && (
+          <div className="flex flex-wrap gap-1 md:gap-2 overflow-hidden" style={{ maxHeight: '60px' }}>
+            {candidate.cuisines.slice(0, 3).map((cuisine, i) => (
+              <span
+                key={i}
+                className="px-2 md:px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold whitespace-nowrap"
+              >
+                {cuisine.replace(/_/g, ' ')}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function getPhotoUrl(photoRef: string): string {
+  const apiKey = env.google.mapsApiKey
+  if (!apiKey) {
+    console.warn('Google Maps API key not found for photo loading')
+    return ''
+  }
+  
+  // Check if this is a new Places API photo reference (starts with "places/")
+  if (photoRef.startsWith('places/')) {
+    // New Places API format - use the photo name directly
+    return `https://places.googleapis.com/v1/${photoRef}/media?maxWidthPx=800&key=${apiKey}`
+  } else {
+    // Legacy format - use old API
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${apiKey}`
+  }
+}
+
