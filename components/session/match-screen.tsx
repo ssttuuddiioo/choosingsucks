@@ -113,7 +113,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
         {/* Restaurant Details */}
         <div className="flex-1 p-6 space-y-4 flex flex-col">
           <div>
-            <h2 className="text-2xl font-outfit font-bold text-gray-900">
+            <h2 className="text-2xl font-outfit font-bold text-white md:text-gray-900">
               {candidate.name}
             </h2>
           </div>
