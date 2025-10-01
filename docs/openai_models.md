@@ -8,7 +8,7 @@ This document provides a comprehensive overview of all OpenAI models available a
 
 ## 🧠 GPT-5 SERIES (Flagship Reasoning Models)
 
-**All GPT-5 models are reasoning models** - they produce an internal chain of thought before responding. This makes them especially proficient in:
+**All GPT-5 models are reasoning models AND multimodal (text + vision)** - they produce an internal chain of thought before responding. This makes them especially proficient in:
 - Code generation, bug fixing, and refactoring
 - Instruction following
 - Long context and tool calling
@@ -71,17 +71,17 @@ This document provides a comprehensive overview of all OpenAI models available a
 
 ---
 
-## 🚀 GPT-4 SERIES (Non-Reasoning Chat Models)
+## 🚀 GPT-4.1 SERIES (Current Generation Multimodal Chat Models)
 
-High-performance general-purpose models:
+**All GPT-4.1 models support multimodal inputs (text + vision)**
 
-### GPT-4.1 (Latest Flagship Chat)
+### GPT-4.1 (Flagship Chat)
 - **Released:** April 14, 2025
 - **Context:** 1M input / 32K output tokens
 - **Input Cost:** $2.00 / 1M tokens
 - **Output Cost:** $8.00 / 1M tokens
 - **Responses API:** ✅ Full Support
-- **Vision:** ✅ Supported
+- **Vision:** ✅ Multimodal (text + images)
 - **Tools:** ✅ Supported
 - **Best For:** Large context processing when speed is critical
 
@@ -91,7 +91,7 @@ High-performance general-purpose models:
 - **Input Cost:** $0.40 / 1M tokens
 - **Output Cost:** $1.60 / 1M tokens
 - **Responses API:** ✅ Full Support
-- **Vision:** ✅ Supported
+- **Vision:** ✅ Multimodal (text + images)
 - **Tools:** ✅ Supported
 - **Best For:** Cost-effective general tasks
 
@@ -101,57 +101,13 @@ High-performance general-purpose models:
 - **Input Cost:** $0.10 / 1M tokens
 - **Output Cost:** $0.40 / 1M tokens
 - **Responses API:** ✅ Full Support
-- **Vision:** ✅ Supported
+- **Vision:** ✅ Multimodal (text + images)
 - **Tools:** ✅ Supported
 - **Best For:** High-volume simple tasks, pre-filtering
-
-### GPT-4o (Multimodal)
-- **Released:** November 20, 2024 (latest)
-- **Context:** 128K input / 16K output tokens
-- **Input Cost:** $2.50 / 1M tokens
-- **Output Cost:** $10.00 / 1M tokens
-- **Responses API:** ✅ Full Support
-- **Vision:** ✅ Supported
-- **Audio:** ✅ Supported
-- **Tools:** ✅ Supported
-- **Best For:** Fast multimodal processing
-
-### ChatGPT-4o Latest
-- **Model ID:** chatgpt-4o-latest
-- **Context:** 128K input / 16K output tokens
-- **Pricing:** Same as GPT-4o
-- **Responses API:** ✅ Full Support
-- **Note:** Model used in ChatGPT interface
-
-### GPT-4o Mini
-- **Released:** July 18, 2024
-- **Context:** 128K input / 16K output tokens
-- **Input Cost:** $0.15 / 1M tokens
-- **Output Cost:** $0.60 / 1M tokens
-- **Responses API:** ✅ Full Support
-- **Vision:** ✅ Supported
-- **Tools:** ✅ Supported
-- **Best For:** Budget multimodal tasks
 
 ---
 
 ## 🔍 SPECIALIZED MODELS
-
-### GPT-4o Search Preview
-- **Context:** 128K input / 16K output tokens
-- **Input Cost:** $2.50 / 1M tokens
-- **Output Cost:** $10.00 / 1M tokens
-- **Responses API:** ✅ Full Support
-- **Special Feature:** Enhanced web search capabilities
-- **Best For:** Research, news analysis
-
-### GPT-4o Mini Search Preview
-- **Model ID:** gpt-4o-mini-search-preview-2025-03-11
-- **Context:** 128K input / 16K output tokens
-- **Input Cost:** $0.15 / 1M tokens
-- **Output Cost:** $0.60 / 1M tokens
-- **Responses API:** ✅ Full Support (Chat Completions only, not Responses)
-- **Best For:** Budget web search and research
 
 ### Computer Use Preview
 - **Model ID:** computer-use-preview
@@ -174,6 +130,153 @@ High-performance general-purpose models:
 - **Reasoning Effort:** Configurable (low/medium/high)
 - **Note:** Specifically designed for Codex/Codex CLI environments
 - **Best For:** Agentic coding tasks in Codex environments only
+
+---
+
+## 🌐 WEB SEARCH MODELS & TOOLS
+
+### For Chat Completions API (Legacy):
+
+#### GPT-4o Search Preview
+- **Context:** 128K input / 16K output tokens
+- **Input Cost:** $2.50 / 1M tokens
+- **Output Cost:** $10.00 / 1M tokens
+- **Web Search Tool Cost:** $25.00 / 1k calls
+- **API:** ✅ Chat Completions ONLY (not Responses API)
+- **Status:** ⚠️ Legacy - Use Responses API web_search tool instead
+- **Best For:** Legacy Chat Completions integrations requiring web search
+
+#### GPT-4o Mini Search Preview
+- **Model ID:** gpt-4o-mini-search-preview-2025-03-11
+- **Context:** 128K input / 16K output tokens
+- **Input Cost:** $0.15 / 1M tokens
+- **Output Cost:** $0.60 / 1M tokens
+- **Web Search Tool Cost:** $25.00 / 1k calls
+- **API:** ✅ Chat Completions ONLY (not Responses API)
+- **Status:** ⚠️ Legacy - Use Responses API web_search tool instead
+- **Best For:** Budget legacy web search
+
+### For Responses API (Recommended):
+
+Use the `web_search` tool with any model:
+
+```typescript
+import OpenAI from "openai";
+const client = new OpenAI();
+
+const response = await client.responses.create({
+  model: "gpt-5",
+  tools: [
+    { type: "web_search" },
+  ],
+  input: "What was a positive news story from today?",
+});
+
+console.log(response.output_text);
+```
+
+**Web Search Tool Pricing:**
+- **GPT-5, o-series:** $10.00 / 1k calls
+- **GPT-4o, GPT-4.1, GPT-4o-mini, GPT-4.1-mini (preview):** $25.00 / 1k calls
+- **All models (non-preview):** $10.00 / 1k calls
+
+**Best Practice:** Use Responses API with `web_search` tool for all new applications
+
+### Computer Use Preview
+- **Model ID:** computer-use-preview
+- **Input Cost:** $2.50 / 1M tokens
+- **Output Cost:** $10.00 / 1M tokens
+- **Responses API:** ✅ Full Support
+- **Special Feature:** Can interact with computer interfaces
+- **Best For:** Automated interactions
+
+### Codex Mini Latest
+- **Model ID:** codex-mini-latest
+- **Pricing:** Contact OpenAI for pricing
+- **Responses API:** ✅ Full Support
+- **Best For:** Code generation and analysis
+
+### GPT-5-Codex
+- **Context:** 400K input / 128K output tokens
+- **Pricing:** Contact OpenAI for pricing
+- **Responses API:** ✅ Full Support
+- **Reasoning Effort:** Configurable (low/medium/high)
+- **Note:** Specifically designed for Codex/Codex CLI environments
+- **Best For:** Agentic coding tasks in Codex environments only
+
+---
+
+## 🛠️ BUILT-IN TOOLS PRICING
+
+OpenAI provides built-in tools that work with various models:
+
+### Code Interpreter
+- **Pricing:** $0.03 / container session
+- **Compatible APIs:** Assistants API, Chat Completions, Responses API
+- **Description:** Execute Python code in a sandboxed environment
+- **Best For:** Data analysis, calculations, code execution
+
+### File Search
+- **Storage Cost:** $0.10 / GB per day (1GB free)
+- **Tool Call Cost:** $2.50 / 1k calls
+- **Compatible APIs:** Responses API only
+- **Description:** Search through uploaded documents
+- **Best For:** Document Q&A, knowledge retrieval
+
+### Web Search (Responses API)
+- **GPT-5, o-series:** $10.00 / 1k calls
+- **GPT-4o, GPT-4.1, GPT-4o-mini, GPT-4.1-mini (preview):** $25.00 / 1k calls  
+- **All models (non-preview):** $10.00 / 1k calls
+- **Compatible APIs:** Responses API only
+- **Description:** Real-time web search with citations
+- **Best For:** Current events, research, fact-checking
+
+**Example:**
+```typescript
+import OpenAI from "openai";
+const client = new OpenAI();
+
+const response = await client.responses.create({
+  model: "gpt-5",
+  tools: [
+    { type: "web_search" },
+  ],
+  input: "What was a positive news story from today?",
+});
+
+console.log(response.output_text);
+```
+
+---
+
+## 📦 LEGACY MODELS
+
+### GPT-4o Series (Legacy Multimodal)
+**Status:** ⚠️ Legacy - GPT-4.1 and GPT-5 series are current generation
+
+#### GPT-4o
+- **Released:** November 20, 2024
+- **Context:** 128K input / 16K output tokens
+- **Input Cost:** $2.50 / 1M tokens
+- **Output Cost:** $10.00 / 1M tokens
+- **Vision:** ✅ Multimodal (text + images)
+- **Audio:** ✅ Supported
+- **Recommendation:** Migrate to GPT-4.1 or GPT-5
+
+#### ChatGPT-4o Latest
+- **Model ID:** chatgpt-4o-latest
+- **Context:** 128K input / 16K output tokens
+- **Pricing:** Same as GPT-4o
+- **Note:** Model used in ChatGPT interface
+- **Recommendation:** Migrate to GPT-4.1 or GPT-5
+
+#### GPT-4o Mini
+- **Released:** July 18, 2024
+- **Context:** 128K input / 16K output tokens
+- **Input Cost:** $0.15 / 1M tokens
+- **Output Cost:** $0.60 / 1M tokens
+- **Vision:** ✅ Multimodal (text + images)
+- **Recommendation:** Migrate to GPT-4.1 Nano or GPT-5-nano
 
 ---
 
@@ -356,16 +459,24 @@ For voice/audio applications (limited Responses API support):
 ### For High-Volume/Budget Tasks:
 1. **GPT-5-nano** ($0.05/$0.40, cached: $0.01) - Best value with massive context
 2. **GPT-4.1 Nano** ($0.10/$0.40) - Alternative budget option
-3. **GPT-4o Mini** ($0.15/$0.60) - Budget multimodal
+3. **GPT-4o Mini** (legacy) ($0.15/$0.60) - Legacy budget multimodal
 
-### For Multimodal (Vision/Audio):
-1. **GPT-5** - Flagship with vision support
-2. **GPT-4o** - Fast multimodal processing
-3. **GPT-4o Mini** - Budget multimodal
+### For Multimodal (Vision):
+**Note:** All GPT-5 and GPT-4.1 models support multimodal inputs
+1. **GPT-5** - Flagship reasoning with vision
+2. **GPT-5-mini** - Cost-effective reasoning with vision  
+3. **GPT-4.1** - Fast chat with vision
+4. **GPT-4o** (legacy) - Legacy multimodal with audio support
 
 ### For Web Search:
-1. **GPT-4o-mini-search-preview-2025-03-11** - Budget web search (Chat Completions only)
-2. **GPT-4o Search Preview** - Premium web search
+**Use Responses API `web_search` tool (not search preview models):**
+1. **GPT-5** with web_search tool - $10.00 / 1k calls (best)
+2. **GPT-5-mini** with web_search tool - $10.00 / 1k calls (budget)
+3. **GPT-4.1** with web_search tool - $25.00 / 1k calls (preview pricing)
+
+**Legacy Chat Completions (avoid for new apps):**
+- GPT-4o-mini-search-preview - $25.00 / 1k calls
+- GPT-4o-search-preview - $25.00 / 1k calls
 
 ---
 
@@ -459,19 +570,21 @@ ChatGPT uses two GPT-5 variants:
 
 ## 📊 RESPONSES API FEATURE MATRIX
 
-| Model | Responses API | Reasoning | Vision | Tools | Caching | Context | Best Use Case |
-|-------|---------------|-----------|--------|-------|---------|---------|---------------|
-| **GPT-5** | ✅ | ✅✅✅ | ✅ | ✅ | ✅ | **400K** | **Flagship reasoning** |
-| **GPT-5-mini** | ✅ | ✅✅ | ✅ | ✅ | ✅ | **400K** | **Cost-effective reasoning** |
-| **GPT-5-nano** | ✅ | ✅ | ✅ | ✅ | ✅ | **400K** | **Ultra budget reasoning** |
-| GPT-5-chat-latest | ✅ | ❌ | ✅ | ✅ | ✅ | 400K | Fast non-reasoning |
-| o3 | ✅ | ✅✅✅ | ✅ | ✅ | ❌ | 200K | Deep reasoning (deprecated) |
-| o4-mini | ✅ | ✅✅ | ✅ | ✅ | ❌ | 200K | Budget reasoning (deprecated) |
-| GPT-4.1 | ✅ | ✅ | ✅ | ✅ | ❌ | 1M | Large context chat |
-| GPT-4.1 Mini | ✅ | ✅ | ✅ | ✅ | ❌ | 1M | Budget chat |
-| GPT-4.1 Nano | ✅ | ✅ | ✅ | ✅ | ❌ | 1M | Ultra budget chat |
-| GPT-4o | ✅ | ✅ | ✅ | ✅ | ❌ | 128K | Multimodal |
-| GPT-4o Mini | ✅ | ✅ | ✅ | ✅ | ❌ | 128K | Budget multimodal |
+| Model | Responses API | Reasoning | Multimodal | Tools | Caching | Context | Status |
+|-------|---------------|-----------|------------|-------|---------|---------|--------|
+| **GPT-5** | ✅ | ✅✅✅ | ✅ | ✅ | ✅ | **400K** | **✅ Current flagship** |
+| **GPT-5-mini** | ✅ | ✅✅ | ✅ | ✅ | ✅ | **400K** | **✅ Current** |
+| **GPT-5-nano** | ✅ | ✅ | ✅ | ✅ | ✅ | **400K** | **✅ Current** |
+| GPT-5-chat-latest | ✅ | ❌ | ✅ | ✅ | ✅ | 400K | ✅ Current |
+| GPT-4.1 | ✅ | Basic | ✅ | ✅ | ❌ | 1M | ✅ Current |
+| GPT-4.1 Mini | ✅ | Basic | ✅ | ✅ | ❌ | 1M | ✅ Current |
+| GPT-4.1 Nano | ✅ | Basic | ✅ | ✅ | ❌ | 1M | ✅ Current |
+| o3 | ✅ | ✅✅✅ | ✅ | ✅ | ❌ | 200K | ⚠️ Phasing out |
+| o4-mini | ✅ | ✅✅ | ✅ | ✅ | ❌ | 200K | ⚠️ Phasing out |
+| GPT-4o | ✅ | Basic | ✅ + Audio | ✅ | ❌ | 128K | ⚠️ Legacy |
+| GPT-4o Mini | ✅ | Basic | ✅ | ✅ | ❌ | 128K | ⚠️ Legacy |
+
+**Note:** All GPT-5 and GPT-4.1 series models are multimodal (text + vision). GPT-4o additionally supports audio.
 
 ---
 
