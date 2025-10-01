@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/utils/supabase-server'
-import { trackOpenAICall } from '@/lib/utils/openai-tracker'
+import OpenAI from 'openai'
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,85 +55,130 @@ export async function POST(req: NextRequest) {
 
     const allOptionNames = (allCandidates as any)?.map((c: any) => c.name) || []
 
-    // Use OpenAI with web search to enhance the option
-    console.log('🤖 Enhancing BYO option with AI:', optionName)
+    // Use OpenAI Responses API with guaranteed web search
+    console.log('🤖 Enhancing BYO option with AI web search:', optionName)
     
-    const { response, usage } = await trackOpenAICall(
-      "gpt-4o-mini-search-preview-2025-03-11", // Web search enabled model
-      [
-        {
-          role: "system",
-          content: `You are helping users learn more about options they're deciding between. 
-Analyze the context to determine what kind of information would be helpful.
-
-Rules:
-- For places/venues/businesses → Provide details about location, what it is, why someone might choose it
-- For names (baby names, people) → Explain meaning, origin, significance
-- For concepts/colors/ideas → Explain symbolism, meaning, psychology
-- For very personal/private items → Explain no public info available
-
-Keep responses concise (2-3 paragraphs max). Focus on decision-relevant information.`
-        },
-        {
-          role: "user",
-          content: `Context: User is choosing between these options: ${allOptionNames.join(', ')}
-
-Provide helpful information about: "${optionName}"
-
-Format your response as a helpful summary that aids decision-making.`
-        }
-      ],
-      {
-        max_tokens: 500, // Keep responses concise
-        temperature: 0.7
-      },
-      {
-        sessionId,
-        candidateId,
-        purpose: 'byo_enhancement',
-        metadata: {
-          optionName,
-          allOptions: allOptionNames
-        }
-      }
-    )
-
-    console.log(`💰 OpenAI cost for this enhancement: $${usage.totalCostUsd.toFixed(4)} (${usage.totalTokens} tokens)`)
-
-    const assistantMessage = response.choices[0]?.message
-    const description = assistantMessage?.content || null
-
-    // Extract citations from tool calls if available
-    const citations: { url: string; title: string }[] = []
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const startTime = Date.now()
     
-    // Note: OpenAI's web search returns citations in a specific format
-    // We'll extract them from the response if available
-    // This is a simplified version - you may need to adjust based on actual response format
+    try {
+      const response = await openai.responses.create({
+        model: "gpt-5-nano", // Fastest, cheapest reasoning model with web search
+        tools: [
+          { type: "web_search" }
+        ],
+        input: `Context: User is choosing between these options: ${allOptionNames.join(', ')}
 
-    const enhancedData = {
-      description,
-      citations: citations.length > 0 ? citations : null
-    }
+Search the web for current, helpful information about: "${optionName}"
 
-    // Cache the enhanced data in the database
-    if (description) {
-      const updateData: any = {
-        description: description,
-        metadata: { 
-          ...(candidateData?.metadata || {}),
-          aiEnhanced: true,
-          enhancedAt: new Date().toISOString()
-        }
-      }
+Based on the context, determine what type of information would help someone decide:
+- For places/venues/businesses → Location, reviews, what makes it special, hours, pricing
+- For names (baby names, people) → Meaning, origin, popularity, cultural significance
+- For concepts/colors/ideas → Symbolism, meaning, psychology, common associations
+- For very personal items → Explain no public info available
+
+Provide a concise summary (2-3 paragraphs) that aids decision-making.`,
+        reasoning: { effort: "low" }, // Fast web search without deep reasoning
+      })
+
+      const endTime = Date.now()
+      const responseTimeMs = endTime - startTime
+
+      // Extract output text
+      const outputText = response.output_text || ''
       
-      await (supabase as any)
-        .from('candidates')
-        .update(updateData)
-        .eq('id', candidateId)
-    }
+      // Extract citations from annotations
+      const citations: { url: string; title: string }[] = []
+      if (response.output && Array.isArray(response.output)) {
+        response.output.forEach((item: any) => {
+          if (item.type === 'message' && item.content) {
+            item.content.forEach((content: any) => {
+              if (content.annotations) {
+                content.annotations.forEach((annotation: any) => {
+                  if (annotation.type === 'url_citation') {
+                    citations.push({
+                      url: annotation.url,
+                      title: annotation.title || annotation.url
+                    })
+                  }
+                })
+              }
+            })
+          }
+        })
+      }
 
-    console.log('✅ BYO option enhanced successfully')
-    return NextResponse.json(enhancedData)
+      // Calculate cost (Responses API doesn't return usage in same format)
+      // Estimate based on response length
+      const estimatedInputTokens = 200
+      const estimatedOutputTokens = Math.ceil(outputText.length / 4) // ~4 chars per token
+      const pricing = { input: 0.05, output: 0.40 } // gpt-5-nano pricing
+      const totalCost = (estimatedInputTokens / 1_000_000) * pricing.input + 
+                       (estimatedOutputTokens / 1_000_000) * pricing.output
+
+      // Track in database
+      const supabase = createServerClient()
+      await (supabase as any)
+        .from('openai_usage')
+        .insert({
+          session_id: sessionId,
+          candidate_id: candidateId,
+          purpose: 'byo_enhancement_web_search',
+          model: 'gpt-5-nano',
+          input_tokens: estimatedInputTokens,
+          output_tokens: estimatedOutputTokens,
+          total_tokens: estimatedInputTokens + estimatedOutputTokens,
+          input_cost_usd: (estimatedInputTokens / 1_000_000) * pricing.input,
+          output_cost_usd: (estimatedOutputTokens / 1_000_000) * pricing.output,
+          total_cost_usd: totalCost,
+          response_time_ms: responseTimeMs,
+          success: true,
+          metadata: { 
+            optionName,
+            allOptions: allOptionNames,
+            citations_count: citations.length,
+            has_web_search: true
+          }
+        })
+
+      console.log(`💰 OpenAI Responses API web search: $${totalCost.toFixed(4)} (${responseTimeMs}ms, ${citations.length} citations)`)
+
+      const description = outputText
+
+      const enhancedData = {
+        description,
+        citations: citations.length > 0 ? citations : null
+      }
+
+      // Cache the enhanced data in the database (reuse supabase from earlier)
+      if (description) {
+        const updateData: any = {
+          description: description,
+          metadata: { 
+            ...(candidateData?.metadata || {}),
+            aiEnhanced: true,
+            enhancedAt: new Date().toISOString(),
+            webSearchUsed: true,
+            citations: citations
+          }
+        }
+        
+        await (supabase as any)
+          .from('candidates')
+          .update(updateData)
+          .eq('id', candidateId)
+      }
+
+      console.log('✅ BYO option enhanced successfully with web search')
+      return NextResponse.json(enhancedData)
+      
+    } catch (apiError) {
+      console.error('Error calling OpenAI Responses API:', apiError)
+      return NextResponse.json(
+        { error: 'Failed to enhance with web search', description: null },
+        { status: 500 }
+      )
+    }
 
   } catch (error) {
     console.error('Error enhancing BYO option:', error)
