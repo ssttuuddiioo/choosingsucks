@@ -303,6 +303,52 @@ export default function BuildYourOwnPage() {
               )}
             </div>
             
+            {/* AI Enhancement Toggle - Always visible */}
+            <div className="mt-4">
+              <div className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-white/10">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aiEnhancementEnabled}
+                    onChange={(e) => setAiEnhancementEnabled(e.target.checked)}
+                    className="w-4 h-4 text-electric-purple bg-white/10 border-white/20 rounded focus:ring-electric-purple focus:ring-2"
+                  />
+                  <span className="text-sm text-white font-medium">AI-powered "Learn More"</span>
+                </label>
+                <button
+                  onClick={() => setShowAiInfo(!showAiInfo)}
+                  className="text-white/70 hover:text-white transition-colors p-1"
+                >
+                  <Info className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* AI Info Explanation */}
+              {showAiInfo && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-white/10 rounded-xl p-4 text-sm text-white/80 leading-relaxed mt-2"
+                >
+                  <p className="mb-2">
+                    <strong className="text-white">What this does:</strong> When enabled, users can tap "Learn More" on each option to see AI-generated context, descriptions, and web search results.
+                  </p>
+                  <p className="mb-2">
+                    <strong className="text-white">Examples:</strong>
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-xs text-white/70 ml-2">
+                    <li>Golf courses → Details, reviews, photos, location</li>
+                    <li>Baby names → Meaning, origin, popularity</li>
+                    <li>Colors → Psychology, symbolism, cultural significance</li>
+                  </ul>
+                  <p className="mt-2 text-xs text-white/60">
+                    💡 The AI understands context and provides relevant information for each type of decision.
+                  </p>
+                </motion.div>
+              )}
+            </div>
+
             {isMultiPersonEnabled && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div>
@@ -333,50 +379,6 @@ export default function BuildYourOwnPage() {
                     <span className="text-sm text-white">Require names</span>
                   </label>
                 </div>
-
-                {/* AI Enhancement Toggle */}
-                <div className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-white/10">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={aiEnhancementEnabled}
-                      onChange={(e) => setAiEnhancementEnabled(e.target.checked)}
-                      className="w-4 h-4 text-electric-purple bg-white/10 border-white/20 rounded focus:ring-electric-purple focus:ring-2"
-                    />
-                    <span className="text-sm text-white font-medium">AI-powered "Learn More"</span>
-                  </label>
-                  <button
-                    onClick={() => setShowAiInfo(!showAiInfo)}
-                    className="text-white/70 hover:text-white transition-colors p-1"
-                  >
-                    <Info className="h-4 w-4" />
-                  </button>
-                </div>
-
-                {/* AI Info Explanation */}
-                {showAiInfo && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="bg-white/10 rounded-xl p-4 text-sm text-white/80 leading-relaxed"
-                  >
-                    <p className="mb-2">
-                      <strong className="text-white">What this does:</strong> When enabled, users can tap "Learn More" on each option to see AI-generated context, descriptions, and web search results.
-                    </p>
-                    <p className="mb-2">
-                      <strong className="text-white">Examples:</strong>
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-xs text-white/70 ml-2">
-                      <li>Golf courses → Details, reviews, photos, location</li>
-                      <li>Baby names → Meaning, origin, popularity</li>
-                      <li>Colors → Psychology, symbolism, cultural significance</li>
-                    </ul>
-                    <p className="mt-2 text-xs text-white/60">
-                      💡 The AI understands context and provides relevant information for each type of decision.
-                    </p>
-                  </motion.div>
-                )}
               </div>
             )}
           </motion.div>
