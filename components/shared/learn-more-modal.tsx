@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { X, MapPin, Phone, Globe, Star, Clock, Calendar, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
@@ -190,137 +189,111 @@ export default function LearnMoreModal({
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
-          />
-          
-          {/* Modal */}
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.5 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.y > 150) onClose()
-            }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center p-0 sm:p-4"
-          >
-            <div className="bg-white w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl">
-              {/* Header */}
-              <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-                <h3 className="text-lg font-semibold text-gray-900">Details</h3>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X className="h-5 w-5 text-gray-600" />
-                </button>
-              </div>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DrawerContent className="h-[95vh] max-w-2xl mx-auto">
+        {/* Header */}
+        <DrawerHeader className="flex-shrink-0 flex items-center justify-between border-b border-gray-200 bg-white sticky top-0 z-10">
+          <DrawerTitle className="text-xl font-outfit font-bold text-gray-900">
+            {candidate.name || candidate.title}
+          </DrawerTitle>
+          <DrawerClose asChild>
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+          </DrawerClose>
+        </DrawerHeader>
 
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto">
-                {/* Photo Carousel */}
-                {hasPhotos && (
-                  <div className="relative bg-gray-900 aspect-[4/3] sm:aspect-video">
-                    {isStreaming && posterUrl ? (
-                      <img
-                        src={posterUrl}
-                        alt={candidate.title || candidate.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : photos.length > 0 ? (
-                      <>
-                        <img
-                          src={photos[currentPhotoIndex]}
-                          alt={`${candidate.name} - Photo ${currentPhotoIndex + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        
-                        {/* Photo Navigation */}
-                        {photos.length > 1 && (
-                          <>
-                            <button
-                              onClick={prevPhoto}
-                              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                            >
-                              <ChevronLeft className="h-6 w-6" />
-                            </button>
-                            <button
-                              onClick={nextPhoto}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                            >
-                              <ChevronRight className="h-6 w-6" />
-                            </button>
-                            
-                            {/* Photo Dots */}
-                            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                              {photos.map((_, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => setCurrentPhotoIndex(idx)}
-                                  className={cn(
-                                    "w-2 h-2 rounded-full transition-all",
-                                    idx === currentPhotoIndex 
-                                      ? "bg-white w-6" 
-                                      : "bg-white/50 hover:bg-white/75"
-                                  )}
-                                />
-                              ))}
-                            </div>
-                          </>
-                        )}
-                      </>
-                    ) : null}
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className="p-6 space-y-6">
-                  {/* Loading State */}
-                  {enhancedData.loading && (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-electric-purple"></div>
-                    </div>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Photo Carousel */}
+          {hasPhotos && (
+            <div className="relative bg-gray-900 aspect-[4/3] sm:aspect-video">
+              {isStreaming && posterUrl ? (
+                <img
+                  src={posterUrl}
+                  alt={candidate.title || candidate.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : photos.length > 0 ? (
+                <>
+                  <img
+                    src={photos[currentPhotoIndex]}
+                    alt={`${candidate.name} - Photo ${currentPhotoIndex + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Photo Navigation */}
+                  {photos.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevPhoto}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </button>
+                      <button
+                        onClick={nextPhoto}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
+                      >
+                        <ChevronRight className="h-6 w-6" />
+                      </button>
+                      
+                      {/* Photo Dots */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                        {photos.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setCurrentPhotoIndex(idx)}
+                            className={cn(
+                              "w-2 h-2 rounded-full transition-all",
+                              idx === currentPhotoIndex 
+                                ? "bg-white w-6" 
+                                : "bg-white/50 hover:bg-white/75"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </>
                   )}
-
-                  {/* Error State */}
-                  {enhancedData.error && (
-                    <div className="text-center py-8 text-gray-600">
-                      <p>{enhancedData.error}</p>
-                    </div>
-                  )}
-
-                  {/* Restaurant Content */}
-                  {!enhancedData.loading && isRestaurant && (
-                    <RestaurantDetails candidate={candidate} data={enhancedData} />
-                  )}
-
-                  {/* Streaming Content */}
-                  {!enhancedData.loading && isStreaming && (
-                    <StreamingDetails candidate={candidate} data={enhancedData} />
-                  )}
-
-                  {/* BYO Content */}
-                  {!enhancedData.loading && isBYO && (
-                    <BYODetails candidate={candidate} data={enhancedData} />
-                  )}
-                </div>
-              </div>
+                </>
+              ) : null}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          )}
+
+          {/* Content */}
+          <div className="p-6 space-y-6 pb-12">
+            {/* Loading State */}
+            {enhancedData.loading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-electric-purple"></div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {enhancedData.error && (
+              <div className="text-center py-8 text-gray-600">
+                <p>{enhancedData.error}</p>
+              </div>
+            )}
+
+            {/* Restaurant Content */}
+            {!enhancedData.loading && isRestaurant && (
+              <RestaurantDetails candidate={candidate} data={enhancedData} />
+            )}
+
+            {/* Streaming Content */}
+            {!enhancedData.loading && isStreaming && (
+              <StreamingDetails candidate={candidate} data={enhancedData} />
+            )}
+
+            {/* BYO Content */}
+            {!enhancedData.loading && isBYO && (
+              <BYODetails candidate={candidate} data={enhancedData} />
+            )}
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   )
 }
 

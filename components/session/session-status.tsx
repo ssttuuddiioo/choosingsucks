@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils/cn'
 import { generateShareToken } from '@/lib/utils/session'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { env } from '@/lib/utils/env'
 
 interface SessionStatusProps {
   session: Tables<'sessions'>
@@ -19,6 +20,14 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
   const { invitedCount, joinedCount, submittedCount } = sessionStatus
   const progress = joinedCount > 0 ? (submittedCount / joinedCount) * 100 : 0
   const [copied, setCopied] = useState(false)
+
+  const isMultiPersonEnabled = env.features.multiPersonSessions
+  const flowTagline = (() => {
+    const category = session?.category
+    if (category === 'streaming') return 'Choosing shows sucks'
+    if (category === 'restaurants') return 'Choosing restaurants sucks'
+    return 'Choosing anything sucks'
+  })()
 
   const handleShare = async () => {
     // Generate a new share token for security
@@ -48,18 +57,25 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
         {/* Status info - improved typography */}
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-electric-purple" />
-              <span className="font-bold text-base">{joinedCount} of {invitedCount}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <CheckCircle className={cn(
-                "h-5 w-5",
-                submittedCount === joinedCount && joinedCount > 0 ? "text-lime-green" : "text-white/50"
-              )} />
-              <span className="font-bold text-base">{submittedCount} matches</span>
-            </div>
+            {isMultiPersonEnabled ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-electric-purple" />
+                  <span className="font-bold text-base">{joinedCount} of {invitedCount}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className={cn(
+                    "h-5 w-5",
+                    submittedCount === joinedCount && joinedCount > 0 ? "text-lime-green" : "text-white/50"
+                  )} />
+                  <span className="font-bold text-base">{submittedCount} matches</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-base">{flowTagline}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
