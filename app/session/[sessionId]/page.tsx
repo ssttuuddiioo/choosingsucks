@@ -12,6 +12,8 @@ import type { Tables } from '@/types/supabase'
 import JoinFlow from '@/components/session/join-flow'
 import SwipeInterfaceTemplate from '@/components/shared/swipe-interface-template'
 import RestaurantCard from '@/components/swipe/restaurant-card'
+import StreamingCard from '@/components/streaming/streaming-card'
+import BYOCard from '@/components/build-your-own/byo-card'
 import SessionStatus from '@/components/session/session-status'
 import MatchScreen from '@/components/session/match-screen'
 import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-template'
@@ -580,6 +582,21 @@ export default function SessionPage() {
     )
   }
 
+  // Helper function to render the correct card based on category
+  const renderCard = (candidate: Candidate, onLearnMore?: () => void) => {
+    const category = session.category || candidate.category
+    const contentType = candidate.content_type
+    
+    // Determine which card to render
+    if (category === 'build-your-own' || contentType === 'custom_option') {
+      return <BYOCard candidate={candidate} onLearnMore={onLearnMore} />
+    } else if (category === 'streaming' || contentType?.includes('movie') || contentType?.includes('tv_')) {
+      return <StreamingCard candidate={candidate} onLearnMore={onLearnMore} />
+    } else {
+      return <RestaurantCard candidate={candidate} onLearnMore={onLearnMore} />
+    }
+  }
+
   // Swipe interface
   return (
     <div className="h-screen bg-gradient-primary flex flex-col">
@@ -592,9 +609,7 @@ export default function SessionPage() {
       <SwipeInterfaceTemplate
         candidates={remainingCandidates}
         onSwipe={handleSwipe}
-        renderCard={(candidate, onLearnMore) => (
-          <RestaurantCard candidate={candidate} onLearnMore={onLearnMore} />
-        )}
+        renderCard={renderCard}
         categoryName={session.category || "restaurants"}
       />
     </div>
