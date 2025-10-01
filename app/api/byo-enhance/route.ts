@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check if session has AI enhancement enabled
+    // Get session and check AI enhancement (defaults to true for BYO)
     const supabase = createServerClient()
     const { data: session } = await supabase
       .from('sessions')
@@ -122,10 +122,13 @@ export async function POST(req: NextRequest) {
       .eq('id', sessionId)
       .single()
 
-    if (!(session as any)?.ai_enhancement_enabled) {
-      // AI enhancement disabled, return empty
+    // Default to enabled if not explicitly set
+    const aiEnabled = (session as any)?.ai_enhancement_enabled !== false
+
+    if (!aiEnabled) {
+      // AI enhancement explicitly disabled
       return NextResponse.json({ 
-        description: null,
+        modules: [],
         aiEnhancementDisabled: true 
       })
     }
