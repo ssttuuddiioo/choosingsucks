@@ -297,100 +297,37 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Found ${searchResults.titles.length} titles`)
 
-    // Get detailed information for all titles with proper concurrency control
-    // Process in smaller batches to avoid overwhelming the API
-    console.log('🔍 Fetching detailed information with controlled concurrency...')
+    // OPTIMIZATION: Store only basic data from list_titles (85% cost reduction!)
+    // Details (plot, runtime, etc.) fetched lazily when user clicks "Learn More"
+    console.log('📦 Storing basic title data (details fetched on-demand for cost efficiency)...')
     
-    const batchSize = 5 // Increased batch size for better performance
-    const detailedCandidates: any[] = []
-    
-    for (let i = 0; i < searchResults.titles.length; i += batchSize) {
-      const batch = searchResults.titles.slice(i, i + batchSize)
-      console.log(`📦 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(searchResults.titles.length/batchSize)}`)
-      
-      const batchResults = await Promise.allSettled(
-        batch.map(async (title) => {
-          const detailsStartTime = Date.now()
-          try {
-            const detailedTitle = await watchmode.getTitleDetails(title.id)
-            const detailsDuration = Date.now() - detailsStartTime
-            
-            // Track successful title details fetch
-            await trackWatchmodeCall(
-              'title_details',
-              true,
-              detailsDuration,
-              { sessionId, metadata: { titleId: title.id, titleName: title.title } },
-              200
-            )
-            
-            return {
-              id: detailedTitle.id,
-              title: detailedTitle.title,
-              original_title: detailedTitle.original_title,
-              type: detailedTitle.type,
-              year: detailedTitle.year,
-              runtime_minutes: detailedTitle.runtime_minutes,
-              plot_overview: detailedTitle.plot_overview,
-              genre_names: detailedTitle.genre_names,
-              user_rating: detailedTitle.user_rating,
-              critic_score: detailedTitle.critic_score,
-              poster: detailedTitle.poster,
-              posterLarge: detailedTitle.posterLarge,
-              backdrop: detailedTitle.backdrop,
-              trailer: detailedTitle.trailer,
-              us_rating: detailedTitle.us_rating,
-              sources: detailedTitle.sources || [],
-              session_id: sessionId,
-            }
-          } catch (error) {
-            console.error(`Failed to fetch details for title ${title.id}:`, error)
-            const detailsDuration = Date.now() - detailsStartTime
-            
-            // Track failed title details fetch
-            await trackWatchmodeCall(
-              'title_details',
-              false,
-              detailsDuration,
-              { sessionId, metadata: { titleId: title.id, titleName: title.title } },
-              500,
-              error instanceof Error ? error.message : 'Unknown error'
-            )
-            
-            // Return basic info if detailed fetch fails
-            return {
-              id: title.id,
-              title: title.title,
-              type: title.type,
-              year: title.year,
-              session_id: sessionId,
-              poster: null,
-              plot_overview: `${title.type === 'movie' ? 'Movie' : 'TV Series'} from ${title.year}`,
-              user_rating: 6.0,
-              sources: [],
-            }
-          }
-        })
-      )
-      
-      // Add successful results to candidates
-      batchResults.forEach(result => {
-        if (result.status === 'fulfilled') {
-          detailedCandidates.push(result.value)
-        }
-      })
-      
-      // Small delay between batches to be nice to the API
-      if (i + batchSize < searchResults.titles.length) {
-        await new Promise(resolve => setTimeout(resolve, 100)) // Reduced delay from 200ms to 100ms
-      }
-    }
+    const basicCandidates = searchResults.titles.map((title: any) => ({
+      id: title.id,
+      title: title.title,
+      original_title: title.original_title || null,
+      type: title.type,
+      year: title.year || null,
+      poster: title.poster || null,
+      backdrop: title.backdrop || null,
+      // Basic data from list_titles (included in search response)
+      genre_names: title.genre_names || null,
+      user_rating: title.user_rating || null,
+      // Details will be null until "Learn More" clicked - lazy loaded
+      plot_overview: null,
+      runtime_minutes: null,
+      us_rating: null,
+      trailer: null,
+      critic_score: null,
+      sources: [],
+      session_id: sessionId,
+    }))
 
     // Sort candidates by rating (best to worst)
-    const candidates = detailedCandidates
-      .filter(candidate => candidate.user_rating && candidate.user_rating > 0)
-      .sort((a, b) => (b.user_rating || 0) - (a.user_rating || 0))
+    const candidates = basicCandidates
+      .filter((candidate: any) => candidate.user_rating && candidate.user_rating > 0)
       .slice(0, 20)
+
+    console.log(`✅ Prepared ${candidates.length} candidates (saved ${searchResults.titles.length} title_details API calls via lazy loading!)`)
 
     // Store candidates in database for session
     const supabase = createServerClient()

@@ -1,18 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { env } from '@/lib/utils/env'
 import { trackGooglePlacesCall } from '@/lib/utils/api-tracker'
+import { createServerClient } from '@/lib/utils/supabase-server'
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now()
   
   try {
-    const { placeId } = await req.json()
+    const { placeId, candidateId } = await req.json()
 
     if (!placeId) {
       return NextResponse.json(
         { error: 'Missing placeId parameter' },
         { status: 400 }
       )
+    }
+
+    // Check cache first (24 hour cache for restaurant details)
+    if (candidateId) {
+      const supabase = createServerClient()
+      const { data: candidate } = await supabase
+        .from('candidates')
+        .select('metadata, description')
+        .eq('id', candidateId)
+        .single()
+
+      const candidateData = candidate as any
+      const metadata = candidateData?.metadata || {}
+      const detailsCachedAt = metadata.place_details_cached_at
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
+      if (detailsCachedAt && new Date(detailsCachedAt) > twentyFourHoursAgo && metadata.place_details_cache) {
+        console.log(`📦 Using cached restaurant details (cached ${Math.floor((Date.now() - new Date(detailsCachedAt).getTime()) / (1000 * 60 * 60))}h ago)`)
+        
+        return NextResponse.json({
+          ...metadata.place_details_cache,
+          cached: true
+        })
+      }
     }
 
     const apiKey = env.google.mapsApiKey
@@ -118,8 +143,8 @@ export async function POST(req: NextRequest) {
       amenities.push('Wheelchair accessible')
     }
 
-    // Get photo URLs (return photo references, client will construct URLs)
-    const photos = placeData.photos?.slice(0, 5).map((photo: any) => photo.name) || []
+    // Get photo URLs (limit to 3 photos for cost optimization)
+    const photos = placeData.photos?.slice(0, 3).map((photo: any) => photo.name) || []
 
     // Format opening hours
     const hours = placeData.regularOpeningHours?.weekdayDescriptions || []
@@ -136,6 +161,32 @@ export async function POST(req: NextRequest) {
         googleMaps: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeData.displayName?.text || '')}&query_place_id=${placeId}`,
         website: placeData.websiteUri || null
       }
+    }
+
+    // Cache the details in database (24 hour cache)
+    if (candidateId) {
+      const supabase = createServerClient()
+      const { data: existingCandidate } = await supabase
+        .from('candidates')
+        .select('metadata')
+        .eq('id', candidateId)
+        .single()
+
+      const existingMetadata = (existingCandidate as any)?.metadata || {}
+
+      await (supabase as any)
+        .from('candidates')
+        .update({
+          description: enhancedData.description,
+          metadata: {
+            ...existingMetadata,
+            place_details_cache: enhancedData,
+            place_details_cached_at: new Date().toISOString()
+          }
+        })
+        .eq('id', candidateId)
+
+      console.log(`✅ Cached restaurant details for 24 hours`)
     }
 
     return NextResponse.json(enhancedData)

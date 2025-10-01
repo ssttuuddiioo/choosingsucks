@@ -22,6 +22,11 @@ interface EnhancedData {
   hours?: string[]
   photos?: string[]
   amenities?: string[]
+  runtime?: number
+  usRating?: string
+  criticScore?: number
+  trailer?: string
+  sources?: any[]
   externalLinks?: {
     googleMaps?: string
     website?: string
@@ -53,7 +58,10 @@ export default function LearnMoreModal({
           const response = await fetch('/api/restaurant-details', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ placeId: candidate.place_id })
+            body: JSON.stringify({ 
+              placeId: candidate.place_id,
+              candidateId: candidate.id // For caching
+            })
           })
           
           if (response.ok) {
@@ -63,11 +71,32 @@ export default function LearnMoreModal({
             setEnhancedData({ loading: false, error: 'Failed to load details' })
           }
         } else if (category === 'streaming') {
-          // Streaming already has all data in candidate
-          setEnhancedData({ 
-            description: candidate.plot_overview || candidate.description || undefined,
-            loading: false 
+          // Streaming uses lazy loading - fetch details on-demand
+          const response = await fetch('/api/streaming-details', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ candidateId: candidate.id })
           })
+          
+          if (response.ok) {
+            const data = await response.json()
+            setEnhancedData({ 
+              description: data.plot_overview || undefined,
+              loading: false,
+              // Store additional fields for display
+              runtime: data.runtime_minutes,
+              usRating: data.us_rating,
+              criticScore: data.critic_score,
+              trailer: data.trailer,
+              sources: data.sources
+            })
+          } else {
+            // Fallback to basic data if details fetch fails
+            setEnhancedData({ 
+              description: undefined,
+              loading: false 
+            })
+          }
         } else if (category === 'build-your-own') {
           // Check if AI enhancement is enabled for this session
           const response = await fetch('/api/byo-enhance', {
