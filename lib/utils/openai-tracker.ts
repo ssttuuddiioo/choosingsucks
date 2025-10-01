@@ -2,33 +2,96 @@ import { createServerClient } from './supabase-server'
 import type { Tables } from '@/types/supabase'
 import OpenAI from 'openai'
 
-// OpenAI Pricing (per million tokens) - UPDATE THESE WITH ACTUAL 2025 PRICING
-// Source: https://openai.com/api/pricing
+// OpenAI Pricing (per million tokens)
+// Source: docs/openai_models.md (Updated October 2025)
 const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  // GPT-5 Series (Current Flagship Reasoning Models)
   'gpt-5': {
-    input: 2.50,    // $ per 1M input tokens - PLACEHOLDER, verify pricing
-    output: 10.00   // $ per 1M output tokens - PLACEHOLDER, verify pricing
+    input: 1.25,    // $1.25 per 1M input tokens
+    output: 10.00   // $10.00 per 1M output tokens
   },
+  'gpt-5-mini': {
+    input: 0.25,    // $0.25 per 1M input tokens
+    output: 2.00    // $2.00 per 1M output tokens
+  },
+  'gpt-5-nano': {
+    input: 0.05,    // $0.05 per 1M input tokens
+    output: 0.40    // $0.40 per 1M output tokens
+  },
+  'gpt-5-chat-latest': {
+    input: 1.25,    // Same as gpt-5
+    output: 10.00
+  },
+  
+  // GPT-4.1 Series (Current Generation Chat Models)
+  'gpt-4.1': {
+    input: 2.00,    // $2.00 per 1M input tokens
+    output: 8.00    // $8.00 per 1M output tokens
+  },
+  'gpt-4.1-mini': {
+    input: 0.40,    // $0.40 per 1M input tokens
+    output: 1.60    // $1.60 per 1M output tokens
+  },
+  'gpt-4.1-nano': {
+    input: 0.10,    // $0.10 per 1M input tokens
+    output: 0.40    // $0.40 per 1M output tokens
+  },
+  
+  // GPT-4o Series (Legacy)
   'gpt-4o': {
-    input: 2.50,    // $ per 1M input tokens  
-    output: 10.00   // $ per 1M output tokens
+    input: 2.50,    // $2.50 per 1M input tokens
+    output: 10.00   // $10.00 per 1M output tokens
   },
   'gpt-4o-2024-08-06': {
-    input: 2.50,    // $ per 1M input tokens (same as gpt-4o)
-    output: 10.00   // $ per 1M output tokens
+    input: 2.50,    // Same as gpt-4o
+    output: 10.00
+  },
+  'chatgpt-4o-latest': {
+    input: 2.50,    // Same as gpt-4o
+    output: 10.00
   },
   'gpt-4o-mini': {
-    input: 0.15,    // $ per 1M input tokens
-    output: 0.60    // $ per 1M output tokens
+    input: 0.15,    // $0.15 per 1M input tokens
+    output: 0.60    // $0.60 per 1M output tokens
   },
   'gpt-4o-mini-search-preview-2025-03-11': {
-    input: 0.15,    // $ per 1M input tokens (assuming same as gpt-4o-mini)
-    output: 0.60    // $ per 1M output tokens
+    input: 0.15,    // Same as gpt-4o-mini
+    output: 0.60
   },
+  
+  // o-series (Deprecated)
+  'o3': {
+    input: 10.00,   // $10.00 per 1M input tokens
+    output: 40.00   // $40.00 per 1M output tokens
+  },
+  'o4-mini': {
+    input: 1.10,    // $1.10 per 1M input tokens
+    output: 4.40    // $4.40 per 1M output tokens
+  },
+  'o3-mini': {
+    input: 1.10,    // $1.10 per 1M input tokens
+    output: 4.40    // $4.40 per 1M output tokens
+  },
+  'o1': {
+    input: 15.00,   // $15.00 per 1M input tokens (deprecated)
+    output: 60.00   // $60.00 per 1M output tokens
+  },
+  'o1-mini': {
+    input: 1.10,    // $1.10 per 1M input tokens (deprecated)
+    output: 4.40    // $4.40 per 1M output tokens
+  },
+  
+  // GPT-4 Series (Legacy)
   'gpt-4-turbo': {
     input: 10.00,
     output: 30.00
   },
+  'gpt-4': {
+    input: 30.00,
+    output: 60.00
+  },
+  
+  // GPT-3.5 Series (Legacy)
   'gpt-3.5-turbo': {
     input: 0.50,
     output: 1.50
