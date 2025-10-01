@@ -47,14 +47,14 @@ const BYOModuleSchema = z.discriminatedUnion('type', [
   // Media modules
   z.object({
     type: z.literal('hero_image'),
-    image_url: z.string().url().describe('Direct image URL found in web search results'),
+    image_url: z.string().describe('Direct image URL found in web search results'),
     alt_text: z.string().describe('Image description')
   }),
   z.object({
     type: z.literal('image_gallery'),
     images: z.array(z.object({
-      url: z.string().url(),
-      alt_text: z.string()
+      url: z.string().describe('Image URL'),
+      alt_text: z.string().describe('Image description')
     })).min(2).max(4).describe('2-4 images')
   }),
   z.object({
