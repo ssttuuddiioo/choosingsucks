@@ -607,10 +607,16 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
 
   // stats
   if (type === 'stats') {
+    // Handle both simple value and complex object
+    const displayValue = typeof module.value === 'object' ? 
+      (module.value?.value || JSON.stringify(module.value)) : 
+      module.value
+    const displayLabel = module.label || module.value?.label
+    
     return (
       <div className="bg-gray-50 rounded-lg p-4 text-center">
-        <div className="text-3xl font-bold text-gray-900">{module.value}</div>
-        {module.label && <div className="text-sm text-gray-600 mt-1">{module.label}</div>}
+        <div className="text-3xl font-bold text-gray-900">{displayValue}</div>
+        {displayLabel && <div className="text-sm text-gray-600 mt-1">{displayLabel}</div>}
       </div>
     )
   }
@@ -770,10 +776,23 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
     )
   }
 
-  // Unknown module type - render as basic text
+  // Unknown module type - try to render something useful
+  console.warn('Unknown module type:', type, module)
+  
+  // Try to extract any displayable content
+  if (module.content) {
+    return (
+      <div>
+        {module.title && <h3 className="font-semibold text-gray-900 mb-2">{module.title}</h3>}
+        <p className="text-gray-700">{typeof module.content === 'string' ? module.content : JSON.stringify(module.content)}</p>
+      </div>
+    )
+  }
+  
+  // Last resort - show module type
   return (
-    <div className="text-gray-600 text-sm">
-      <pre>{JSON.stringify(module, null, 2)}</pre>
+    <div className="text-xs text-gray-400 italic">
+      Unsupported module: {type}
     </div>
   )
 }
