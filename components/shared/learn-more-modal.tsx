@@ -583,12 +583,17 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
 
   // key_value_pairs
   if (type === 'key_value_pairs' && module.pairs) {
+    // Handle both array and object formats for backward compatibility
+    const pairs = Array.isArray(module.pairs) 
+      ? module.pairs 
+      : Object.entries(module.pairs).map(([key, value]) => ({ key, value }))
+    
     return (
       <div className="grid grid-cols-2 gap-3">
-        {Object.entries(module.pairs).map(([key, value], idx) => (
+        {pairs.map((pair: any, idx: number) => (
           <div key={idx}>
-            <div className="text-xs text-gray-600 uppercase tracking-wide">{key}</div>
-            <div className="text-sm font-semibold text-gray-900">{value as string}</div>
+            <div className="text-xs text-gray-600 uppercase tracking-wide">{pair.key}</div>
+            <div className="text-sm font-semibold text-gray-900">{pair.value}</div>
           </div>
         ))}
       </div>

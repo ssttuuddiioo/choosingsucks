@@ -19,7 +19,10 @@ const BYOModuleSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal('key_value_pairs'),
-    pairs: z.record(z.string()).describe('Key-value pairs (e.g., {"Type": "Public", "Holes": "18"})')
+    pairs: z.array(z.object({
+      key: z.string().describe('Label (e.g., "Type", "Holes", "Origin")'),
+      value: z.string().describe('Value (e.g., "Public", "18", "Latin")')
+    })).describe('Array of key-value pairs, 3-6 items')
   }),
   z.object({
     type: z.literal('quote'),
@@ -181,7 +184,7 @@ Golf Course:
 
 Baby Name:
 - title_and_paragraph: {title: "Meaning & Origin", content: "Latin origin..."}
-- key_value_pairs: {pairs: {"Origin": "Latin", "Popularity": "Top 5", "Gender": "Male"}}
+- key_value_pairs: {pairs: [{key: "Origin", value: "Latin"}, {key: "Popularity", value: "Top 5"}, {key: "Gender", value: "Male"}]}
 - title_and_list: {title: "Famous People", items: ["Oliver Twist", "Oliver Stone"]}
 
 Color:
