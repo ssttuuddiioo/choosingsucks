@@ -17,7 +17,26 @@ interface NoMatchesScreenProps {
   onNewSession?: () => void
 }
 
+const categoryMessages = {
+  restaurants: {
+    noMatch: "Nobody agreed on the same restaurant. Let's settle this!",
+    winnerChooses: "Winner gets to choose where you eat."
+  },
+  streaming: {
+    noMatch: "Nobody agreed on the same show. Let's settle this!",
+    winnerChooses: "Winner gets to choose what to watch."
+  },
+  'build-your-own': {
+    noMatch: "Nobody agreed on the same option. Let's settle this!",
+    winnerChooses: "Winner gets to decide!"
+  }
+}
+
 export default function NoMatchesScreen({ session, participant, onStartOver, onExpandSearch, onRockPaperScissors, onRPSMove, onNewSession }: NoMatchesScreenProps) {
+  // Get category-specific messages
+  const category = (session.category || 'restaurants') as keyof typeof categoryMessages
+  const messages = categoryMessages[category] || categoryMessages.restaurants
+
   // Fun "no match" messages
   const noMatchMessages = [
     "Tough crowd!",
@@ -53,7 +72,7 @@ export default function NoMatchesScreen({ session, participant, onStartOver, onE
           <div className="text-6xl text-white/30">×</div>
           <h1 className="text-2xl font-outfit font-bold gradient-text">{randomMessage}</h1>
           <p className="text-white/70 text-lg">
-            Nobody agreed on the same restaurant. Let's settle this!
+            {messages.noMatch}
           </p>
         </div>
 
@@ -81,7 +100,7 @@ export default function NoMatchesScreen({ session, participant, onStartOver, onE
           </div>
           
           <p className="text-white/60 text-sm">
-            Tap to play! Winner gets to choose where you eat.
+            Tap to play! {messages.winnerChooses}
           </p>
         </div>
 

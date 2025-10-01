@@ -10,10 +10,20 @@ interface JoinFlowProps {
   onJoin: (name?: string) => Promise<void>
 }
 
+const categoryTaglines = {
+  restaurants: "Because choosing where to eat sucks",
+  streaming: "Because choosing what to watch sucks",
+  'build-your-own': "Because choosing sucks"
+}
+
 export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  
+  // Get category-specific tagline
+  const category = (session.category || 'restaurants') as keyof typeof categoryTaglines
+  const tagline = categoryTaglines[category] || categoryTaglines.restaurants
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,7 +57,7 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
             Help us choose
           </h1>
           <p className="text-white/70">
-            Because choosing where to eat sucks
+            {tagline}
           </p>
         </div>
 
