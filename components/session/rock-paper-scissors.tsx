@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -112,17 +111,20 @@ export default function RockPaperScissors({ session, participant, onBack, initia
         .eq('status', 'waiting')
         .single()
 
-      if (existingGame) {
+      const game = existingGame as Tables<'rps_games'> | null
+      
+      if (game) {
         // Join existing game
         setGameState({
-          id: existingGame.id,
+          id: game.id,
           status: 'waiting',
-          round: existingGame.round_number,
+          round: game.round_number,
           moves: {},
         })
       } else {
         // Create new game
-        const { data: newGame, error } = await supabase
+        // Note: Insert needs 'as any' due to Supabase client's complex type inference
+        const { data: newGame, error } = await (supabase as any)
           .from('rps_games')
           .insert({
             session_id: session.id,
@@ -133,9 +135,10 @@ export default function RockPaperScissors({ session, participant, onBack, initia
           .single()
 
         if (error) throw error
-
+        
+        const createdGame = newGame as Tables<'rps_games'>
         setGameState({
-          id: newGame.id,
+          id: createdGame.id,
           status: 'waiting',
           round: 1,
           moves: {},
@@ -143,7 +146,7 @@ export default function RockPaperScissors({ session, participant, onBack, initia
 
         // Broadcast game creation
         broadcast('game_update', {
-          id: newGame.id,
+          id: createdGame.id,
           status: 'waiting',
           round: 1,
           moves: {},
@@ -163,7 +166,8 @@ export default function RockPaperScissors({ session, participant, onBack, initia
 
     try {
       // Save move to database
-      await supabase
+      // Note: Insert needs 'as any' due to Supabase client's complex type inference
+      await (supabase as any)
         .from('rps_moves')
         .insert({
           game_id: gameState.id,
@@ -249,7 +253,8 @@ export default function RockPaperScissors({ session, participant, onBack, initia
     
     try {
       // Update database
-      await supabase
+      // Note: Update needs 'as any' due to Supabase client's complex type inference
+      await (supabase as any)
         .from('rps_games')
         .update({
           round_number: newRound,
@@ -287,6 +292,8 @@ export default function RockPaperScissors({ session, participant, onBack, initia
         .select('display_name')
         .eq('id', winnerId)
         .single()
+      
+      const winnerData = winner as { display_name: string | null } | null
 
       // Get winner's liked restaurants
       const { data: likedRestaurants } = await supabase
@@ -306,10 +313,12 @@ export default function RockPaperScissors({ session, participant, onBack, initia
         .eq('participant_id', winnerId)
         .eq('vote', 1)
 
-      const restaurants = likedRestaurants?.map(swipe => swipe.candidates).filter(Boolean) || []
+      const swipeData = likedRestaurants as any
+      const restaurants = swipeData?.map((swipe: any) => swipe.candidates).filter(Boolean) || []
 
       // Update game status
-      await supabase
+      // Note: Update needs 'as any' due to Supabase client's complex type inference
+      await (supabase as any)
         .from('rps_games')
         .update({
           status: 'finished',
@@ -322,7 +331,7 @@ export default function RockPaperScissors({ session, participant, onBack, initia
         ...prev,
         status: 'finished',
         winner: winnerId,
-        winnerName: winner?.display_name || 'Anonymous',
+        winnerName: winnerData?.display_name || 'Anonymous',
       }))
       
       setWinnerRestaurants(restaurants)

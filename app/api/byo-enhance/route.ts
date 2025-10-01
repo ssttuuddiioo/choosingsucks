@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/utils/supabase-server'
 import { trackOpenAICall } from '@/lib/utils/openai-tracker'

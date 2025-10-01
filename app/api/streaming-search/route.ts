@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server'
 import { WatchmodeClient } from '@/lib/utils/watchmode-client'
 import { StreamingPreferences } from '@/lib/constants/streaming'

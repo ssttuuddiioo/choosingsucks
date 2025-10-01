@@ -1,5 +1,5 @@
-// @ts-nocheck
 import { createServerClient } from './supabase-server'
+import type { Tables } from '@/types/supabase'
 import OpenAI from 'openai'
 
 // OpenAI Pricing (per million tokens) - UPDATE THESE WITH ACTUAL 2025 PRICING
@@ -101,7 +101,8 @@ export async function trackOpenAICall(
 
     // Log to Supabase
     const supabase = createServerClient()
-    const { error } = await supabase
+    // Note: Insert needs 'as any' due to Supabase client's complex type inference
+    const { error } = await (supabase as any)
       .from('openai_usage')
       .insert({
         session_id: context.sessionId || null,
@@ -147,7 +148,8 @@ export async function trackOpenAICall(
 
     // Log failed attempt
     const supabase = createServerClient()
-    await supabase
+    // Note: Insert needs 'as any' due to Supabase client's complex type inference
+    await (supabase as any)
       .from('openai_usage')
       .insert({
         session_id: context.sessionId || null,
@@ -189,12 +191,13 @@ export async function getSessionOpenAICosts(sessionId: string): Promise<{
     return { totalCost: 0, callCount: 0, totalTokens: 0 }
   }
 
-  const totalCost = data.reduce((sum, row) => sum + Number(row.total_cost_usd), 0)
-  const totalTokens = data.reduce((sum, row) => sum + Number(row.total_tokens), 0)
+  const usageData = data as Array<{ total_cost_usd: number; total_tokens: number }>
+  const totalCost = usageData.reduce((sum, row) => sum + Number(row.total_cost_usd), 0)
+  const totalTokens = usageData.reduce((sum, row) => sum + Number(row.total_tokens), 0)
 
   return {
     totalCost,
-    callCount: data.length,
+    callCount: usageData.length,
     totalTokens
   }
 }
@@ -229,12 +232,15 @@ export async function getGlobalOpenAIStats(days: number = 30): Promise<{
     }
   }
 
-  const totalCost = data.reduce((sum, row) => sum + Number(row.total_cost_usd), 0)
-  const totalTokens = data.reduce((sum, row) => sum + Number(row.total_tokens), 0)
+  type UsageRow = Tables<'openai_usage'>
+  const usageData = data as UsageRow[]
+
+  const totalCost = usageData.reduce((sum, row) => sum + Number(row.total_cost_usd), 0)
+  const totalTokens = usageData.reduce((sum, row) => sum + Number(row.total_tokens), 0)
 
   // Group by model
   const byModel: Record<string, { cost: number; tokens: number; calls: number }> = {}
-  data.forEach(row => {
+  usageData.forEach(row => {
     if (!byModel[row.model]) {
       byModel[row.model] = { cost: 0, tokens: 0, calls: 0 }
     }
@@ -245,7 +251,7 @@ export async function getGlobalOpenAIStats(days: number = 30): Promise<{
 
   // Group by purpose
   const byPurpose: Record<string, { cost: number; tokens: number; calls: number }> = {}
-  data.forEach(row => {
+  usageData.forEach(row => {
     if (!byPurpose[row.purpose]) {
       byPurpose[row.purpose] = { cost: 0, tokens: 0, calls: 0 }
     }
@@ -256,7 +262,7 @@ export async function getGlobalOpenAIStats(days: number = 30): Promise<{
 
   return {
     totalCost,
-    callCount: data.length,
+    callCount: usageData.length,
     totalTokens,
     byModel,
     byPurpose

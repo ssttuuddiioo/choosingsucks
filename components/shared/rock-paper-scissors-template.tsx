@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -160,7 +159,8 @@ export default function GenericRockPaperScissors({
         game = data
       } else {
         // Create new game
-        const { data, error } = await supabase
+        // Note: Insert needs 'as any' due to Supabase client's complex type inference
+        const { data, error } = await (supabase as any)
           .from('rps_games')
           .insert({
             session_id: session.id,
@@ -203,7 +203,8 @@ export default function GenericRockPaperScissors({
     try {
       // Update game status to playing if it was waiting
       if (gameState.status === 'waiting') {
-        await supabase
+        // Note: Update needs 'as any' due to Supabase client's complex type inference
+        await (supabase as any)
           .from('rps_games')
           .update({ status: 'playing' })
           .eq('id', gameState.id)
@@ -212,7 +213,8 @@ export default function GenericRockPaperScissors({
       }
 
       // Save move to database
-      await supabase
+      // Note: Insert needs 'as any' due to Supabase client's complex type inference
+      await (supabase as any)
         .from('rps_moves')
         .insert({
           game_id: gameState.id,
@@ -297,7 +299,8 @@ export default function GenericRockPaperScissors({
     const newRound = gameState.round + 1
     
     try {
-      await supabase
+      // Note: Update needs 'as any' due to Supabase client's complex type inference
+      await (supabase as any)
         .from('rps_games')
         .update({ 
           round_number: newRound,
@@ -339,9 +342,12 @@ export default function GenericRockPaperScissors({
         .select('display_name')
         .eq('id', winnerId)
         .single()
+      
+      const winnerData = winner as { display_name: string | null } | null
 
       // Update game status
-      await supabase
+      // Note: Update needs 'as any' due to Supabase client's complex type inference
+      await (supabase as any)
         .from('rps_games')
         .update({
           status: 'finished',
@@ -354,7 +360,7 @@ export default function GenericRockPaperScissors({
         ...prev,
         status: 'finished',
         winner: winnerId,
-        winnerName: winner?.display_name || 'Anonymous',
+        winnerName: winnerData?.display_name || 'Anonymous',
       }))
 
     } catch (error) {

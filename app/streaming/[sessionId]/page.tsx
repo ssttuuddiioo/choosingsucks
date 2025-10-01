@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -443,7 +442,8 @@ export default function StreamingSessionPage() {
 
     try {
       // Check if there are any unanimous matches
-      const { data: matches } = await supabase
+      // Note: RPC calls need 'as any' due to Supabase client limitations with custom function types
+      const { data: matches } = await (supabase as any)
         .rpc('find_session_matches', { p_session_id: session.id })
 
       if (!matches || matches.length === 0) {
