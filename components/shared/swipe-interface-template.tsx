@@ -110,13 +110,13 @@ export default function SwipeInterfaceTemplate({
   }
 
   return (
-    <div className="h-full flex-1 flex flex-col bg-gradient-primary relative">
-      {/* Card Stack */}
+    <div className="h-full flex-1 flex flex-col bg-gradient-primary relative overflow-hidden">
+      {/* Card Stack - Fills available space */}
       <div 
-        className="flex-1 flex items-center justify-center relative"
-        style={{ paddingBottom: `${bottomBarHeight + 16}px` }}
+        className="flex-1 flex items-center justify-center relative min-h-0"
+        style={{ paddingBottom: `${bottomBarHeight}px` }}
       >
-        <div className="relative w-full h-full max-w-md mx-auto px-4">
+        <div className="relative w-full h-full max-w-md mx-auto px-3 sm:px-4 py-2 sm:py-4">
           {candidates.map((candidate, index) => {
             const isVisible = index >= currentIndex - 1 && index <= currentIndex
             
@@ -147,11 +147,11 @@ export default function SwipeInterfaceTemplate({
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Fixed at bottom with safe area */}
       <div
         ref={buttonsRef}
-        className="flex-shrink-0 flex items-center justify-center gap-6 p-6 pb-8 bg-gradient-primary/95 backdrop-blur border-t border-white/10 relative z-20"
-        style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
+        className="flex-shrink-0 flex items-center justify-center gap-4 sm:gap-6 px-4 sm:px-6 py-4 sm:py-6 bg-gradient-primary/95 backdrop-blur border-t border-white/10 relative z-20"
+        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
       >
         <button
           onClick={() => swipe('left')}

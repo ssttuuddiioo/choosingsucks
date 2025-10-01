@@ -21,9 +21,9 @@ export default function RestaurantCard({ candidate }: RestaurantCardProps) {
   const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
   
   return (
-    <div className="h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
-      {/* Image */}
-      <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20" style={{ flex: '1 1 0', minHeight: '200px', maxHeight: 'calc(100% - 180px)' }}>
+    <div className="h-full w-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+      {/* Image - Takes up remaining space */}
+      <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20 flex-1 min-h-0">
         {photoUrl && !imageError ? (
           <>
             <img
@@ -37,7 +37,7 @@ export default function RestaurantCard({ candidate }: RestaurantCardProps) {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-mesh animate-gradient">
             <div className="text-center">
-              <div className="text-8xl font-outfit font-bold text-white/20">
+              <div className="text-6xl md:text-8xl font-outfit font-bold text-white/20">
                 {candidate.name.charAt(0)}
               </div>
             </div>
@@ -45,13 +45,13 @@ export default function RestaurantCard({ candidate }: RestaurantCardProps) {
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-shrink-0 p-4 md:p-6 space-y-3" style={{ minHeight: '140px', maxHeight: '180px' }}>
-        <h2 className="text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2">
+      {/* Info - Fixed height section at bottom */}
+      <div className="flex-shrink-0 p-3 sm:p-4 md:p-6 space-y-2 bg-white">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2 leading-tight">
           {candidate.name}
         </h2>
 
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-2 sm:gap-3 text-sm flex-wrap">
           {candidate.rating && (
             <div className="flex items-center gap-1 bg-gray-200 px-2 md:px-3 py-1 rounded-full">
               <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500 fill-current" />
@@ -80,7 +80,7 @@ export default function RestaurantCard({ candidate }: RestaurantCardProps) {
         </div>
 
         {candidate.cuisines && candidate.cuisines.length > 0 && (
-          <div className="flex flex-wrap gap-1 md:gap-2 overflow-hidden" style={{ maxHeight: '60px' }}>
+          <div className="flex flex-wrap gap-1 md:gap-2">
             {candidate.cuisines.slice(0, 3).map((cuisine, i) => (
               <span
                 key={i}

@@ -23,16 +23,9 @@ export default function StreamingCard({ candidate, className, style }: Streaming
   }
 
   return (
-    <div className={cn("h-full bg-white overflow-hidden flex flex-col relative rounded-2xl shadow-2xl", className)} style={style}>
-      {/* Poster Image */}
-      <div 
-        className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20"
-        style={{ 
-          flex: '1 1 0',
-          minHeight: '300px',
-          maxHeight: 'calc(100% - 200px)'
-        }}
-      >
+    <div className={cn("h-full w-full bg-white overflow-hidden flex flex-col relative rounded-2xl shadow-2xl", className)} style={style}>
+      {/* Poster Image - Takes up remaining space */}
+      <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20 flex-1 min-h-0">
         {(candidate.poster || candidate.image_url) && !imageError ? (
           <>
             <img
@@ -69,54 +62,52 @@ export default function StreamingCard({ candidate, className, style }: Streaming
         )}
       </div>
 
-      {/* Info Section */}
-      <div className="flex-shrink-0 p-6 space-y-3">
-        <div>
-          <h1 className="text-gray-900 text-2xl font-bold leading-tight mb-2">
-            {candidate.title || candidate.name}
-          </h1>
-          
-          <div className="flex items-center gap-4 text-gray-600 text-sm mb-3">
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              {candidate.year}
-            </div>
-            
-            {candidate.runtime_minutes && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {formatRuntime(candidate.runtime_minutes)}
-              </div>
-            )}
-
-            {candidate.us_rating && (
-              <div className="bg-gray-200 px-2 py-1 rounded text-xs font-bold text-gray-700">
-                {candidate.us_rating}
-              </div>
-            )}
+      {/* Info Section - Fixed height section at bottom */}
+      <div className="flex-shrink-0 p-3 sm:p-4 md:p-6 space-y-2 bg-white">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-outfit font-bold text-gray-900 leading-tight line-clamp-2">
+          {candidate.title || candidate.name}
+        </h1>
+        
+        <div className="flex items-center gap-2 sm:gap-3 text-gray-600 text-xs sm:text-sm flex-wrap">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span>{candidate.year}</span>
           </div>
-
-          {/* Genres */}
-          {candidate.genre_names && candidate.genre_names.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {candidate.genre_names.slice(0, 3).map((genre: string) => (
-                <span
-                  key={genre}
-                  className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm"
-                >
-                  {genre}
-                </span>
-              ))}
+          
+          {candidate.runtime_minutes && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>{formatRuntime(candidate.runtime_minutes)}</span>
             </div>
           )}
 
-          {/* Plot */}
-          {(candidate.plot_overview || candidate.description) && (
-            <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
-              {candidate.plot_overview || candidate.description}
-            </p>
+          {candidate.us_rating && (
+            <div className="bg-gray-200 px-2 py-1 rounded text-xs font-bold text-gray-700">
+              {candidate.us_rating}
+            </div>
           )}
         </div>
+
+        {/* Genres */}
+        {candidate.genre_names && candidate.genre_names.length > 0 && (
+          <div className="flex flex-wrap gap-1 sm:gap-2">
+            {candidate.genre_names.slice(0, 3).map((genre: string) => (
+              <span
+                key={genre}
+                className="bg-gray-200 text-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm whitespace-nowrap"
+              >
+                {genre}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Plot */}
+        {(candidate.plot_overview || candidate.description) && (
+          <p className="text-gray-700 text-xs sm:text-sm leading-relaxed line-clamp-3">
+            {candidate.plot_overview || candidate.description}
+          </p>
+        )}
       </div>
     </div>
   )
