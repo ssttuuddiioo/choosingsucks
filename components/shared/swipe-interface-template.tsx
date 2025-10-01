@@ -5,6 +5,7 @@ import TinderCard from 'react-tinder-card'
 import { X, Heart } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import LearnMoreModal from './learn-more-modal'
+import CardLoader from '@/components/ui/card-loader'
 
 interface SwipeInterfaceTemplateProps {
   candidates: Tables<'candidates'>[]
@@ -103,11 +104,7 @@ export default function SwipeInterfaceTemplate({
   if (candidates.length === 0) {
     return (
       <div className="h-screen flex flex-col items-center justify-center p-6 bg-gradient-primary">
-        <div className="text-center space-y-4">
-          <div className="text-6xl">🤔</div>
-          <h2 className="text-2xl font-bold text-white">Loading options...</h2>
-          <p className="text-white/70">Hang tight while we find great choices</p>
-        </div>
+        <CardLoader message="Finding great choices..." />
       </div>
     )
   }

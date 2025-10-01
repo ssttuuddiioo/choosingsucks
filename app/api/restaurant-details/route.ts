@@ -16,6 +16,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Validate that this is a real Google Place ID (not a custom BYO ID)
+    if (placeId.startsWith('custom_') || placeId.startsWith('watchmode_')) {
+      console.log(`⚠️ Skipping restaurant-details for non-restaurant place_id: ${placeId}`)
+      return NextResponse.json(
+        { error: 'Not a restaurant place ID', skipped: true },
+        { status: 400 }
+      )
+    }
+
     // Check cache first (24 hour cache for restaurant details)
     if (candidateId) {
       const supabase = createServerClient()

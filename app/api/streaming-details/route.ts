@@ -34,6 +34,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Validate this is actually a streaming candidate
+    const contentType = candidateData.content_type
+    const actualCategory = candidateData.category
+    const isStreamingContent = 
+      actualCategory === 'streaming' || 
+      contentType?.includes('movie') || 
+      contentType?.includes('tv_')
+
+    if (!isStreamingContent) {
+      console.log(`⚠️ Skipping streaming-details for non-streaming content: ${contentType}`)
+      return NextResponse.json(
+        { error: 'Not a streaming title', skipped: true },
+        { status: 400 }
+      )
+    }
+
     // Check if details are already cached and still fresh (7 days)
     const metadata = candidateData.metadata || {}
     const detailsCachedAt = metadata.details_cached_at

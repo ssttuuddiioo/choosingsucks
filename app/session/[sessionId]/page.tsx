@@ -595,7 +595,7 @@ export default function SessionPage() {
         renderCard={(candidate, onLearnMore) => (
           <RestaurantCard candidate={candidate} onLearnMore={onLearnMore} />
         )}
-        categoryName="restaurants"
+        categoryName={session.category || "restaurants"}
       />
     </div>
   )

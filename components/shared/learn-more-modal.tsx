@@ -54,7 +54,13 @@ export default function LearnMoreModal({
       setEnhancedData({ loading: true })
       
       try {
-        if (category === 'restaurants') {
+        // Determine actual category from candidate data (more reliable than prop)
+        const actualCategory = candidate.category || category
+        const contentType = candidate.content_type
+        
+        console.log('[Learn More] Category:', category, 'Actual:', actualCategory, 'Content Type:', contentType)
+        
+        if (actualCategory === 'restaurants' || contentType === 'restaurant') {
           const response = await fetch('/api/restaurant-details', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -70,7 +76,7 @@ export default function LearnMoreModal({
           } else {
             setEnhancedData({ loading: false, error: 'Failed to load details' })
           }
-        } else if (category === 'streaming') {
+        } else if (actualCategory === 'streaming' || contentType?.includes('movie') || contentType?.includes('tv_')) {
           // Streaming uses lazy loading - fetch details on-demand
           const response = await fetch('/api/streaming-details', {
             method: 'POST',
@@ -97,7 +103,7 @@ export default function LearnMoreModal({
               loading: false 
             })
           }
-        } else if (category === 'build-your-own') {
+        } else if (actualCategory === 'build-your-own' || contentType === 'custom_option') {
           // Check if AI enhancement is enabled for this session
           const response = await fetch('/api/byo-enhance', {
             method: 'POST',
@@ -148,9 +154,15 @@ export default function LearnMoreModal({
     }
   }
 
+  // Determine category from candidate data
+  const actualCategory = candidate.category || category
+  const isRestaurant = actualCategory === 'restaurants' || candidate.content_type === 'restaurant'
+  const isStreaming = actualCategory === 'streaming' || candidate.content_type?.includes('movie') || candidate.content_type?.includes('tv_')
+  const isBYO = actualCategory === 'build-your-own' || candidate.content_type === 'custom_option'
+
   // Get all photos for carousel
   const rawPhotos = enhancedData.photos || (candidate.photo_ref ? [candidate.photo_ref] : [])
-  const photos = category === 'restaurants' 
+  const photos = isRestaurant 
     ? rawPhotos.map(ref => getPhotoUrl(ref))
     : rawPhotos
   const posterUrl = candidate.poster || candidate.image_url || candidate.backdrop
@@ -212,7 +224,7 @@ export default function LearnMoreModal({
                 {/* Photo Carousel */}
                 {hasPhotos && (
                   <div className="relative bg-gray-900 aspect-[4/3] sm:aspect-video">
-                    {category === 'streaming' && posterUrl ? (
+                    {isStreaming && posterUrl ? (
                       <img
                         src={posterUrl}
                         alt={candidate.title || candidate.name}
@@ -281,17 +293,17 @@ export default function LearnMoreModal({
                   )}
 
                   {/* Restaurant Content */}
-                  {!enhancedData.loading && category === 'restaurants' && (
+                  {!enhancedData.loading && isRestaurant && (
                     <RestaurantDetails candidate={candidate} data={enhancedData} />
                   )}
 
                   {/* Streaming Content */}
-                  {!enhancedData.loading && category === 'streaming' && (
+                  {!enhancedData.loading && isStreaming && (
                     <StreamingDetails candidate={candidate} data={enhancedData} />
                   )}
 
                   {/* BYO Content */}
-                  {!enhancedData.loading && category === 'build-your-own' && (
+                  {!enhancedData.loading && isBYO && (
                     <BYODetails candidate={candidate} data={enhancedData} />
                   )}
                 </div>
