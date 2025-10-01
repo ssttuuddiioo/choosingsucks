@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+import { trackOpenAICall } from '@/lib/utils/openai-tracker'
 
 interface AnalyzeImageRequest {
   image_url: string
@@ -73,9 +69,9 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
     console.log(`🚀 [${requestId}] Sending request to OpenAI...`)
     const apiStartTime = Date.now()
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-2024-08-06',
-      messages: [
+    const { response, usage } = await trackOpenAICall(
+      'gpt-4o-2024-08-06',
+      [
         {
           role: 'user',
           content: [
@@ -90,62 +86,73 @@ Focus on extracting actionable, distinct options that people could vote on. Avoi
                 detail: 'high'
               }
             }
-          ]
+          ] as any
         }
       ],
-      max_tokens: 2000,
-      temperature: 0.8, // Higher temperature for more creativity
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "extracted_options",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              success: {
-                type: "boolean",
-                description: "Whether options were successfully extracted"
-              },
-              options: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    title: {
-                      type: "string",
-                      description: "A clear, concise title (2-8 words)"
-                    },
-                    description: {
-                      type: ["string", "null"],
-                      description: "Brief description if more context is needed"
-                    },
-                    confidence: {
-                      type: "string",
-                      enum: ["high", "medium", "low"],
-                      description: "Confidence level in the extraction"
-                    }
-                  },
-                  required: ["title", "description", "confidence"],
-                  additionalProperties: false
+      {
+        max_tokens: 2000,
+        temperature: 0.8, // Higher temperature for more creativity
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "extracted_options",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                success: {
+                  type: "boolean",
+                  description: "Whether options were successfully extracted"
                 },
-                maxItems: 20,
-                description: "Array of extracted options"
+                options: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: {
+                        type: "string",
+                        description: "A clear, concise title (2-8 words)"
+                      },
+                      description: {
+                        type: ["string", "null"],
+                        description: "Brief description if more context is needed"
+                      },
+                      confidence: {
+                        type: "string",
+                        enum: ["high", "medium", "low"],
+                        description: "Confidence level in the extraction"
+                      }
+                    },
+                    required: ["title", "description", "confidence"],
+                    additionalProperties: false
+                  },
+                  maxItems: 20,
+                  description: "Array of extracted options"
+                },
+                error: {
+                  type: ["string", "null"],
+                  description: "User-friendly error message if extraction failed or image is problematic"
+                }
               },
-              error: {
-                type: ["string", "null"],
-                description: "User-friendly error message if extraction failed or image is problematic"
-              }
-            },
-            required: ["success", "options", "error"],
-            additionalProperties: false
+              required: ["success", "options", "error"],
+              additionalProperties: false
+            }
           }
         }
+      },
+      {
+        purpose: 'image_analysis',
+        metadata: {
+          hasContext: !!body.context,
+          context: body.context?.substring(0, 200),
+          imageSize: body.image_url.length
+        }
       }
-    })
+    )
 
     const apiDuration = Date.now() - apiStartTime
     console.log(`⚡ [${requestId}] OpenAI API response received in ${apiDuration}ms`)
+    console.log(`💰 [${requestId}] Cost: $${usage.totalCostUsd.toFixed(4)} (${usage.totalTokens} tokens)`)
 
     // Handle potential refusal
     if (response.choices[0]?.message?.refusal) {

@@ -150,7 +150,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
           {/* Cuisines */}
           {candidate.cuisines && candidate.cuisines.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {candidate.cuisines.map((cuisine, i) => (
+              {candidate.cuisines.map((cuisine: string, i: number) => (
                 <span
                   key={i}
                   className="px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold"

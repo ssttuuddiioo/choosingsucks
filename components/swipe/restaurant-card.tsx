@@ -81,7 +81,7 @@ export default function RestaurantCard({ candidate }: RestaurantCardProps) {
 
         {candidate.cuisines && candidate.cuisines.length > 0 && (
           <div className="flex flex-wrap gap-1 md:gap-2">
-            {candidate.cuisines.slice(0, 3).map((cuisine, i) => (
+            {candidate.cuisines.slice(0, 3).map((cuisine: string, i: number) => (
               <span
                 key={i}
                 className="px-2 md:px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold whitespace-nowrap"

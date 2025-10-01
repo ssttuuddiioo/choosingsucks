@@ -166,36 +166,6 @@ export type Database = {
           },
         ]
       }
-      content_sources: {
-        Row: {
-          api_config: Json | null
-          category: string
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          rate_limit_config: Json | null
-        }
-        Insert: {
-          api_config?: Json | null
-          category: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          rate_limit_config?: Json | null
-        }
-        Update: {
-          api_config?: Json | null
-          category?: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          rate_limit_config?: Json | null
-        }
-        Relationships: []
-      }
       participants: {
         Row: {
           client_fingerprint: string | null
@@ -227,6 +197,118 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          ai_enhancement_enabled: boolean | null
+          allow_multiple_matches: boolean | null
+          category: string | null
+          created_at: string | null
+          host_notify_email: string | null
+          host_notify_phone: string | null
+          id: string
+          invite_count_hint: number | null
+          match_place_id: string | null
+          match_reason: string | null
+          match_requirement: string | null
+          place_search_center: unknown | null
+          preferences: Json | null
+          radius_m: number | null
+          require_names: boolean | null
+          search_radius_miles: number | null
+          status: Database["public"]["Enums"]["session_status"] | null
+          zip_code: string | null
+        }
+        Insert: {
+          ai_enhancement_enabled?: boolean | null
+          allow_multiple_matches?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          host_notify_email?: string | null
+          host_notify_phone?: string | null
+          id?: string
+          invite_count_hint?: number | null
+          match_place_id?: string | null
+          match_reason?: string | null
+          match_requirement?: string | null
+          place_search_center?: unknown | null
+          preferences?: Json | null
+          radius_m?: number | null
+          require_names?: boolean | null
+          search_radius_miles?: number | null
+          status?: Database["public"]["Enums"]["session_status"] | null
+          zip_code?: string | null
+        }
+        Update: {
+          ai_enhancement_enabled?: boolean | null
+          allow_multiple_matches?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          host_notify_email?: string | null
+          host_notify_phone?: string | null
+          id?: string
+          invite_count_hint?: number | null
+          match_place_id?: string | null
+          match_reason?: string | null
+          match_requirement?: string | null
+          place_search_center?: unknown | null
+          preferences?: Json | null
+          radius_m?: number | null
+          require_names?: boolean | null
+          search_radius_miles?: number | null
+          status?: Database["public"]["Enums"]["session_status"] | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      swipes: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          id: string
+          participant_id: string
+          session_id: string
+          vote: number
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          id?: string
+          participant_id: string
+          session_id: string
+          vote: number
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          id?: string
+          participant_id?: string
+          session_id?: string
+          vote?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swipes_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swipes_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swipes_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
@@ -321,270 +403,8 @@ export type Database = {
           },
         ]
       }
-      sessions: {
-        Row: {
-          allow_multiple_matches: boolean | null
-          category: string | null
-          created_at: string | null
-          host_notify_email: string | null
-          host_notify_phone: string | null
-          id: string
-          invite_count_hint: number | null
-          match_place_id: string | null
-          match_reason: string | null
-          match_requirement: string | null
-          place_search_center: unknown | null
-          preferences: Json | null
-          radius_m: number | null
-          require_names: boolean | null
-          search_radius_miles: number | null
-          status: Database["public"]["Enums"]["session_status"] | null
-          zip_code: string | null
-        }
-        Insert: {
-          allow_multiple_matches?: boolean | null
-          category?: string | null
-          created_at?: string | null
-          host_notify_email?: string | null
-          host_notify_phone?: string | null
-          id?: string
-          invite_count_hint?: number | null
-          match_place_id?: string | null
-          match_reason?: string | null
-          match_requirement?: string | null
-          place_search_center?: unknown | null
-          preferences?: Json | null
-          radius_m?: number | null
-          require_names?: boolean | null
-          search_radius_miles?: number | null
-          status?: Database["public"]["Enums"]["session_status"] | null
-          zip_code?: string | null
-        }
-        Update: {
-          allow_multiple_matches?: boolean | null
-          category?: string | null
-          created_at?: string | null
-          host_notify_email?: string | null
-          host_notify_phone?: string | null
-          id?: string
-          invite_count_hint?: number | null
-          match_place_id?: string | null
-          match_reason?: string | null
-          match_requirement?: string | null
-          place_search_center?: unknown | null
-          preferences?: Json | null
-          radius_m?: number | null
-          require_names?: boolean | null
-          search_radius_miles?: number | null
-          status?: Database["public"]["Enums"]["session_status"] | null
-          zip_code?: string | null
-        }
-        Relationships: []
-      }
-      spatial_ref_sys: {
-        Row: {
-          auth_name: string | null
-          auth_srid: number | null
-          proj4text: string | null
-          srid: number
-          srtext: string | null
-        }
-        Insert: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid: number
-          srtext?: string | null
-        }
-        Update: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number
-          srtext?: string | null
-        }
-        Relationships: []
-      }
-      swipes: {
-        Row: {
-          candidate_id: string
-          created_at: string | null
-          id: string
-          participant_id: string
-          session_id: string
-          vote: number
-        }
-        Insert: {
-          candidate_id: string
-          created_at?: string | null
-          id?: string
-          participant_id: string
-          session_id: string
-          vote: number
-        }
-        Update: {
-          candidate_id?: string
-          created_at?: string | null
-          id?: string
-          participant_id?: string
-          session_id?: string
-          vote?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "swipes_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "swipes_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "swipes_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_activity: {
-        Row: {
-          action: string | null
-          candidate_id: string | null
-          created_at: string | null
-          id: string
-          metadata: Json | null
-          session_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action?: string | null
-          candidate_id?: string | null
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          session_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string | null
-          candidate_id?: string | null
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          session_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_activity_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_activity_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_preferences: {
-        Row: {
-          category: string
-          created_at: string | null
-          id: string
-          preferences: Json | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          id?: string
-          preferences?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          id?: string
-          preferences?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-    }
-    Views: {
-      geography_columns: {
-        Row: {
-          coord_dimension: number | null
-          f_geography_column: unknown | null
-          f_table_catalog: unknown | null
-          f_table_name: unknown | null
-          f_table_schema: unknown | null
-          srid: number | null
-          type: string | null
-        }
-        Relationships: []
-      }
-      geometry_columns: {
-        Row: {
-          coord_dimension: number | null
-          f_geometry_column: unknown | null
-          f_table_catalog: string | null
-          f_table_name: unknown | null
-          f_table_schema: unknown | null
-          srid: number | null
-          type: string | null
-        }
-        Insert: {
-          coord_dimension?: number | null
-          f_geometry_column?: unknown | null
-          f_table_catalog?: string | null
-          f_table_name?: unknown | null
-          f_table_schema?: unknown | null
-          srid?: number | null
-          type?: string | null
-        }
-        Update: {
-          coord_dimension?: number | null
-          f_geometry_column?: unknown | null
-          f_table_catalog?: string | null
-          f_table_name?: unknown | null
-          f_table_schema?: unknown | null
-          srid?: number | null
-          type?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
-      get_session_status: {
-        Args: { p_session_id: string }
-        Returns: {
-          category: string
-          invited_count: number
-          joined_count: number
-          remaining_candidates: number
-          session_id: string
-          status: "active" | "matched" | "closed"
-          submitted_count: number
-          total_candidates: number
-        }[]
-      }
       find_session_matches: {
         Args: { p_session_id: string }
         Returns: {
@@ -595,20 +415,22 @@ export type Database = {
           yes_count: number
         }[]
       }
+      get_session_status: {
+        Args: { p_session_id: string }
+        Returns: {
+          category: string
+          invited_count: number
+          joined_count: number
+          remaining_candidates: number
+          session_id: string
+          status: string
+          submitted_count: number
+          total_candidates: number
+        }[]
+      }
     }
     Enums: {
       session_status: "active" | "matched" | "closed"
-    }
-    CompositeTypes: {
-      geometry_dump: {
-        path: number[] | null
-        geom: unknown | null
-      }
-      valid_detail: {
-        valid: boolean | null
-        reason: string | null
-        location: unknown | null
-      }
     }
   }
 }
@@ -619,27 +441,23 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -712,28 +530,3 @@ export type Enums<
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {
-      session_status: ["active", "matched", "closed"],
-    },
-  },
-} as const

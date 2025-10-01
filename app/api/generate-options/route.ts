@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+import { trackOpenAICall } from '@/lib/utils/openai-tracker'
 
 interface GenerateOptionsRequest {
   description: string
@@ -78,63 +74,74 @@ Make the options diverse and cover different aspects of the decision when succes
     console.log(`🚀 [${requestId}] Sending text generation request to OpenAI...`)
     const apiStartTime = Date.now()
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-2024-08-06',
-      messages: [
+    const { response, usage } = await trackOpenAICall(
+      'gpt-4o-2024-08-06',
+      [
         {
           role: 'user',
           content: prompt
         }
       ],
-      max_tokens: 1500,
-      temperature: 0.8, // Higher temperature for more creative options
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "generated_options",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              success: {
-                type: "boolean",
-                description: "Whether options were successfully generated"
-              },
-              options: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    title: {
-                      type: "string",
-                      description: "Clear, concise option name (2-8 words)"
-                    },
-                    description: {
-                      type: ["string", "null"],
-                      description: "Brief explanation if helpful"
-                    }
-                  },
-                  required: ["title", "description"],
-                  additionalProperties: false
+      {
+        max_tokens: 1500,
+        temperature: 0.8, // Higher temperature for more creative options
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "generated_options",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                success: {
+                  type: "boolean",
+                  description: "Whether options were successfully generated"
                 },
-                minItems: 2,
-                maxItems: 20,
-                description: "Array of generated options"
+                options: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: {
+                        type: "string",
+                        description: "Clear, concise option name (2-8 words)"
+                      },
+                      description: {
+                        type: ["string", "null"],
+                        description: "Brief explanation if helpful"
+                      }
+                    },
+                    required: ["title", "description"],
+                    additionalProperties: false
+                  },
+                  minItems: 2,
+                  maxItems: 20,
+                  description: "Array of generated options"
+                },
+                error: {
+                  type: ["string", "null"],
+                  description: "User-friendly error message if generation failed or request is problematic"
+                }
               },
-              error: {
-                type: ["string", "null"],
-                description: "User-friendly error message if generation failed or request is problematic"
-              }
-            },
-            required: ["success", "options", "error"],
-            additionalProperties: false
+              required: ["success", "options", "error"],
+              additionalProperties: false
+            }
           }
         }
+      },
+      {
+        purpose: 'option_generation',
+        metadata: {
+          description: body.description.substring(0, 200),
+          sessionTitle: body.sessionTitle,
+          requestedCount: count
+        }
       }
-    })
+    )
 
     const apiDuration = Date.now() - apiStartTime
     console.log(`⚡ [${requestId}] OpenAI API response received in ${apiDuration}ms`)
+    console.log(`💰 [${requestId}] Cost: $${usage.totalCostUsd.toFixed(4)} (${usage.totalTokens} tokens)`)
 
     // Handle potential refusal
     if (response.choices[0]?.message?.refusal) {

@@ -146,7 +146,7 @@ export default function StreamingMatchScreen({ session, candidate }: StreamingMa
           {/* Genres */}
           {candidate.genre_names && candidate.genre_names.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {candidate.genre_names.slice(0, 3).map((genre, i) => (
+              {candidate.genre_names.slice(0, 3).map((genre: string, i: number) => (
                 <span
                   key={i}
                   className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full font-semibold"

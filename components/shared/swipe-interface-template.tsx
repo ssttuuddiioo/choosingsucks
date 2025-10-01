@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useMemo, useEffect } from 'react'
 import TinderCard from 'react-tinder-card'
-import { X, Heart } from 'lucide-react'
+import { X, Heart, Info } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
+import LearnMoreModal from './learn-more-modal'
 
 interface SwipeInterfaceTemplateProps {
   candidates: Tables<'candidates'>[]
@@ -22,6 +23,8 @@ export default function SwipeInterfaceTemplate({
   const [isAnimating, setIsAnimating] = useState(false)
   const buttonsRef = useRef<HTMLDivElement | null>(null)
   const [bottomBarHeight, setBottomBarHeight] = useState<number>(0)
+  const [showLearnMore, setShowLearnMore] = useState(false)
+  const [selectedCandidate, setSelectedCandidate] = useState<Tables<'candidates'> | null>(null)
 
   // Create refs for programmatic swiping (button clicks)
   const childRefs = useMemo(
@@ -131,7 +134,7 @@ export default function SwipeInterfaceTemplate({
                 className={`absolute inset-0 ${!isVisible ? 'pointer-events-none' : ''}`}
               >
                 <div 
-                  className="w-full h-full"
+                  className="w-full h-full relative"
                   style={{
                     opacity: index === currentIndex ? 1 : 0.5,
                     scale: index === currentIndex ? 1 : 0.95,
@@ -140,6 +143,20 @@ export default function SwipeInterfaceTemplate({
                   }}
                 >
                   {renderCard(candidate)}
+                  
+                  {/* Learn More Button - Only on current card */}
+                  {index === currentIndex && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedCandidate(candidate)
+                        setShowLearnMore(true)
+                      }}
+                      className="absolute top-4 right-4 bg-white/90 hover:bg-white backdrop-blur-sm text-gray-900 p-2 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 z-20"
+                    >
+                      <Info className="h-5 w-5" />
+                    </button>
+                  )}
                 </div>
               </TinderCard>
             )
@@ -169,6 +186,19 @@ export default function SwipeInterfaceTemplate({
           <Heart className="h-10 w-10 text-white fill-current" />
         </button>
       </div>
+
+      {/* Learn More Modal */}
+      {selectedCandidate && (
+        <LearnMoreModal
+          candidate={selectedCandidate}
+          category={categoryName as 'restaurants' | 'streaming' | 'build-your-own'}
+          isOpen={showLearnMore}
+          onClose={() => {
+            setShowLearnMore(false)
+            setSelectedCandidate(null)
+          }}
+        />
+      )}
     </div>
   )
 }
