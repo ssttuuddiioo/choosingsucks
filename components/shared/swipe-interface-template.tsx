@@ -159,24 +159,38 @@ export default function SwipeInterfaceTemplate({
       {/* Action Buttons - Fixed at bottom with safe area */}
       <div
         ref={buttonsRef}
-        className="flex-shrink-0 flex items-center justify-center gap-4 sm:gap-6 px-4 sm:px-6 py-4 sm:py-6 bg-gradient-primary/95 backdrop-blur border-t border-white/10 relative z-20"
-        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+        className="sticky bottom-0 left-0 right-0 z-20 max-w-md mx-auto w-full flex-shrink-0 bg-gradient-primary/95 backdrop-blur p-4 pt-3"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
       >
-        <button
-          onClick={() => swipe('left')}
-          disabled={isAnimating}
-          className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all active:scale-90 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-xl border border-white/20"
-        >
-          <X className="h-8 w-8 text-red-400" />
-        </button>
-        
-        <button
-          onClick={() => swipe('right')}
-          disabled={isAnimating}
-          className="w-20 h-20 rounded-full bg-gradient-to-br from-hot-pink to-electric-purple hover:scale-110 transition-all active:scale-95 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl"
-        >
-          <Heart className="h-10 w-10 text-white fill-current" />
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => swipe('left')}
+            disabled={isAnimating}
+            aria-label="Reject this option"
+            className="flex-1 flex items-center justify-center gap-3 py-4 px-6 font-bold text-xl bg-gradient-to-r from-red-500 to-red-600 text-white transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 relative overflow-hidden shadow-lg focus:outline-none focus:ring-4 focus:ring-red-500/50"
+            style={{
+              borderRadius: '0.5rem 0.75rem 0.75rem 0.5rem',
+              clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 50%)'
+            }}
+          >
+            NAH
+            <X className="h-6 w-6" />
+          </button>
+          
+          <button
+            onClick={() => swipe('right')}
+            disabled={isAnimating}
+            aria-label="Like this option"
+            className="flex-1 bg-gradient-lime text-white font-bold text-xl py-4 px-6 shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 relative overflow-hidden focus:outline-none focus:ring-4 focus:ring-lime-green/50"
+            style={{
+              borderRadius: '0.75rem 0.5rem 0.5rem 0.75rem',
+              clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)'
+            }}
+          >
+            <Heart className="h-6 w-6 fill-current" />
+            YEA
+          </button>
+        </div>
       </div>
 
       {/* Learn More Modal */}
