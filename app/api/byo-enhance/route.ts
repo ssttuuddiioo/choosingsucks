@@ -174,6 +174,8 @@ export async function POST(req: NextRequest) {
 
 Search the web for current information about: "${optionName}"
 
+If you find high-quality images in search results, include them using hero_image or image_gallery modules.
+
 Provide 3-6 relevant modules using ONLY these types:
 
 EXAMPLES BY CONTENT TYPE:
@@ -207,6 +209,27 @@ NO meta-commentary. NO conversational language. Just factual modules.`,
 
       // Get parsed data (guaranteed by Zod schema)
       const parsedData = response.output_parsed || { modules: [] }
+      
+      // Clean citation markers from all text content
+      const cleanCitationMarkers = (text: string): string => {
+        if (!text) return text
+        // Remove ≡cite≡turn0search0≡ style markers and any remaining ≡...≡ patterns
+        return text.replace(/≡cite≡[^≡]*≡/g, '').replace(/≡[^≡]*≡/g, '').trim()
+      }
+      
+      // Clean all modules
+      if (parsedData.modules) {
+        parsedData.modules = parsedData.modules.map((module: any) => {
+          const cleaned = { ...module }
+          if (cleaned.content) cleaned.content = cleanCitationMarkers(cleaned.content)
+          if (cleaned.title) cleaned.title = cleanCitationMarkers(cleaned.title)
+          if (cleaned.text) cleaned.text = cleanCitationMarkers(cleaned.text)
+          if (cleaned.summary) cleaned.summary = cleanCitationMarkers(cleaned.summary)
+          if (cleaned.items) cleaned.items = cleaned.items.map((item: string) => cleanCitationMarkers(item))
+          return cleaned
+        })
+      }
+      
       const outputText = JSON.stringify(parsedData)
       
       // Extract citations from annotations

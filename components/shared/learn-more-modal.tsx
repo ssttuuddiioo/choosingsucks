@@ -6,6 +6,13 @@ import { X, MapPin, Phone, Globe, Star, Clock, Calendar, ExternalLink, ChevronLe
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
 import { env } from '@/lib/utils/env'
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 
 interface LearnMoreModalProps {
   candidate: Tables<'candidates'>
