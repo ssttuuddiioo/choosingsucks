@@ -57,6 +57,9 @@ serve(async (req) => {
 
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    // Track API call start time
+    const apiCallStartTime = Date.now()
 
     // Check if session exists
     const { data: session, error: sessionError } = await supabase
@@ -132,9 +135,27 @@ serve(async (req) => {
       body: JSON.stringify(requestBody)
     })
 
+    const apiCallDuration = Date.now() - apiCallStartTime
+
     if (!placesResponse.ok) {
       const errorText = await placesResponse.text()
       console.error('Places API error:', errorText)
+      
+      // Track failed API call
+      await supabase.from('api_usage').insert({
+        session_id: sessionId,
+        api_provider: 'google_places',
+        api_endpoint: 'text_search',
+        request_count: 1,
+        unit_cost_usd: 0.032,
+        total_cost_usd: 0.032,
+        response_time_ms: apiCallDuration,
+        success: false,
+        status_code: placesResponse.status,
+        error_message: errorText.substring(0, 500),
+        metadata: { radius, lat, lng }
+      })
+      
       return new Response(
         JSON.stringify({ error: 'Failed to fetch places from Google API' }),
         { 
@@ -145,6 +166,27 @@ serve(async (req) => {
     }
 
     const placesData = await placesResponse.json()
+    
+    // Track successful API call
+    await supabase.from('api_usage').insert({
+      session_id: sessionId,
+      api_provider: 'google_places',
+      api_endpoint: 'text_search',
+      request_count: 1,
+      unit_cost_usd: 0.032,
+      total_cost_usd: 0.032,
+      response_time_ms: apiCallDuration,
+      success: true,
+      status_code: placesResponse.status,
+      metadata: { 
+        radius, 
+        lat, 
+        lng,
+        results_count: placesData.places?.length || 0
+      }
+    })
+    
+    console.log(`💰 Google Places API: $0.032 (${apiCallDuration}ms, ${placesData.places?.length || 0} results)`)
     
     if (!placesData.places || placesData.places.length === 0) {
       return new Response(

@@ -3,6 +3,7 @@ import { WatchmodeClient } from '@/lib/utils/watchmode-client'
 import { StreamingPreferences } from '@/lib/constants/streaming'
 import { createServerClient } from '@/lib/utils/supabase-server'
 import { generateSessionId, generateShareToken } from '@/lib/utils/session'
+import { trackWatchmodeCall } from '@/lib/utils/api-tracker'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -223,10 +224,32 @@ export async function POST(request: NextRequest) {
 
     // Fetch content from Watchmode API with fallback logic
     let searchResults
+    const searchStartTime = Date.now()
     try {
       searchResults = await watchmode.searchTitles(searchParams)
+      const searchDuration = Date.now() - searchStartTime
+      
+      // Track successful search
+      await trackWatchmodeCall(
+        'list_titles',
+        true,
+        searchDuration,
+        { sessionId, metadata: { params: searchParams } },
+        200
+      )
     } catch (error) {
+      const searchDuration = Date.now() - searchStartTime
       console.error('❌ Watchmode API error with genres, trying without genres:', error)
+      
+      // Track failed search
+      await trackWatchmodeCall(
+        'list_titles',
+        false,
+        searchDuration,
+        { sessionId, metadata: { params: searchParams } },
+        500,
+        error instanceof Error ? error.message : 'Unknown error'
+      )
       
       // Fallback: try without genres if genre filtering fails
       if (searchParams.genres) {
@@ -234,11 +257,30 @@ export async function POST(request: NextRequest) {
         const fallbackParams = { ...searchParams }
         delete fallbackParams.genres
         
+        const fallbackStartTime = Date.now()
         try {
           searchResults = await watchmode.searchTitles(fallbackParams)
           console.log('✅ Fallback search successful')
+          
+          const fallbackDuration = Date.now() - fallbackStartTime
+          await trackWatchmodeCall(
+            'list_titles',
+            true,
+            fallbackDuration,
+            { sessionId, metadata: { params: fallbackParams, isFallback: true } },
+            200
+          )
         } catch (fallbackError) {
           console.error('❌ Fallback search also failed:', fallbackError)
+          const fallbackDuration = Date.now() - fallbackStartTime
+          await trackWatchmodeCall(
+            'list_titles',
+            false,
+            fallbackDuration,
+            { sessionId, metadata: { params: fallbackParams, isFallback: true } },
+            500,
+            fallbackError instanceof Error ? fallbackError.message : 'Unknown error'
+          )
           throw error // Re-throw original error
         }
       } else {
@@ -268,8 +310,19 @@ export async function POST(request: NextRequest) {
       
       const batchResults = await Promise.allSettled(
         batch.map(async (title) => {
+          const detailsStartTime = Date.now()
           try {
             const detailedTitle = await watchmode.getTitleDetails(title.id)
+            const detailsDuration = Date.now() - detailsStartTime
+            
+            // Track successful title details fetch
+            await trackWatchmodeCall(
+              'title_details',
+              true,
+              detailsDuration,
+              { sessionId, metadata: { titleId: title.id, titleName: title.title } },
+              200
+            )
             
             return {
               id: detailedTitle.id,
@@ -292,6 +345,18 @@ export async function POST(request: NextRequest) {
             }
           } catch (error) {
             console.error(`Failed to fetch details for title ${title.id}:`, error)
+            const detailsDuration = Date.now() - detailsStartTime
+            
+            // Track failed title details fetch
+            await trackWatchmodeCall(
+              'title_details',
+              false,
+              detailsDuration,
+              { sessionId, metadata: { titleId: title.id, titleName: title.title } },
+              500,
+              error instanceof Error ? error.message : 'Unknown error'
+            )
+            
             // Return basic info if detailed fetch fails
             return {
               id: title.id,

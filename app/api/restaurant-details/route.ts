@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { env } from '@/lib/utils/env'
+import { trackGooglePlacesCall } from '@/lib/utils/api-tracker'
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now()
+  
   try {
     const { placeId } = await req.json()
 
@@ -56,9 +59,22 @@ export async function POST(req: NextRequest) {
       }
     })
 
+    const responseTime = Date.now() - startTime
+
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Places API error:', errorText)
+      
+      // Track failed API call
+      await trackGooglePlacesCall(
+        'place_details',
+        false,
+        responseTime,
+        {},
+        response.status,
+        errorText
+      )
+      
       return NextResponse.json(
         { error: 'Failed to fetch place details' },
         { status: response.status }
@@ -67,6 +83,15 @@ export async function POST(req: NextRequest) {
 
     const placeData = await response.json()
     console.log('📍 Place details fetched:', placeData.displayName?.text)
+    
+    // Track successful API call
+    await trackGooglePlacesCall(
+      'place_details',
+      true,
+      responseTime,
+      { metadata: { placeId, placeName: placeData.displayName?.text } },
+      response.status
+    )
 
     // Transform into our format
     const amenities: string[] = []
