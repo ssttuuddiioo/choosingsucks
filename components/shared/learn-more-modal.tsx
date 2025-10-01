@@ -27,6 +27,7 @@ interface EnhancedData {
   criticScore?: number
   trailer?: string
   sources?: any[]
+  modules?: any[] // For BYO structured modules
   externalLinks?: {
     googleMaps?: string
     website?: string
@@ -494,8 +495,10 @@ function StreamingDetails({ candidate, data }: { candidate: Tables<'candidates'>
   )
 }
 
-// BYO Details Component
+// BYO Details Component with Module Rendering
 function BYODetails({ candidate, data }: { candidate: Tables<'candidates'>, data: EnhancedData }) {
+  const modules = data.modules || []
+
   return (
     <>
       {/* Title */}
@@ -503,35 +506,23 @@ function BYODetails({ candidate, data }: { candidate: Tables<'candidates'>, data
         <h2 className="text-2xl font-outfit font-bold text-gray-900 mb-2">{candidate.name}</h2>
       </div>
 
-      {/* AI-Enhanced Description */}
-      {data.description && (
-        <div>
-          <h3 className="font-semibold text-gray-900 mb-2">About</h3>
-          <p className="text-gray-700 leading-relaxed whitespace-pre-line">{data.description}</p>
+      {/* Render Modules Dynamically */}
+      {modules.length > 0 && (
+        <div className="space-y-6">
+          {modules.map((module: any, idx: number) => (
+            <ModuleRenderer key={idx} module={module} candidateName={candidate.name} />
+          ))}
         </div>
       )}
 
-      {/* User-provided description */}
-      {!data.description && candidate.description && (
+      {/* Fallback: User-provided description if no modules */}
+      {modules.length === 0 && candidate.description && (
         <div>
           <p className="text-gray-700 leading-relaxed">{candidate.description}</p>
         </div>
       )}
 
-      {/* Website */}
-      {(data.website || candidate.url) && (
-        <a
-          href={data.website || candidate.url || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full btn-gradient flex items-center justify-center gap-2 text-lg py-3"
-        >
-          <Globe className="h-5 w-5" />
-          Learn More
-        </a>
-      )}
-
-      {/* Citations (for AI-enhanced content) */}
+      {/* Citations */}
       {data.citations && data.citations.length > 0 && (
         <div className="pt-4 border-t border-gray-200">
           <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Sources</h3>
@@ -552,13 +543,239 @@ function BYODetails({ candidate, data }: { candidate: Tables<'candidates'>, data
       )}
 
       {/* No AI Enhancement Available */}
-      {!data.loading && !data.description && !candidate.description && (
+      {!data.loading && modules.length === 0 && !candidate.description && (
         <div className="text-center py-8 text-gray-500">
           <p>No additional information available</p>
-          <p className="text-sm mt-2">AI enhancement is disabled for this session</p>
+          <p className="text-sm mt-2">Enable AI enhancement when creating the session</p>
         </div>
       )}
     </>
   )
 }
+
+// Universal Module Renderer
+function ModuleRenderer({ module, candidateName }: { module: any; candidateName: string }) {
+  const { type } = module
+
+  // title_and_paragraph
+  if (type === 'title_and_paragraph') {
+    return (
+      <div>
+        {module.title && <h3 className="font-semibold text-gray-900 mb-2">{module.title}</h3>}
+        <p className="text-gray-700 leading-relaxed">{module.content}</p>
+      </div>
+    )
+  }
+
+  // title_and_list
+  if (type === 'title_and_list') {
+    return (
+      <div>
+        {module.title && <h3 className="font-semibold text-gray-900 mb-2">{module.title}</h3>}
+        <ul className="list-disc list-inside space-y-1 text-gray-700">
+          {module.items?.map((item: string, idx: number) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  // key_value_pairs
+  if (type === 'key_value_pairs' && module.pairs) {
+    return (
+      <div className="grid grid-cols-2 gap-3">
+        {Object.entries(module.pairs).map(([key, value], idx) => (
+          <div key={idx}>
+            <div className="text-xs text-gray-600 uppercase tracking-wide">{key}</div>
+            <div className="text-sm font-semibold text-gray-900">{value as string}</div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // quote
+  if (type === 'quote') {
+    return (
+      <div className="border-l-4 border-electric-purple pl-4 py-2 bg-gray-50 rounded-r">
+        <p className="text-gray-700 italic">"{module.text}"</p>
+        {module.source && <p className="text-xs text-gray-600 mt-1">— {module.source}</p>}
+      </div>
+    )
+  }
+
+  // stats
+  if (type === 'stats') {
+    return (
+      <div className="bg-gray-50 rounded-lg p-4 text-center">
+        <div className="text-3xl font-bold text-gray-900">{module.value}</div>
+        {module.label && <div className="text-sm text-gray-600 mt-1">{module.label}</div>}
+      </div>
+    )
+  }
+
+  // tags
+  if (type === 'tags' && module.items) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {module.items.map((tag: string, idx: number) => (
+          <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+            {tag}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  // hero_image
+  if (type === 'hero_image' && module.image_url) {
+    return (
+      <div className="rounded-lg overflow-hidden">
+        <img src={module.image_url} alt={module.alt_text || candidateName} className="w-full h-48 object-cover" />
+      </div>
+    )
+  }
+
+  // image_gallery
+  if (type === 'image_gallery' && module.images) {
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {module.images.slice(0, 4).map((img: any, idx: number) => (
+          <img key={idx} src={img.url} alt={img.alt_text || ''} className="w-full h-32 object-cover rounded-lg" />
+        ))}
+      </div>
+    )
+  }
+
+  // color_block
+  if (type === 'color_block') {
+    return (
+      <div className="flex items-center gap-4">
+        <div 
+          className="w-24 h-24 rounded-lg shadow-md border border-gray-200"
+          style={{ backgroundColor: module.hex }}
+        />
+        <div>
+          <div className="font-semibold text-gray-900">{module.name}</div>
+          <div className="text-sm text-gray-600 font-mono">{module.hex}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // location
+  if (type === 'location') {
+    return (
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          Location
+        </h3>
+        <p className="text-gray-700">
+          {module.address && <span>{module.address}<br /></span>}
+          {module.city && module.state && <span>{module.city}, {module.state} {module.zip}</span>}
+        </p>
+      </div>
+    )
+  }
+
+  // pricing
+  if (type === 'pricing') {
+    return (
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-2">Pricing</h3>
+        <p className="text-gray-700">
+          <span className="text-lg font-bold text-green-600">{module.range}</span>
+          {module.note && <span className="text-sm text-gray-600 ml-2">{module.note}</span>}
+        </p>
+      </div>
+    )
+  }
+
+  // hours
+  if (type === 'hours') {
+    return (
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <Clock className="h-4 w-4" />
+          Hours
+        </h3>
+        <p className="text-gray-700">{module.schedule}</p>
+      </div>
+    )
+  }
+
+  // reviews
+  if (type === 'reviews') {
+    return (
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-2">Reviews</h3>
+        {module.rating && (
+          <div className="flex items-center gap-2 mb-2">
+            <Star className="h-5 w-5 text-yellow-500 fill-current" />
+            <span className="font-bold">{module.rating}</span>
+            {module.count && <span className="text-gray-600 text-sm">({module.count} reviews)</span>}
+          </div>
+        )}
+        {module.summary && <p className="text-gray-700 text-sm">{module.summary}</p>}
+      </div>
+    )
+  }
+
+  // rating
+  if (type === 'rating') {
+    return (
+      <div className="flex items-center gap-2">
+        <Star className="h-5 w-5 text-yellow-500 fill-current" />
+        <span className="font-bold text-lg">{module.score}</span>
+        {module.max_score && <span className="text-gray-600">/ {module.max_score}</span>}
+        {module.label && <span className="text-gray-600 text-sm ml-2">{module.label}</span>}
+      </div>
+    )
+  }
+
+  // warning
+  if (type === 'warning') {
+    return (
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r">
+        <p className="text-sm text-yellow-800">{module.message}</p>
+      </div>
+    )
+  }
+
+  // table
+  if (type === 'table' && module.headers && module.rows) {
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-200">
+              {module.headers.map((header: string, idx: number) => (
+                <th key={idx} className="text-left py-2 px-3 font-semibold text-gray-900">{header}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {module.rows.map((row: string[], rowIdx: number) => (
+              <tr key={rowIdx} className="border-b border-gray-100">
+                {row.map((cell: string, cellIdx: number) => (
+                  <td key={cellIdx} className="py-2 px-3 text-gray-700">{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  // Unknown module type - render as basic text
+  return (
+    <div className="text-gray-600 text-sm">
+      <pre>{JSON.stringify(module, null, 2)}</pre>
+    </div>
+  )
+}
+
 

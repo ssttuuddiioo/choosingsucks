@@ -38,11 +38,10 @@ export async function POST(req: NextRequest) {
 
     // If already enhanced, return cached data
     const candidateData = existingCandidate as any
-    if (candidateData?.metadata?.aiEnhanced) {
+    if (candidateData?.metadata?.aiEnhanced && candidateData?.metadata?.enhancedModules) {
       return NextResponse.json({
-        description: candidateData.description,
-        photos: candidateData.image_url ? [candidateData.image_url] : [],
-        website: candidateData.url,
+        modules: candidateData.metadata.enhancedModules,
+        citations: candidateData.metadata.citations || null,
         cached: true
       })
     }
@@ -67,25 +66,59 @@ export async function POST(req: NextRequest) {
         tools: [
           { type: "web_search" }
         ],
-        input: `Context: User is choosing between these options: ${allOptionNames.join(', ')}
+        input: `User is choosing between: ${allOptionNames.join(', ')}
 
-Search the web for current, helpful information about: "${optionName}"
+Search the web and provide structured information about: "${optionName}"
 
-Based on the context, determine what type of information would help someone decide:
-- For places/venues/businesses → Location, reviews, what makes it special, hours, pricing
-- For names (baby names, people) → Meaning, origin, popularity, cultural significance
-- For concepts/colors/ideas → Symbolism, meaning, psychology, common associations
-- For very personal items → Explain no public info available
+Return JSON with 3-6 relevant modules from this list:
 
-Provide a concise summary (2-3 paragraphs) that aids decision-making.`,
-        reasoning: { effort: "low" }, // Fast web search without deep reasoning
+DISPLAY MODULES:
+- title_and_paragraph: {title, content}
+- title_and_list: {title, items[]}
+- key_value_pairs: {pairs: {label: value}}
+- quote: {text, source}
+- stats: {label, value, unit}
+- tags: {items[]}
+- table: {headers[], rows[]}
+
+MEDIA MODULES:
+- hero_image: {image_url, alt_text}
+- image_gallery: {images: [{url, alt_text}]}
+- color_block: {hex, name}
+
+SPECIALIZED MODULES:
+- location: {address, city, state, zip}
+- pricing: {range, note}
+- hours: {schedule}
+- reviews: {rating, count, summary}
+- rating: {score, max_score, label}
+- warning: {message, type}
+
+Select modules that best present the information. NO meta-commentary. NO conversational language. Just facts.
+
+Return ONLY valid JSON in this format:
+{
+  "modules": [
+    { "type": "title_and_paragraph", "title": "About", "content": "..." },
+    { "type": "location", "address": "...", "city": "...", "state": "..." }
+  ]
+}`,
+        reasoning: { effort: "low" }
       })
 
       const endTime = Date.now()
       const responseTimeMs = endTime - startTime
 
-      // Extract output text
+      // Parse JSON response
       const outputText = response.output_text || ''
+      let parsedData: any = {}
+      
+      try {
+        parsedData = JSON.parse(outputText)
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError)
+        parsedData = { modules: [] }
+      }
       
       // Extract citations from annotations
       const citations: { url: string; title: string }[] = []
@@ -108,16 +141,14 @@ Provide a concise summary (2-3 paragraphs) that aids decision-making.`,
         })
       }
 
-      // Calculate cost (Responses API doesn't return usage in same format)
-      // Estimate based on response length
-      const estimatedInputTokens = 200
-      const estimatedOutputTokens = Math.ceil(outputText.length / 4) // ~4 chars per token
-      const pricing = { input: 0.05, output: 0.40 } // gpt-5-nano pricing
+      // Calculate cost
+      const estimatedInputTokens = 300
+      const estimatedOutputTokens = Math.ceil(outputText.length / 4)
+      const pricing = { input: 0.05, output: 0.40 }
       const totalCost = (estimatedInputTokens / 1_000_000) * pricing.input + 
                        (estimatedOutputTokens / 1_000_000) * pricing.output
 
       // Track in database
-      const supabase = createServerClient()
       await (supabase as any)
         .from('openai_usage')
         .insert({
@@ -136,29 +167,28 @@ Provide a concise summary (2-3 paragraphs) that aids decision-making.`,
           metadata: { 
             optionName,
             allOptions: allOptionNames,
+            modules_count: parsedData.modules?.length || 0,
             citations_count: citations.length,
             has_web_search: true
           }
         })
 
-      console.log(`💰 OpenAI Responses API web search: $${totalCost.toFixed(4)} (${responseTimeMs}ms, ${citations.length} citations)`)
-
-      const description = outputText
+      console.log(`💰 OpenAI web search: $${totalCost.toFixed(4)} (${responseTimeMs}ms, ${parsedData.modules?.length || 0} modules, ${citations.length} citations)`)
 
       const enhancedData = {
-        description,
+        modules: parsedData.modules || [],
         citations: citations.length > 0 ? citations : null
       }
 
-      // Cache the enhanced data in the database (reuse supabase from earlier)
-      if (description) {
+      // Cache the enhanced data in the database
+      if (parsedData.modules && parsedData.modules.length > 0) {
         const updateData: any = {
-          description: description,
           metadata: { 
             ...(candidateData?.metadata || {}),
             aiEnhanced: true,
             enhancedAt: new Date().toISOString(),
             webSearchUsed: true,
+            enhancedModules: parsedData.modules,
             citations: citations
           }
         }
@@ -169,7 +199,7 @@ Provide a concise summary (2-3 paragraphs) that aids decision-making.`,
           .eq('id', candidateId)
       }
 
-      console.log('✅ BYO option enhanced successfully with web search')
+      console.log('✅ BYO option enhanced with web search - returning structured modules')
       return NextResponse.json(enhancedData)
       
     } catch (apiError) {
