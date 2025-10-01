@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Star, Clock, Calendar } from 'lucide-react'
+import { Star, Clock, Calendar, Info } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
 
@@ -9,9 +9,10 @@ interface StreamingCardProps {
   candidate: Tables<'candidates'>
   className?: string
   style?: React.CSSProperties
+  onLearnMore?: () => void
 }
 
-export default function StreamingCard({ candidate, className, style }: StreamingCardProps) {
+export default function StreamingCard({ candidate, className, style, onLearnMore }: StreamingCardProps) {
   const [imageError, setImageError] = useState(false)
 
   const formatRuntime = (minutes?: number) => {
@@ -63,10 +64,23 @@ export default function StreamingCard({ candidate, className, style }: Streaming
       </div>
 
       {/* Info Section - Fixed height section at bottom */}
-      <div className="flex-shrink-0 p-3 sm:p-4 md:p-6 space-y-2 bg-white">
-        <h1 className="text-lg sm:text-xl md:text-2xl font-outfit font-bold text-gray-900 leading-tight line-clamp-2">
+      <div className="flex-shrink-0 p-3 sm:p-4 md:p-6 space-y-2 bg-white relative">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-outfit font-bold text-gray-900 leading-tight line-clamp-2 pr-10">
           {candidate.title || candidate.name}
         </h1>
+        
+        {/* Learn More Button - Bottom right */}
+        {onLearnMore && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onLearnMore()
+            }}
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 z-10"
+          >
+            <Info className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+        )}
         
         <div className="flex items-center gap-2 sm:gap-3 text-gray-600 text-xs sm:text-sm flex-wrap">
           <div className="flex items-center gap-1">

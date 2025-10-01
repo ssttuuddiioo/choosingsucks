@@ -592,7 +592,9 @@ export default function SessionPage() {
       <SwipeInterfaceTemplate
         candidates={remainingCandidates}
         onSwipe={handleSwipe}
-        renderCard={(candidate) => <RestaurantCard candidate={candidate} />}
+        renderCard={(candidate, onLearnMore) => (
+          <RestaurantCard candidate={candidate} onLearnMore={onLearnMore} />
+        )}
         categoryName="restaurants"
       />
     </div>

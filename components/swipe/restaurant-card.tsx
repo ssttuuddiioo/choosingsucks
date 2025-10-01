@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Star, DollarSign } from 'lucide-react'
+import { Star, DollarSign, Info } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
 import { env } from '@/lib/utils/env'
 
 interface RestaurantCardProps {
   candidate: Tables<'candidates'>
+  onLearnMore?: () => void
 }
 
-export default function RestaurantCard({ candidate }: RestaurantCardProps) {
+export default function RestaurantCard({ candidate, onLearnMore }: RestaurantCardProps) {
   const [imageError, setImageError] = useState(false)
   
   // Reset image error state when candidate changes
@@ -46,10 +47,23 @@ export default function RestaurantCard({ candidate }: RestaurantCardProps) {
       </div>
 
       {/* Info - Fixed height section at bottom */}
-      <div className="flex-shrink-0 p-3 sm:p-4 md:p-6 space-y-2 bg-white">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2 leading-tight">
+      <div className="flex-shrink-0 p-3 sm:p-4 md:p-6 space-y-2 bg-white relative">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-outfit font-bold text-gray-900 line-clamp-2 leading-tight pr-10">
           {candidate.name}
         </h2>
+        
+        {/* Learn More Button - Bottom right */}
+        {onLearnMore && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onLearnMore()
+            }}
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 z-10"
+          >
+            <Info className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+        )}
 
         <div className="flex items-center gap-2 sm:gap-3 text-sm flex-wrap">
           {candidate.rating && (

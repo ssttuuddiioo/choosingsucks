@@ -2,14 +2,14 @@
 
 import React, { useState, useRef, useMemo, useEffect } from 'react'
 import TinderCard from 'react-tinder-card'
-import { X, Heart, Info } from 'lucide-react'
+import { X, Heart } from 'lucide-react'
 import type { Tables } from '@/types/supabase'
 import LearnMoreModal from './learn-more-modal'
 
 interface SwipeInterfaceTemplateProps {
   candidates: Tables<'candidates'>[]
   onSwipe: (candidateId: string, vote: boolean) => void
-  renderCard: (candidate: Tables<'candidates'>) => React.ReactNode
+  renderCard: (candidate: Tables<'candidates'>, onLearnMore?: () => void) => React.ReactNode
   categoryName: string
 }
 
@@ -142,20 +142,12 @@ export default function SwipeInterfaceTemplate({
                     transition: 'opacity 0.3s, scale 0.3s',
                   }}
                 >
-                  {renderCard(candidate)}
-                  
-                  {/* Learn More Button - Only on current card */}
-                  {index === currentIndex && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedCandidate(candidate)
-                        setShowLearnMore(true)
-                      }}
-                      className="absolute top-4 right-4 bg-white/90 hover:bg-white backdrop-blur-sm text-gray-900 p-2 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 z-20"
-                    >
-                      <Info className="h-5 w-5" />
-                    </button>
+                  {renderCard(
+                    candidate,
+                    index === currentIndex ? () => {
+                      setSelectedCandidate(candidate)
+                      setShowLearnMore(true)
+                    } : undefined
                   )}
                 </div>
               </TinderCard>

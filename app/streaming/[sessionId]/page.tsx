@@ -594,7 +594,9 @@ export default function StreamingSessionPage() {
     <SwipeInterfaceTemplate 
       candidates={remainingCandidates}
       onSwipe={handleSwipe}
-      renderCard={(candidate) => <StreamingCard candidate={candidate} />}
+      renderCard={(candidate, onLearnMore) => (
+        <StreamingCard candidate={candidate} onLearnMore={onLearnMore} />
+      )}
       categoryName="streaming"
     />
   )
