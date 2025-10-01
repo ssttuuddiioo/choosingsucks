@@ -1,6 +1,104 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/utils/supabase-server'
 import OpenAI from 'openai'
+import { zodTextFormat } from 'openai/helpers/zod'
+import { z } from 'zod'
+
+// Define all possible module types with Zod for structured outputs
+const BYOModuleSchema = z.discriminatedUnion('type', [
+  // Core display modules
+  z.object({
+    type: z.literal('title_and_paragraph'),
+    title: z.string().describe('Section heading (e.g., "About", "Overview", "Description")'),
+    content: z.string().describe('Text content, 1-3 sentences maximum')
+  }),
+  z.object({
+    type: z.literal('title_and_list'),
+    title: z.string().describe('Section heading (e.g., "Features", "Highlights", "Benefits")'),
+    items: z.array(z.string()).describe('List items, 3-5 items maximum')
+  }),
+  z.object({
+    type: z.literal('key_value_pairs'),
+    pairs: z.record(z.string()).describe('Key-value pairs (e.g., {"Type": "Public", "Holes": "18"})')
+  }),
+  z.object({
+    type: z.literal('quote'),
+    text: z.string().describe('Quote text'),
+    source: z.string().describe('Quote source or attribution')
+  }),
+  z.object({
+    type: z.literal('stats'),
+    value: z.string().describe('The metric value (e.g., "4.5", "18 holes", "1933")'),
+    label: z.string().describe('What the stat represents (e.g., "Rating", "Holes", "Est.")')
+  }),
+  z.object({
+    type: z.literal('tags'),
+    items: z.array(z.string()).describe('Tags or categories, 3-5 maximum')
+  }),
+  z.object({
+    type: z.literal('table'),
+    headers: z.array(z.string()).describe('Column headers'),
+    rows: z.array(z.array(z.string())).describe('Table rows')
+  }),
+  
+  // Media modules
+  z.object({
+    type: z.literal('hero_image'),
+    image_url: z.string().url().describe('Direct image URL found in web search results'),
+    alt_text: z.string().describe('Image description')
+  }),
+  z.object({
+    type: z.literal('image_gallery'),
+    images: z.array(z.object({
+      url: z.string().url(),
+      alt_text: z.string()
+    })).min(2).max(4).describe('2-4 images')
+  }),
+  z.object({
+    type: z.literal('color_block'),
+    hex: z.string().describe('Hex color code (e.g., "#FF5733")'),
+    name: z.string().describe('Color name')
+  }),
+  
+  // Specialized modules
+  z.object({
+    type: z.literal('location'),
+    address: z.string().describe('Street address'),
+    city: z.string(),
+    state: z.string(),
+    zip: z.string().nullable().describe('ZIP code if available')
+  }),
+  z.object({
+    type: z.literal('pricing'),
+    range: z.string().describe('Price range (e.g., "$20-50", "$$-$$$", "Free")'),
+    note: z.string().nullable().describe('Additional pricing context if relevant')
+  }),
+  z.object({
+    type: z.literal('hours'),
+    schedule: z.string().describe('Operating hours (e.g., "Daily 7am-7pm", "Mon-Fri 9am-5pm")')
+  }),
+  z.object({
+    type: z.literal('reviews'),
+    rating: z.string().describe('Rating value (e.g., "4.5", "8.2/10")'),
+    count: z.string().nullable().describe('Number of reviews if available'),
+    summary: z.string().nullable().describe('Brief review summary, 1 sentence')
+  }),
+  z.object({
+    type: z.literal('rating'),
+    score: z.string().describe('Rating score'),
+    max_score: z.string().nullable().describe('Maximum possible score'),
+    label: z.string().describe('What is being rated')
+  }),
+  z.object({
+    type: z.literal('warning'),
+    message: z.string().describe('Important notice or warning'),
+    warning_type: z.enum(['info', 'warning', 'alert']).describe('Severity level')
+  })
+])
+
+const BYOEnhancementSchema = z.object({
+  modules: z.array(BYOModuleSchema).min(2).max(6).describe('3-6 relevant modules based on content type')
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,64 +159,49 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now()
     
     try {
-      const response = await openai.responses.create({
-        model: "gpt-5-nano", // Fastest, cheapest reasoning model with web search
+      const response = await openai.responses.parse({
+        model: "gpt-5-nano",
         tools: [
           { type: "web_search" }
         ],
         input: `User is choosing between: ${allOptionNames.join(', ')}
 
-Search the web and provide structured information about: "${optionName}"
+Search the web for current information about: "${optionName}"
 
-Return JSON with 3-6 relevant modules from this list:
+Provide 3-6 relevant modules using ONLY these types:
 
-DISPLAY MODULES:
-- title_and_paragraph: {title, content}
-- title_and_list: {title, items[]}
-- key_value_pairs: {pairs: {label: value}}
-- quote: {text, source}
-- stats: {label, value, unit}
-- tags: {items[]}
-- table: {headers[], rows[]}
+EXAMPLES BY CONTENT TYPE:
 
-MEDIA MODULES:
-- hero_image: {image_url, alt_text}
-- image_gallery: {images: [{url, alt_text}]}
-- color_block: {hex, name}
+Golf Course:
+- location: Street address, city, state
+- title_and_paragraph: {title: "About", content: "Brief description"}
+- pricing: {range: "$20-50", note: "Varies by season"}
+- hours: {schedule: "Daily 7am-7pm"}
+- reviews: {rating: "4.2", count: "150", summary: "Well-maintained course"}
 
-SPECIALIZED MODULES:
-- location: {address, city, state, zip}
-- pricing: {range, note}
-- hours: {schedule}
-- reviews: {rating, count, summary}
-- rating: {score, max_score, label}
-- warning: {message, type}
+Baby Name:
+- title_and_paragraph: {title: "Meaning & Origin", content: "Latin origin..."}
+- key_value_pairs: {pairs: {"Origin": "Latin", "Popularity": "Top 5", "Gender": "Male"}}
+- title_and_list: {title: "Famous People", items: ["Oliver Twist", "Oliver Stone"]}
 
-Select modules that best present the information. NO meta-commentary. NO conversational language. Just facts.
+Color:
+- color_block: {hex: "#000080", name: "Navy Blue"}
+- title_and_paragraph: {title: "Symbolism", content: "Represents authority..."}
+- tags: {items: ["Professional", "Classic", "Formal"]}
 
-Return ONLY valid JSON in this format:
-{
-  "modules": [
-    { "type": "title_and_paragraph", "title": "About", "content": "..." },
-    { "type": "location", "address": "...", "city": "...", "state": "..." }
-  ]
-}`,
-        reasoning: { effort: "low" }
+NO meta-commentary. NO conversational language. Just factual modules.`,
+        reasoning: { effort: "low" },
+        text: {
+          format: zodTextFormat(BYOEnhancementSchema, "byo_enhancement")
+        }
       })
 
       const endTime = Date.now()
       const responseTimeMs = endTime - startTime
 
-      // Parse JSON response
-      const outputText = response.output_text || ''
-      let parsedData: any = {}
-      
-      try {
-        parsedData = JSON.parse(outputText)
-      } catch (parseError) {
-        console.error('Failed to parse JSON response:', parseError)
-        parsedData = { modules: [] }
-      }
+      // Get parsed data (guaranteed by Zod schema)
+      const parsedData = response.output_parsed || { modules: [] }
+      const outputText = JSON.stringify(parsedData)
       
       // Extract citations from annotations
       const citations: { url: string; title: string }[] = []
