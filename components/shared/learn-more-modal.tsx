@@ -190,21 +190,21 @@ export default function LearnMoreModal({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-[95vh] max-w-2xl mx-auto">
+      <DrawerContent className="h-[90vh] max-h-[90vh] max-w-2xl mx-auto bg-gradient-primary border-t-2 border-white/20">
         {/* Header */}
-        <DrawerHeader className="flex-shrink-0 flex items-center justify-between border-b border-gray-200 bg-white sticky top-0 z-10">
-          <DrawerTitle className="text-xl font-outfit font-bold text-gray-900">
+        <DrawerHeader className="flex-shrink-0 flex items-center justify-between border-b border-white/20 bg-black/30 backdrop-blur-md sticky top-0 z-10 pb-3">
+          <DrawerTitle className="text-xl font-outfit font-bold text-white">
             {candidate.name || candidate.title}
           </DrawerTitle>
           <DrawerClose asChild>
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <X className="h-5 w-5 text-gray-600" />
+            <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <X className="h-5 w-5 text-white" />
             </button>
           </DrawerClose>
         </DrawerHeader>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-gradient-primary">
           {/* Photo Carousel */}
           {hasPhotos && (
             <div className="relative bg-gray-900 aspect-[4/3] sm:aspect-video">
@@ -271,7 +271,7 @@ export default function LearnMoreModal({
 
             {/* Error State */}
             {enhancedData.error && (
-              <div className="text-center py-8 text-gray-600">
+              <div className="text-center py-8 text-white/70">
                 <p>{enhancedData.error}</p>
               </div>
             )}
@@ -303,22 +303,22 @@ function RestaurantDetails({ candidate, data }: { candidate: Tables<'candidates'
     <>
       {/* Title & Quick Info */}
       <div>
-        <h2 className="text-2xl font-outfit font-bold text-gray-900 mb-2">{candidate.name}</h2>
+        <h2 className="text-2xl font-outfit font-bold text-white mb-2">{candidate.name}</h2>
         <div className="flex items-center gap-3 flex-wrap">
           {candidate.rating && (
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <Star className="h-4 w-4 text-yellow-400 fill-current" />
               <span className="font-bold">{candidate.rating}</span>
               {candidate.user_ratings_total && (
-                <span className="text-gray-600 text-sm">({candidate.user_ratings_total})</span>
+                <span className="text-white/70 text-sm">({candidate.user_ratings_total})</span>
               )}
             </div>
           )}
           {candidate.price_level && (
-            <span className="text-green-600 font-bold">{'$'.repeat(candidate.price_level)}</span>
+            <span className="text-lime-green font-bold">{'$'.repeat(candidate.price_level)}</span>
           )}
           {candidate.cuisines && candidate.cuisines.length > 0 && (
-            <span className="text-gray-600">{candidate.cuisines.join(', ')}</span>
+            <span className="text-white/70">{candidate.cuisines.join(', ')}</span>
           )}
         </div>
       </div>
@@ -327,7 +327,7 @@ function RestaurantDetails({ candidate, data }: { candidate: Tables<'candidates'
       {(data.phone || data.website || candidate.url) && (
         <div className="space-y-2">
           {data.phone && (
-            <a href={`tel:${data.phone}`} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+            <a href={`tel:${data.phone}`} className="flex items-center gap-2 text-white/80 hover:text-white">
               <Phone className="h-4 w-4" />
               <span>{data.phone}</span>
             </a>
@@ -337,7 +337,7 @@ function RestaurantDetails({ candidate, data }: { candidate: Tables<'candidates'
               href={data.website || candidate.url || '#'} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+              className="flex items-center gap-2 text-electric-purple hover:text-electric-purple/80"
             >
               <Globe className="h-4 w-4" />
               <span>Visit Website</span>
@@ -349,16 +349,16 @@ function RestaurantDetails({ candidate, data }: { candidate: Tables<'candidates'
       {/* Description */}
       {data.description && (
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">About</h3>
-          <p className="text-gray-700 leading-relaxed">{data.description}</p>
+          <h3 className="font-semibold text-white mb-2">About</h3>
+          <p className="text-white/80 leading-relaxed">{data.description}</p>
         </div>
       )}
 
       {/* Hours */}
       {data.hours && data.hours.length > 0 && (
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Hours</h3>
-          <div className="space-y-1 text-sm text-gray-700">
+          <h3 className="font-semibold text-white mb-2">Hours</h3>
+          <div className="space-y-1 text-sm text-white/80">
             {data.hours.map((hour, idx) => (
               <div key={idx}>{hour}</div>
             ))}
@@ -369,10 +369,10 @@ function RestaurantDetails({ candidate, data }: { candidate: Tables<'candidates'
       {/* Amenities */}
       {data.amenities && data.amenities.length > 0 && (
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Amenities</h3>
+          <h3 className="font-semibold text-white mb-2">Amenities</h3>
           <div className="flex flex-wrap gap-2">
             {data.amenities.map((amenity, idx) => (
-              <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+              <span key={idx} className="px-3 py-1 bg-white/10 backdrop-blur text-white/80 rounded-full text-sm">
                 {amenity}
               </span>
             ))}
@@ -408,10 +408,10 @@ function StreamingDetails({ candidate, data }: { candidate: Tables<'candidates'>
     <>
       {/* Title & Quick Info */}
       <div>
-        <h2 className="text-2xl font-outfit font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-outfit font-bold text-white mb-2">
           {candidate.title || candidate.name}
         </h2>
-        <div className="flex items-center gap-3 flex-wrap text-sm text-gray-600">
+        <div className="flex items-center gap-3 flex-wrap text-sm text-white/70">
           {candidate.year && (
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
@@ -425,13 +425,13 @@ function StreamingDetails({ candidate, data }: { candidate: Tables<'candidates'>
             </div>
           )}
           {candidate.us_rating && (
-            <span className="bg-gray-200 px-2 py-1 rounded text-xs font-bold">
+            <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold">
               {candidate.us_rating}
             </span>
           )}
           {candidate.user_rating && (
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <Star className="h-4 w-4 text-yellow-400 fill-current" />
               <span className="font-bold">{Number(candidate.user_rating).toFixed(1)}</span>
             </div>
           )}
@@ -452,8 +452,8 @@ function StreamingDetails({ candidate, data }: { candidate: Tables<'candidates'>
       {/* Plot */}
       {(candidate.plot_overview || candidate.description) && (
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Plot</h3>
-          <p className="text-gray-700 leading-relaxed">
+          <h3 className="font-semibold text-white mb-2">Plot</h3>
+          <p className="text-white/80 leading-relaxed">
             {candidate.plot_overview || candidate.description}
           </p>
         </div>
@@ -483,7 +483,7 @@ function BYODetails({ candidate, data }: { candidate: Tables<'candidates'>, data
     <>
       {/* Title */}
       <div>
-        <h2 className="text-2xl font-outfit font-bold text-gray-900 mb-2">{candidate.name}</h2>
+        <h2 className="text-2xl font-outfit font-bold text-white mb-2">{candidate.name}</h2>
       </div>
 
       {/* Render Modules Dynamically */}
@@ -498,14 +498,14 @@ function BYODetails({ candidate, data }: { candidate: Tables<'candidates'>, data
       {/* Fallback: User-provided description if no modules */}
       {modules.length === 0 && candidate.description && (
         <div>
-          <p className="text-gray-700 leading-relaxed">{candidate.description}</p>
+          <p className="text-white/80 leading-relaxed">{candidate.description}</p>
         </div>
       )}
 
       {/* Citations */}
       {data.citations && data.citations.length > 0 && (
-        <div className="pt-4 border-t border-gray-200">
-          <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Sources</h3>
+        <div className="pt-4 border-t border-white/10">
+          <h3 className="text-xs font-semibold text-white/70 mb-2 uppercase tracking-wide">Sources</h3>
           <div className="space-y-1">
             {data.citations.map((citation, idx) => (
               <a
@@ -513,7 +513,7 @@ function BYODetails({ candidate, data }: { candidate: Tables<'candidates'>, data
                 href={citation.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-xs text-blue-600 hover:text-blue-700 hover:underline truncate"
+                className="block text-xs text-electric-purple hover:text-electric-purple/80 hover:underline truncate"
               >
                 {citation.title || citation.url}
               </a>
@@ -524,7 +524,7 @@ function BYODetails({ candidate, data }: { candidate: Tables<'candidates'>, data
 
       {/* No AI Enhancement Available */}
       {!data.loading && modules.length === 0 && !candidate.description && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-white/60">
           <p>No additional information available</p>
           <p className="text-sm mt-2">Enable AI enhancement when creating the session</p>
         </div>
@@ -541,8 +541,8 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (type === 'title_and_paragraph') {
     return (
       <div>
-        {module.title && <h3 className="font-semibold text-gray-900 mb-2">{module.title}</h3>}
-        <p className="text-gray-700 leading-relaxed">{module.content}</p>
+        {module.title && <h3 className="font-semibold text-white mb-2">{module.title}</h3>}
+        <p className="text-white/80 leading-relaxed">{module.content}</p>
       </div>
     )
   }
@@ -551,8 +551,8 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (type === 'title_and_list') {
     return (
       <div>
-        {module.title && <h3 className="font-semibold text-gray-900 mb-2">{module.title}</h3>}
-        <ul className="list-disc list-inside space-y-1 text-gray-700">
+        {module.title && <h3 className="font-semibold text-white mb-2">{module.title}</h3>}
+        <ul className="list-disc list-inside space-y-1 text-white/80">
           {module.items?.map((item: string, idx: number) => (
             <li key={idx}>{item}</li>
           ))}
@@ -572,8 +572,8 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
       <div className="grid grid-cols-2 gap-3">
         {pairs.map((pair: any, idx: number) => (
           <div key={idx}>
-            <div className="text-xs text-gray-600 uppercase tracking-wide">{pair.key}</div>
-            <div className="text-sm font-semibold text-gray-900">{pair.value}</div>
+            <div className="text-xs text-white/70 uppercase tracking-wide">{pair.key}</div>
+            <div className="text-sm font-semibold text-white">{pair.value}</div>
           </div>
         ))}
       </div>
@@ -583,9 +583,9 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   // quote
   if (type === 'quote') {
     return (
-      <div className="border-l-4 border-electric-purple pl-4 py-2 bg-gray-50 rounded-r">
-        <p className="text-gray-700 italic">"{module.text}"</p>
-        {module.source && <p className="text-xs text-gray-600 mt-1">— {module.source}</p>}
+      <div className="border-l-4 border-electric-purple pl-4 py-2 bg-white/5 backdrop-blur rounded-r">
+        <p className="text-white/80 italic">"{module.text}"</p>
+        {module.source && <p className="text-xs text-white/70 mt-1">— {module.source}</p>}
       </div>
     )
   }
@@ -599,9 +599,9 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
     const displayLabel = module.label || module.value?.label
     
     return (
-      <div className="bg-gray-50 rounded-lg p-4 text-center">
-        <div className="text-3xl font-bold text-gray-900">{displayValue}</div>
-        {displayLabel && <div className="text-sm text-gray-600 mt-1">{displayLabel}</div>}
+      <div className="bg-white/5 backdrop-blur rounded-lg p-4 text-center">
+        <div className="text-3xl font-bold text-white">{displayValue}</div>
+        {displayLabel && <div className="text-sm text-white/70 mt-1">{displayLabel}</div>}
       </div>
     )
   }
@@ -611,7 +611,7 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
     return (
       <div className="flex flex-wrap gap-2">
         {module.items.map((tag: string, idx: number) => (
-          <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+          <span key={idx} className="px-3 py-1 bg-white/10 backdrop-blur text-white/80 rounded-full text-sm">
             {tag}
           </span>
         ))}
@@ -644,12 +644,12 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
     return (
       <div className="flex items-center gap-4">
         <div 
-          className="w-24 h-24 rounded-lg shadow-md border border-gray-200"
+          className="w-24 h-24 rounded-lg shadow-md border border-white/10"
           style={{ backgroundColor: module.hex }}
         />
         <div>
-          <div className="font-semibold text-gray-900">{module.name}</div>
-          <div className="text-sm text-gray-600 font-mono">{module.hex}</div>
+          <div className="font-semibold text-white">{module.name}</div>
+          <div className="text-sm text-white/70 font-mono">{module.hex}</div>
         </div>
       </div>
     )
@@ -659,11 +659,11 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (type === 'location') {
     return (
       <div>
-        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+        <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
           Location
         </h3>
-        <p className="text-gray-700">
+        <p className="text-white/80">
           {module.address && <span>{module.address}<br /></span>}
           {module.city && module.state && <span>{module.city}, {module.state} {module.zip}</span>}
         </p>
@@ -675,10 +675,10 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (type === 'pricing') {
     return (
       <div>
-        <h3 className="font-semibold text-gray-900 mb-2">Pricing</h3>
-        <p className="text-gray-700">
-          <span className="text-lg font-bold text-green-600">{module.range}</span>
-          {module.note && <span className="text-sm text-gray-600 ml-2">{module.note}</span>}
+        <h3 className="font-semibold text-white mb-2">Pricing</h3>
+        <p className="text-white/80">
+          <span className="text-lg font-bold text-lime-green">{module.range}</span>
+          {module.note && <span className="text-sm text-white/70 ml-2">{module.note}</span>}
         </p>
       </div>
     )
@@ -688,11 +688,11 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (type === 'hours') {
     return (
       <div>
-        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+        <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
           <Clock className="h-4 w-4" />
           Hours
         </h3>
-        <p className="text-gray-700">{module.schedule}</p>
+        <p className="text-white/80">{module.schedule}</p>
       </div>
     )
   }
@@ -701,15 +701,15 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (type === 'reviews') {
     return (
       <div>
-        <h3 className="font-semibold text-gray-900 mb-2">Reviews</h3>
+        <h3 className="font-semibold text-white mb-2">Reviews</h3>
         {module.rating && (
           <div className="flex items-center gap-2 mb-2">
-            <Star className="h-5 w-5 text-yellow-500 fill-current" />
+            <Star className="h-5 w-5 text-yellow-400 fill-current" />
             <span className="font-bold">{module.rating}</span>
-            {module.count && <span className="text-gray-600 text-sm">({module.count} reviews)</span>}
+            {module.count && <span className="text-white/70 text-sm">({module.count} reviews)</span>}
           </div>
         )}
-        {module.summary && <p className="text-gray-700 text-sm">{module.summary}</p>}
+        {module.summary && <p className="text-white/80 text-sm">{module.summary}</p>}
       </div>
     )
   }
@@ -718,10 +718,10 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (type === 'rating') {
     return (
       <div className="flex items-center gap-2">
-        <Star className="h-5 w-5 text-yellow-500 fill-current" />
+        <Star className="h-5 w-5 text-yellow-400 fill-current" />
         <span className="font-bold text-lg">{module.score}</span>
-        {module.max_score && <span className="text-gray-600">/ {module.max_score}</span>}
-        {module.label && <span className="text-gray-600 text-sm ml-2">{module.label}</span>}
+        {module.max_score && <span className="text-white/70">/ {module.max_score}</span>}
+        {module.label && <span className="text-white/70 text-sm ml-2">{module.label}</span>}
       </div>
     )
   }
@@ -741,9 +741,9 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b border-white/10">
               {module.headers.map((header: string, idx: number) => (
-                <th key={idx} className="text-left py-2 px-3 font-semibold text-gray-900">{header}</th>
+                <th key={idx} className="text-left py-2 px-3 font-semibold text-white">{header}</th>
               ))}
             </tr>
           </thead>
@@ -751,7 +751,7 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
             {module.rows.map((row: string[], rowIdx: number) => (
               <tr key={rowIdx} className="border-b border-gray-100">
                 {row.map((cell: string, cellIdx: number) => (
-                  <td key={cellIdx} className="py-2 px-3 text-gray-700">{cell}</td>
+                  <td key={cellIdx} className="py-2 px-3 text-white/80">{cell}</td>
                 ))}
               </tr>
             ))}
@@ -768,15 +768,15 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   if (module.content) {
     return (
       <div>
-        {module.title && <h3 className="font-semibold text-gray-900 mb-2">{module.title}</h3>}
-        <p className="text-gray-700">{typeof module.content === 'string' ? module.content : JSON.stringify(module.content)}</p>
+        {module.title && <h3 className="font-semibold text-white mb-2">{module.title}</h3>}
+        <p className="text-white/80">{typeof module.content === 'string' ? module.content : JSON.stringify(module.content)}</p>
       </div>
     )
   }
   
   // Last resort - show module type
   return (
-    <div className="text-xs text-gray-400 italic">
+    <div className="text-xs text-white/50 italic">
       Unsupported module: {type}
     </div>
   )

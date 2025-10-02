@@ -54,6 +54,19 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
   return (
     <div className="bg-black/20 backdrop-blur-md border-0 rounded-none px-4 py-4">
       <div className="max-w-md mx-auto">
+        {/* Logo Header */}
+        <div className="mb-3">
+          <h1 className="text-lg font-outfit font-black leading-tight logo-chunky">
+            <span className="gradient-text">CHOOSING </span>
+            <span className="text-white">
+              {session?.category === 'streaming' ? 'SHOWS' : 
+               session?.category === 'build-your-own' ? 'ANYTHING' : 
+               'RESTAURANTS'}
+            </span>
+            <span className="gradient-text"> SUCKS</span>
+          </h1>
+        </div>
+
         {/* Status info - improved typography */}
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-4">
