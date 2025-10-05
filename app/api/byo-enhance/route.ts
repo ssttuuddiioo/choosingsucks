@@ -105,7 +105,7 @@ const BYOEnhancementSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { candidateId, optionName, sessionId } = await req.json()
+    const { candidateId, optionName, sessionId, contextDescription } = await req.json()
 
     if (!candidateId || !optionName || !sessionId) {
       return NextResponse.json(
@@ -165,12 +165,16 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now()
     
     try {
+      const contextInfo = contextDescription 
+        ? `Context: ${contextDescription}\n\n` 
+        : ''
+      
       const response = await openai.responses.parse({
         model: "gpt-5-nano",
         tools: [
           { type: "web_search" }
         ],
-        input: `User is choosing between: ${allOptionNames.join(', ')}
+        input: `${contextInfo}User is choosing between: ${allOptionNames.join(', ')}
 
 Search the web for current information about: "${optionName}"
 
@@ -186,6 +190,12 @@ Golf Course:
 - pricing: {range: "$20-50", note: "Varies by season"}
 - hours: {schedule: "Daily 7am-7pm"}
 - reviews: {rating: "4.2", count: "150", summary: "Well-maintained course"}
+
+Rental Car (e.g. Economy Car, Luxury Sedan):
+- title_and_paragraph: {title: "Overview", content: "Description of vehicle type and features"}
+- pricing: {range: "$30-80 per day", note: "Prices vary by location and season"}
+- key_value_pairs: {pairs: [{key: "Category", value: "Economy"}, {key: "Capacity", value: "5 passengers"}, {key: "Fuel Type", value: "Gasoline"}]}
+- title_and_list: {title: "Common Features", items: ["Air conditioning", "Automatic transmission", "Bluetooth"]}
 
 Baby Name:
 - title_and_paragraph: {title: "Meaning & Origin", content: "Latin origin..."}
@@ -213,19 +223,53 @@ NO meta-commentary. NO conversational language. Just factual modules.`,
       // Clean citation markers from all text content
       const cleanCitationMarkers = (text: string): string => {
         if (!text) return text
-        // Remove ≡cite≡turn0search0≡ style markers and any remaining ≡...≡ patterns
-        return text.replace(/≡cite≡[^≡]*≡/g, '').replace(/≡[^≡]*≡/g, '').trim()
+        // Remove all citation markers and view indicators
+        let cleaned = text.replace(/≡cite≡[^≡]*≡/g, '')
+        cleaned = cleaned.replace(/≡turn\d+view\d+≡/g, '')
+        cleaned = cleaned.replace(/≡[^≡]*≡/g, '')
+        return cleaned.trim()
       }
       
       // Clean all modules
       if (parsedData.modules) {
         parsedData.modules = parsedData.modules.map((module: any) => {
           const cleaned = { ...module }
+          // Clean all text fields
           if (cleaned.content) cleaned.content = cleanCitationMarkers(cleaned.content)
           if (cleaned.title) cleaned.title = cleanCitationMarkers(cleaned.title)
           if (cleaned.text) cleaned.text = cleanCitationMarkers(cleaned.text)
           if (cleaned.summary) cleaned.summary = cleanCitationMarkers(cleaned.summary)
+          if (cleaned.message) cleaned.message = cleanCitationMarkers(cleaned.message)
+          if (cleaned.range) cleaned.range = cleanCitationMarkers(cleaned.range)
+          if (cleaned.note) cleaned.note = cleanCitationMarkers(cleaned.note)
+          if (cleaned.schedule) cleaned.schedule = cleanCitationMarkers(cleaned.schedule)
+          if (cleaned.label) cleaned.label = cleanCitationMarkers(cleaned.label)
+          if (cleaned.source) cleaned.source = cleanCitationMarkers(cleaned.source)
+          if (cleaned.address) cleaned.address = cleanCitationMarkers(cleaned.address)
+          if (cleaned.city) cleaned.city = cleanCitationMarkers(cleaned.city)
+          if (cleaned.state) cleaned.state = cleanCitationMarkers(cleaned.state)
+          if (cleaned.alt_text) cleaned.alt_text = cleanCitationMarkers(cleaned.alt_text)
+          if (cleaned.name) cleaned.name = cleanCitationMarkers(cleaned.name)
+          
+          // Clean arrays
           if (cleaned.items) cleaned.items = cleaned.items.map((item: string) => cleanCitationMarkers(item))
+          
+          // Clean nested objects
+          if (cleaned.pairs && Array.isArray(cleaned.pairs)) {
+            cleaned.pairs = cleaned.pairs.map((pair: any) => ({
+              key: cleanCitationMarkers(pair.key),
+              value: cleanCitationMarkers(pair.value)
+            }))
+          }
+          
+          if (cleaned.images && Array.isArray(cleaned.images)) {
+            cleaned.images = cleaned.images.map((img: any) => ({
+              ...img,
+              url: cleanCitationMarkers(img.url),
+              alt_text: cleanCitationMarkers(img.alt_text)
+            }))
+          }
+          
           return cleaned
         })
       }

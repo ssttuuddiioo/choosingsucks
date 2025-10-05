@@ -9,6 +9,10 @@ interface BYOCardProps {
 }
 
 export default function BYOCard({ candidate, onLearnMore }: BYOCardProps) {
+  // Only show Learn More for AI-generated or AI-extracted options
+  const showLearnMore = onLearnMore && 
+    candidate.metadata && 
+    (candidate.metadata as any).source_type !== 'manual'
   return (
     <div className="h-full w-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
       {/* Main content area with gradient */}
@@ -30,11 +34,11 @@ export default function BYOCard({ candidate, onLearnMore }: BYOCardProps) {
         )}
         
         {/* Learn More Button - Bottom right */}
-        {onLearnMore && (
+        {showLearnMore && (
           <button
             onClick={(e) => {
               e.stopPropagation()
-              onLearnMore()
+              onLearnMore!()
             }}
             className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 z-10"
           >

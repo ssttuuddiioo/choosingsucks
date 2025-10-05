@@ -5,6 +5,7 @@ import { X, MapPin, Phone, Globe, Star, Clock, Calendar, ExternalLink, ChevronLe
 import type { Tables } from '@/types/supabase'
 import { cn } from '@/lib/utils/cn'
 import { env } from '@/lib/utils/env'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Drawer,
   DrawerClose,
@@ -19,6 +20,9 @@ interface LearnMoreModalProps {
   isOpen: boolean
   onClose: () => void
   userLocation?: { city: string; region: string; country: string }
+  contextDescription?: string
+  previewMode?: boolean
+  allOptions?: string[]
 }
 
 interface EnhancedData {
@@ -48,7 +52,10 @@ export default function LearnMoreModal({
   category, 
   isOpen, 
   onClose,
-  userLocation 
+  userLocation,
+  contextDescription,
+  previewMode = false,
+  allOptions = []
 }: LearnMoreModalProps) {
   const [enhancedData, setEnhancedData] = useState<EnhancedData>({ loading: true })
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
@@ -111,22 +118,52 @@ export default function LearnMoreModal({
             })
           }
         } else if (actualCategory === 'build-your-own' || contentType === 'custom_option') {
-          // Check if AI enhancement is enabled for this session
-          const response = await fetch('/api/byo-enhance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              candidateId: candidate.id,
-              optionName: candidate.name,
-              sessionId: candidate.session_id
-            })
-          })
-          
-          if (response.ok) {
-            const data = await response.json()
-            setEnhancedData({ ...data, loading: false })
+          // Check if we're in preview mode (host screen before session creation)
+          if (previewMode) {
+            // Check for cached data first
+            const cachedData = candidate.metadata?.cachedEnhancement
+            if (cachedData) {
+              console.log('📦 Using cached enhancement data')
+              setEnhancedData({ ...cachedData, loading: false })
+            } else {
+              // Use the preview endpoint
+              console.log('🔍 Fetching enhancement data')
+              const response = await fetch('/api/byo-enhance-preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  optionName: candidate.name,
+                  contextDescription: contextDescription,
+                  allOptions: allOptions
+                })
+              })
+              
+              if (response.ok) {
+                const data = await response.json()
+                setEnhancedData({ ...data, loading: false })
+              } else {
+                setEnhancedData({ loading: false })
+              }
+            }
           } else {
-            setEnhancedData({ loading: false })
+            // Regular mode - check if AI enhancement is enabled for this session
+            const response = await fetch('/api/byo-enhance', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                candidateId: candidate.id,
+                optionName: candidate.name,
+                sessionId: candidate.session_id,
+                contextDescription: contextDescription
+              })
+            })
+            
+            if (response.ok) {
+              const data = await response.json()
+              setEnhancedData({ ...data, loading: false })
+            } else {
+              setEnhancedData({ loading: false })
+            }
           }
         }
       } catch (err) {
@@ -264,8 +301,16 @@ export default function LearnMoreModal({
           <div className="p-6 space-y-6 pb-12">
             {/* Loading State */}
             {enhancedData.loading && (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-electric-purple"></div>
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/5" />
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+                <Skeleton className="h-32 w-full" />
               </div>
             )}
 

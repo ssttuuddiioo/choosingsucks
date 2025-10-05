@@ -15,9 +15,10 @@ interface ImageUploadProps {
   onOptionsExtracted: (options: ExtractedOption[]) => void
   disabled?: boolean
   sessionTitle?: string
+  aiDescription?: string
 }
 
-export default function ImageUpload({ onOptionsExtracted, disabled = false, sessionTitle }: ImageUploadProps) {
+export default function ImageUpload({ onOptionsExtracted, disabled = false, sessionTitle, aiDescription }: ImageUploadProps) {
   const [state, setState] = useState<{
     dragActive: boolean
     uploading: boolean
@@ -95,8 +96,8 @@ export default function ImageUpload({ onOptionsExtracted, disabled = false, sess
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image_url: base64,
-          context: sessionTitle 
-            ? `The user is trying to decide: "${sessionTitle}". This image contains voting options or ideas from a workshop or brainstorming session`
+          context: aiDescription 
+            ? `${aiDescription}. This image contains voting options or ideas from a workshop or brainstorming session`
             : 'This image contains voting options or ideas from a workshop or brainstorming session'
         })
       })

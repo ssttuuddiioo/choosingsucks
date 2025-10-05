@@ -611,6 +611,7 @@ export default function SessionPage() {
         onSwipe={handleSwipe}
         renderCard={renderCard}
         categoryName={session.category || "restaurants"}
+        contextDescription={(session as any)?.preferences?.contextDescription}
       />
     </div>
   )

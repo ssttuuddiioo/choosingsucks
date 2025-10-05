@@ -16,6 +16,7 @@ interface BuildYourOwnRequest {
   requireNames: boolean
   inviteCount: number
   aiEnhancementEnabled?: boolean
+  contextDescription?: string
   customOptions: Array<{
     title: string
     description?: string
@@ -63,7 +64,8 @@ async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
       ai_enhancement_enabled: body.aiEnhancementEnabled || false,
       preferences: {
         sessionTitle: sessionTitle.trim(),
-        customOptionsCount: customOptions.length
+        customOptionsCount: customOptions.length,
+        contextDescription: body.contextDescription || null
       }
     }
     

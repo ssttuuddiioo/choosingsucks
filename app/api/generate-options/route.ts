@@ -48,11 +48,7 @@ export async function POST(request: NextRequest) {
 
     const count = Math.min(Math.max(body.count || 8, 2), 20) // Between 2-20, default 8
 
-    const contextInfo = body.sessionTitle 
-      ? `The user is trying to decide: "${body.sessionTitle.trim()}"` 
-      : ''
-
-    const prompt = `${contextInfo ? `${contextInfo}\n\n` : ''}Based on this description: "${body.description.trim()}"
+    const prompt = `Based on this description: "${body.description.trim()}"
 
 Generate ${count} distinct options that people could vote on for this decision. Each option should be:
 1. Specific and actionable

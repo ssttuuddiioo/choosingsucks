@@ -17,6 +17,7 @@ import {
   Wrench,
   Info
 } from 'lucide-react'
+import LearnMoreModal from '@/components/shared/learn-more-modal'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
@@ -29,6 +30,7 @@ interface CustomOption {
   description?: string
   source_type: 'manual' | 'ai_extracted' | 'ai_generated'
   metadata?: Record<string, any>
+  hasLearnMoreCache?: boolean
 }
 
 export default function BuildYourOwnPage() {
@@ -38,17 +40,18 @@ export default function BuildYourOwnPage() {
   const isMultiPersonEnabled = process.env.NEXT_PUBLIC_ENABLE_MULTI_PERSON === 'true'
   
   // Form state
-  const [sessionTitle, setSessionTitle] = useState('')
+  const [sessionTitle, setSessionTitle] = useState('Custom Options')
   const [requireNames, setRequireNames] = useState(false)
   const [inviteCount, setInviteCount] = useState<number>(2)
   const [options, setOptions] = useState<CustomOption[]>([])
   
   // UI state
   const [isCreating, setIsCreating] = useState(false)
-  const [showAddOptions, setShowAddOptions] = useState(false)
   const [activeTab, setActiveTab] = useState<'manual' | 'ai-generate'>('manual')
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null)
+  const [showLearnMoreModal, setShowLearnMoreModal] = useState(false)
+  const [selectedOption, setSelectedOption] = useState<CustomOption | null>(null)
   
   // Manual entry state
   const [optionTitle, setOptionTitle] = useState('')
@@ -88,28 +91,97 @@ export default function BuildYourOwnPage() {
     }
   }
 
-  const handleSessionTitleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && sessionTitle.trim()) {
-      e.preventDefault()
-      setShowAddOptions(true)
-    }
-  }
-
-  const handleAddOptionsClick = () => {
-    if (sessionTitle.trim()) {
-      setShowAddOptions(true)
-    }
-  }
 
   const removeOption = (id: string) => {
+    const option = options.find(o => o.id === id)
+    if (option) {
+      console.log('🗑️ Deleting option and cache:', option.title)
+    }
     setOptions(options.filter(option => option.id !== id))
     setEditingOptionId(null)
   }
 
   const updateOption = (id: string, updates: Partial<CustomOption>) => {
+    const option = options.find(o => o.id === id)
+    const titleChanged = updates.title && updates.title !== option?.title
+    
     setOptions(options.map(option => 
-      option.id === id ? { ...option, ...updates } : option
+      option.id === id 
+        ? { 
+            ...option, 
+            ...updates, 
+            hasLearnMoreCache: false,
+            metadata: titleChanged ? {} : option.metadata // Clear cache if title changed
+          } 
+        : option
     ))
+    
+    // If title changed, re-fetch Learn More cache
+    if (titleChanged && updates.title) {
+      console.log('✏️ Option edited, re-fetching cache:', updates.title)
+      setTimeout(() => {
+        fetchLearnMoreCache(id, updates.title!)
+      }, 100)
+    }
+  }
+  
+  // Fetch Learn More cache in background
+  const fetchLearnMoreCache = (optionId: string, optionTitle: string) => {
+    const option = options.find(o => o.id === optionId)
+    if (!option) return
+    
+    // Skip if already cached
+    if (option.hasLearnMoreCache || option.metadata?.cachedEnhancement) {
+      return
+    }
+
+    console.log('🔍 Auto-fetching Learn More data for:', optionTitle)
+    fetch('/api/byo-enhance-preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        optionName: optionTitle,
+        contextDescription: aiDescription.trim() || undefined,
+        allOptions: options.map(o => o.title)
+      })
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ Learn More data cached for:', optionTitle)
+          setOptions(prevOptions => 
+            prevOptions.map(opt => 
+              opt.id === optionId 
+                ? { 
+                    ...opt, 
+                    hasLearnMoreCache: true,
+                    metadata: { 
+                      ...opt.metadata,
+                      cachedEnhancement: data 
+                    } 
+                  } 
+                : opt
+            )
+          )
+        }
+      })
+      .catch((error) => {
+        console.error('Error caching learn more:', error)
+      })
+  }
+
+  const handleLearnMore = (optionId: string) => {
+    const option = options.find(o => o.id === optionId)
+    if (!option) return
+
+    // Open modal immediately
+    setSelectedOption(option)
+    setShowLearnMoreModal(true)
+
+    // Trigger fetch if not already cached (shouldn't happen often now)
+    if (!option.hasLearnMoreCache && !option.metadata?.cachedEnhancement) {
+      fetchLearnMoreCache(optionId, option.title)
+    }
   }
 
   const handleDragEnd = (event: any) => {
@@ -135,6 +207,13 @@ export default function BuildYourOwnPage() {
     
     // Replace all existing options with new ones
     setOptions(newOptions)
+    
+    // Automatically trigger web searches for all extracted options
+    setTimeout(() => {
+      newOptions.forEach(option => {
+        fetchLearnMoreCache(option.id, option.title)
+      })
+    }, 100)
   }
 
   const generateAiOptions = async () => {
@@ -147,8 +226,7 @@ export default function BuildYourOwnPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           description: aiDescription.trim(),
-          count: aiOptionCount,
-          sessionTitle: sessionTitle.trim()
+          count: aiOptionCount
         })
       })
 
@@ -175,6 +253,13 @@ export default function BuildYourOwnPage() {
       setOptions(newOptions)
       setAiDescription('')
       
+      // Automatically trigger web searches for all generated options
+      setTimeout(() => {
+        newOptions.forEach(option => {
+          fetchLearnMoreCache(option.id, option.title)
+        })
+      }, 100)
+      
     } catch (err) {
       console.error('Error generating options:', err)
       // You might want to show a toast notification here
@@ -200,11 +285,22 @@ export default function BuildYourOwnPage() {
           requireNames,
           inviteCount,
           aiEnhancementEnabled: true, // Always enabled for BYO Learn More
+          contextDescription: aiDescription.trim() || undefined, // Pass the context
           customOptions: options.map(opt => ({
             title: opt.title,
             description: opt.description,
             source_type: opt.source_type,
-            metadata: opt.metadata || {}
+            metadata: {
+              ...(opt.metadata || {}),
+              // Pass cached enhancement data to be saved in Supabase
+              ...(opt.metadata?.cachedEnhancement ? {
+                aiEnhanced: true,
+                enhancedAt: new Date().toISOString(),
+                webSearchUsed: true,
+                enhancedModules: opt.metadata.cachedEnhancement.modules,
+                citations: opt.metadata.cachedEnhancement.citations
+              } : {})
+            }
           }))
         })
       })
@@ -267,42 +363,16 @@ export default function BuildYourOwnPage() {
       {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto pb-safe">
         <div className="max-w-4xl mx-auto p-4 space-y-6 pb-8">
-          {/* Session Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
-          >
-            <h2 className="text-lg font-bold text-white mb-4">What are you trying to decide?</h2>
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={sessionTitle}
-                onChange={(e) => setSessionTitle(e.target.value)}
-                onKeyPress={handleSessionTitleKeyPress}
-                placeholder="e.g., Best superhero"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-electric-purple focus:border-transparent"
-              />
-              
-              {!showAddOptions && (
-                <button
-                  onClick={handleAddOptionsClick}
-                  disabled={!sessionTitle.trim()}
-                  className={`w-full py-3 rounded-xl font-semibold text-lg transition-all duration-300 transform flex items-center justify-center gap-2 ${
-                    sessionTitle.trim()
-                      ? 'bg-gradient-electric text-white hover:scale-105 active:scale-95'
-                      : 'bg-white/20 text-white/50 cursor-not-allowed'
-                  }`}
-                >
-                  <Plus className="h-5 w-5" />
-                  Add Options
-                </button>
-              )}
-            </div>
-            
-            {isMultiPersonEnabled && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          {/* Session Settings */}
+          {isMultiPersonEnabled && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+            >
+              <h2 className="text-lg font-bold text-white mb-4">Session Settings</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-white mb-2">
                     How many people?
@@ -332,11 +402,11 @@ export default function BuildYourOwnPage() {
                   </label>
                 </div>
               </div>
-            )}
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* Add Options */}
-          {showAddOptions && (
+          {(
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -426,7 +496,7 @@ export default function BuildYourOwnPage() {
                     </div>
                   <button
                     onClick={generateAiOptions}
-                    disabled={!aiDescription.trim() || !sessionTitle.trim() || isGenerating}
+                    disabled={!aiDescription.trim() || isGenerating}
                     className="flex items-center gap-2 bg-gradient-electric text-white px-4 py-2 rounded-xl text-sm font-medium hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
                   >
                       {isGenerating ? (
@@ -454,8 +524,9 @@ export default function BuildYourOwnPage() {
                 {/* Photo Upload */}
                 <ImageUpload 
                   onOptionsExtracted={handleImageOptionsExtracted}
-                  disabled={isCreating || !sessionTitle.trim()}
+                  disabled={isCreating || !aiDescription.trim()}
                   sessionTitle={sessionTitle.trim()}
+                  aiDescription={aiDescription.trim()}
                 />
               </div>
             )}
@@ -463,7 +534,7 @@ export default function BuildYourOwnPage() {
           )}
 
           {/* Options Preview */}
-          {showAddOptions && options.length > 0 && (
+          {options.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -506,6 +577,7 @@ export default function BuildYourOwnPage() {
                         onRemove={removeOption}
                         onEdit={setEditingOptionId}
                         onUpdate={updateOption}
+                        onLearnMore={handleLearnMore}
                       />
                     ))}
                   </div>
@@ -521,7 +593,7 @@ export default function BuildYourOwnPage() {
           )}
 
           {/* Start Button */}
-          {showAddOptions && (
+          {(
             <motion.div 
               className="space-y-4"
               initial={{ opacity: 0, y: 20 }}
@@ -562,6 +634,36 @@ export default function BuildYourOwnPage() {
           )}
         </div>
       </div>
+
+      {/* Learn More Modal */}
+      {selectedOption && (
+        <LearnMoreModal
+          candidate={{
+            id: selectedOption.id,
+            session_id: 'preview', // Special flag for preview mode
+            name: selectedOption.title,
+            title: selectedOption.title,
+            description: selectedOption.description,
+            category: 'build-your-own',
+            content_type: 'custom_option',
+            metadata: selectedOption.metadata,
+            place_id: '',
+            external_id: '',
+            lat: 0,
+            lng: 0,
+            created_at: new Date().toISOString()
+          } as any}
+          category="build-your-own"
+          isOpen={showLearnMoreModal}
+          onClose={() => {
+            setShowLearnMoreModal(false)
+            setSelectedOption(null)
+          }}
+          contextDescription={aiDescription.trim() || undefined}
+          previewMode={true}
+          allOptions={options.map(o => o.title)}
+        />
+      )}
     </div>
   )
 }
@@ -574,7 +676,8 @@ function SortableOption({
   isEditing,
   onRemove, 
   onEdit,
-  onUpdate
+  onUpdate,
+  onLearnMore
 }: {
   option: CustomOption
   index: number
@@ -583,6 +686,7 @@ function SortableOption({
   onRemove: (id: string) => void
   onEdit: (id: string | null) => void
   onUpdate: (id: string, updates: Partial<CustomOption>) => void
+  onLearnMore: (id: string) => void
 }) {
   const {
     attributes,
@@ -691,20 +795,43 @@ function SortableOption({
             )}
           </div>
 
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             {!isReorderMode && (
-              <button
-                onClick={() => onEdit(option.id)}
-                className="p-1 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors"
-              >
-                <Edit3 className="w-3 h-3" />
-              </button>
+              <>
+                {/* Only show Learn More for AI-generated or AI-extracted options */}
+                {(option.source_type === 'ai_generated' || option.source_type === 'ai_extracted') && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onLearnMore(option.id)
+                    }}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95"
+                    title="Learn more"
+                  >
+                    <Info className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit(option.id)
+                  }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95"
+                  title="Edit"
+                >
+                  <Edit3 className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+              </>
             )}
             <button
-              onClick={() => onRemove(option.id)}
-              className="p-1 text-white/50 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRemove(option.id)
+              }}
+              className="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95"
+              title="Remove"
             >
-              <X className="w-3 h-3" />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>

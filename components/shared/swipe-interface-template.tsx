@@ -12,13 +12,15 @@ interface SwipeInterfaceTemplateProps {
   onSwipe: (candidateId: string, vote: boolean) => void
   renderCard: (candidate: Tables<'candidates'>, onLearnMore?: () => void) => React.ReactNode
   categoryName: string
+  contextDescription?: string
 }
 
 export default function SwipeInterfaceTemplate({ 
   candidates, 
   onSwipe, 
   renderCard,
-  categoryName 
+  categoryName,
+  contextDescription
 }: SwipeInterfaceTemplateProps) {
   const [currentIndex, setCurrentIndex] = useState(candidates.length - 1)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -200,6 +202,7 @@ export default function SwipeInterfaceTemplate({
             setShowLearnMore(false)
             setSelectedCandidate(null)
           }}
+          contextDescription={contextDescription}
         />
       )}
     </div>
