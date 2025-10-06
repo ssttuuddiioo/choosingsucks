@@ -539,7 +539,7 @@ export default function BuildYourOwnPage() {
                 {/* Photo Upload */}
                 <ImageUpload 
                   onOptionsExtracted={handleImageOptionsExtracted}
-                  disabled={isCreating || !aiDescription.trim()}
+                  disabled={isCreating}
                   sessionTitle={sessionTitle.trim()}
                   aiDescription={aiDescription.trim()}
                 />
@@ -641,11 +641,6 @@ export default function BuildYourOwnPage() {
               )}
             </button>
 
-            {!canStartSession() && (
-              <p className="text-white/60 text-sm text-center">
-                Add a title and at least 2 options to start your session
-              </p>
-            )}
           </motion.div>
           )}
         </div>
