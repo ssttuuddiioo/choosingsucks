@@ -492,6 +492,7 @@ export default function BuildYourOwnPage() {
                     onChange={(e) => setAiDescription(e.target.value)}
                     placeholder="Describe what you're trying to decide... (e.g., 'Superheroes from the Marvel Cinematic Universe')"
                     rows={3}
+                    autoFocus
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-electric-purple focus:border-transparent resize-none"
                   />
                   <div className="flex items-center gap-4">
@@ -537,12 +538,14 @@ export default function BuildYourOwnPage() {
                 </div>
 
                 {/* Photo Upload */}
-                <ImageUpload 
-                  onOptionsExtracted={handleImageOptionsExtracted}
-                  disabled={isCreating}
-                  sessionTitle={sessionTitle.trim()}
-                  aiDescription={aiDescription.trim()}
-                />
+                <div className={`transition-opacity duration-300 ${!aiDescription.trim() ? 'opacity-40' : 'opacity-100'}`}>
+                  <ImageUpload 
+                    onOptionsExtracted={handleImageOptionsExtracted}
+                    disabled={isCreating || !aiDescription.trim()}
+                    sessionTitle={sessionTitle.trim()}
+                    aiDescription={aiDescription.trim()}
+                  />
+                </div>
               </div>
             )}
           </motion.div>
