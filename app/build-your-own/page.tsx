@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { 
@@ -36,6 +36,9 @@ interface CustomOption {
 export default function BuildYourOwnPage() {
   const router = useRouter()
   
+  // Ref for auto-scrolling
+  const startButtonRef = useRef<HTMLDivElement>(null)
+  
   // Check if multi-person sessions are enabled
   const isMultiPersonEnabled = process.env.NEXT_PUBLIC_ENABLE_MULTI_PERSON === 'true'
   
@@ -63,7 +66,11 @@ export default function BuildYourOwnPage() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before starting drag
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -207,6 +214,14 @@ export default function BuildYourOwnPage() {
     newOptions.forEach(option => {
       fetchLearnMoreCache(option.id, option.title, allTitles)
     })
+    
+    // Auto-scroll to bottom after a brief delay to let UI update
+    setTimeout(() => {
+      startButtonRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'end' 
+      })
+    }, 300)
   }
 
   const generateAiOptions = async () => {
@@ -251,6 +266,14 @@ export default function BuildYourOwnPage() {
       newOptions.forEach(option => {
         fetchLearnMoreCache(option.id, option.title, allTitles)
       })
+      
+      // Auto-scroll to bottom after a brief delay to let UI update
+      setTimeout(() => {
+        startButtonRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end' 
+        })
+      }, 300)
       
     } catch (err) {
       console.error('Error generating options:', err)
@@ -587,6 +610,7 @@ export default function BuildYourOwnPage() {
           {/* Start Button */}
           {(
             <motion.div 
+              ref={startButtonRef}
               className="space-y-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -809,18 +833,18 @@ function SortableOption({
                 >
                   <Edit3 className="h-4 w-4" />
                 </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemove(option.id)
+                  }}
+                  className="bg-red-100 hover:bg-red-200 text-red-600 p-1.5 sm:p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 flex-shrink-0"
+                  title="Remove"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </>
             )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onRemove(option.id)
-              }}
-              className="bg-red-100 hover:bg-red-200 text-red-600 p-1.5 sm:p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 flex-shrink-0"
-              title="Remove"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         </div>
       )}
