@@ -1,0 +1,70 @@
+🧪 Testing Learn More via local API endpoint...
+================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Testing: Tesla Model 3
+   Context: Electric vehicles from Tesla, BMW, Audi
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ Error parsing response: Expecting value: line 1 column 1 (char 0)
+
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Testing: Yosemite National Park
+   Context: National parks to visit
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Received 5 modules:
+  1. [title_and_paragraph] - Overview (335 chars)
+  2. [location] - PO Box 577
+  3. [title_and_list] - Major destinations (4 items)
+  4. [pricing] - Entrance fees apply; current rates vary by vehicle and duration. (Check the official Yosemite/National Park Service site for up-to-date pricing.)
+  5. [hours] - Park is open year-round with some roads/areas seasonally closed due to snow; always check current conditions and alerts before visiting.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Testing: iPhone 15 Pro
+   Context: Smartphones to buy
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ Error parsing response: Expecting value: line 1 column 1 (char 0)
+
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Testing: Pizza Margherita
+   Context: Dinner options
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Received 4 modules:
+  1. [title_and_paragraph] - Overview (318 chars)
+  2. [key_value_pairs] - 4 pairs
+      • Origin: Naples, Italy
+      • Main ingredients: Tomatoes, mozzarella, fresh basil, olive oil, dough (00 flour)
+      • Typical cooking method: Wood-fired oven; hand-stretched dough
+  3. [title_and_list] - Core ingredients (5 items)
+  4. [quote]
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Testing: Golden Retriever
+   Context: Dog breeds
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Received 4 modules:
+  1. [title_and_paragraph] - Overview (375 chars)
+  2. [key_value_pairs] - 4 pairs
+      • Origin: Scotland (19th century)
+      • Sporting Group: Retrieving/Water work
+      • Life Expectancy: 10–12 years
+  3. [title_and_list] - Care & Training Tips (4 items)
+  4. [image_gallery] - 3 images
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Testing: Blue
+   Context: Favorite colors
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Received 3 modules:
+  1. [color_block] - Blue (#0000FF)
+  2. [title_and_paragraph] - Symbolism (153 chars)
+  3. [tags] - 4 tags: Calm, Trust, Professional, Cool
+
+
+✅ Testing complete!

@@ -531,10 +531,10 @@ export default function BuildYourOwnPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+              className="sm:bg-white/10 sm:backdrop-blur-sm sm:rounded-2xl sm:p-6 sm:border sm:border-white/10"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-white">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 className="text-base sm:text-lg font-bold text-white">
                   Your Options ({options.length})
                 </h2>
                 {options.length > 1 && (
@@ -727,7 +727,7 @@ function SortableOption({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white/10 border border-white/20 rounded-xl p-4 ${
+      className={`bg-white/10 border border-white/20 rounded-xl p-2.5 sm:p-4 ${
         isDragging ? 'shadow-lg' : ''
       } ${isReorderMode ? 'cursor-grab' : ''}`}
       {...(isReorderMode ? { ...attributes, ...listeners } : {})}
@@ -764,19 +764,20 @@ function SortableOption({
           </div>
         </div>
       ) : (
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-2 sm:gap-3">
           {isReorderMode && (
             <div className="flex-shrink-0 mt-1">
               <GripVertical className="w-4 h-4 text-white/50" />
             </div>
           )}
           
-          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs font-medium text-white">
+          {/* Hide icon on mobile, show on larger screens */}
+          <div className="hidden sm:flex flex-shrink-0 w-6 h-6 rounded-full bg-white/20 items-center justify-center text-xs font-medium text-white">
             {getSourceIcon()}
           </div>
           
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-white truncate">{option.title}</h4>
+            <h4 className="font-medium text-white text-sm sm:text-base break-words">{option.title}</h4>
             {option.description && (
               <p className="text-xs text-white/70 mt-1 line-clamp-2">{option.description}</p>
             )}
@@ -787,7 +788,7 @@ function SortableOption({
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             {!isReorderMode && (
               <>
                 {/* Only show Learn More for AI-generated or AI-extracted options */}
@@ -797,10 +798,10 @@ function SortableOption({
                       e.stopPropagation()
                       onLearnMore(option.id)
                     }}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95"
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-1.5 sm:p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 flex-shrink-0"
                     title="Learn more"
                   >
-                    <Info className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <Info className="h-4 w-4" />
                   </button>
                 )}
                 <button
@@ -808,10 +809,10 @@ function SortableOption({
                     e.stopPropagation()
                     onEdit(option.id)
                   }}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-1.5 sm:p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 flex-shrink-0"
                   title="Edit"
                 >
-                  <Edit3 className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Edit3 className="h-4 w-4" />
                 </button>
               </>
             )}
@@ -820,10 +821,10 @@ function SortableOption({
                 e.stopPropagation()
                 onRemove(option.id)
               }}
-              className="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95"
+              className="bg-red-100 hover:bg-red-200 text-red-600 p-1.5 sm:p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 flex-shrink-0"
               title="Remove"
             >
-              <X className="h-4 w-4 sm:h-5 sm:w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
