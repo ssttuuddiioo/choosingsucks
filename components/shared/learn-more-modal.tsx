@@ -67,6 +67,14 @@ export default function LearnMoreModal({
     const fetchEnhancedData = async () => {
       setEnhancedData({ loading: true })
       
+      // Set timeout for slow responses
+      const timeoutId = setTimeout(() => {
+        setEnhancedData({ 
+          loading: false, 
+          error: 'Request timed out. Please try again.' 
+        })
+      }, 15000) // 15 second timeout
+      
       try {
         // Determine actual category from candidate data (more reliable than prop)
         const actualCategory = candidate.category || category
@@ -169,6 +177,8 @@ export default function LearnMoreModal({
       } catch (err) {
         console.error('Error fetching enhanced data:', err)
         setEnhancedData({ loading: false, error: 'Failed to load details' })
+      } finally {
+        clearTimeout(timeoutId)
       }
     }
 
@@ -667,8 +677,16 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
   // hero_image
   if (type === 'hero_image' && module.image_url) {
     return (
-      <div className="rounded-lg overflow-hidden">
-        <img src={module.image_url} alt={module.alt_text || candidateName} className="w-full h-48 object-cover" />
+      <div className="rounded-lg overflow-hidden bg-white/5">
+        <img 
+          src={module.image_url} 
+          alt={module.alt_text || candidateName} 
+          className="w-full h-48 object-cover" 
+          onError={(e) => {
+            // Hide image if it fails to load
+            (e.target as HTMLElement).style.display = 'none'
+          }}
+        />
       </div>
     )
   }
@@ -678,7 +696,16 @@ function ModuleRenderer({ module, candidateName }: { module: any; candidateName:
     return (
       <div className="grid grid-cols-2 gap-2">
         {module.images.slice(0, 4).map((img: any, idx: number) => (
-          <img key={idx} src={img.url} alt={img.alt_text || ''} className="w-full h-32 object-cover rounded-lg" />
+          <img 
+            key={idx} 
+            src={img.url} 
+            alt={img.alt_text || ''} 
+            className="w-full h-32 object-cover rounded-lg bg-white/5" 
+            onError={(e) => {
+              // Hide image if it fails to load
+              (e.target as HTMLElement).style.display = 'none'
+            }}
+          />
         ))}
       </div>
     )
