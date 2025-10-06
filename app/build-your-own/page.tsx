@@ -403,9 +403,9 @@ export default function BuildYourOwnPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+              className="sm:bg-white/10 sm:backdrop-blur-sm sm:rounded-2xl sm:p-6 sm:border sm:border-white/10"
             >
-            <h2 className="text-lg font-bold text-white mb-4">Add Options</h2>
+            <h2 className="text-base sm:text-lg font-bold text-white mb-4">Add Options</h2>
             
             {/* Tab Navigation */}
             <div className="flex space-x-1 mb-6 bg-white/5 rounded-xl p-1">
@@ -781,14 +781,9 @@ function SortableOption({
             {option.description && (
               <p className="text-xs text-white/70 mt-1 line-clamp-2">{option.description}</p>
             )}
-            {option.source_type !== 'manual' && (
-              <span className="inline-block text-xs bg-white/20 text-white/80 px-2 py-0.5 rounded-full mt-1">
-                {option.source_type === 'ai_extracted' ? 'From Photo' : 'AI Generated'}
-              </span>
-            )}
           </div>
 
-          <div className="flex gap-1.5 sm:gap-2">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-2">
             {!isReorderMode && (
               <>
                 {/* Only show Learn More for AI-generated or AI-extracted options */}
