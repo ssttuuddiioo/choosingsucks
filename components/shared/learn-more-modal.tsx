@@ -67,13 +67,13 @@ export default function LearnMoreModal({
     const fetchEnhancedData = async () => {
       setEnhancedData({ loading: true })
       
-      // Set timeout for slow responses
+      // Set timeout for slow responses (30s - well under Vercel Team 60s limit)
       const timeoutId = setTimeout(() => {
         setEnhancedData({ 
           loading: false, 
           error: 'Request timed out. Please try again.' 
         })
-      }, 15000) // 15 second timeout
+      }, 30000) // 30 second timeout
       
       try {
         // Determine actual category from candidate data (more reliable than prop)
