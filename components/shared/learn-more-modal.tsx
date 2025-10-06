@@ -121,7 +121,7 @@ export default function LearnMoreModal({
           // Check if we're in preview mode (host screen before session creation)
           if (previewMode) {
             // Check for cached data first
-            const cachedData = candidate.metadata?.cachedEnhancement
+            const cachedData = (candidate.metadata as any)?.cachedEnhancement
             if (cachedData) {
               console.log('📦 Using cached enhancement data')
               setEnhancedData({ ...cachedData, loading: false })
