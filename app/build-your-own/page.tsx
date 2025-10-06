@@ -120,21 +120,14 @@ export default function BuildYourOwnPage() {
     if (titleChanged && updates.title) {
       console.log('✏️ Option edited, re-fetching cache:', updates.title)
       setTimeout(() => {
-        fetchLearnMoreCache(id, updates.title!)
+        const allTitles = options.map(o => o.id === id ? updates.title! : o.title)
+        fetchLearnMoreCache(id, updates.title!, allTitles)
       }, 100)
     }
   }
   
   // Fetch Learn More cache in background
-  const fetchLearnMoreCache = (optionId: string, optionTitle: string) => {
-    const option = options.find(o => o.id === optionId)
-    if (!option) return
-    
-    // Skip if already cached
-    if (option.hasLearnMoreCache || option.metadata?.cachedEnhancement) {
-      return
-    }
-
+  const fetchLearnMoreCache = (optionId: string, optionTitle: string, allOptionTitles: string[]) => {
     console.log('🔍 Auto-fetching Learn More data for:', optionTitle)
     fetch('/api/byo-enhance-preview', {
       method: 'POST',
@@ -142,7 +135,7 @@ export default function BuildYourOwnPage() {
       body: JSON.stringify({
         optionName: optionTitle,
         contextDescription: aiDescription.trim() || undefined,
-        allOptions: options.map(o => o.title)
+        allOptions: allOptionTitles
       })
     })
       .then(async (response) => {
@@ -180,7 +173,8 @@ export default function BuildYourOwnPage() {
 
     // Trigger fetch if not already cached (shouldn't happen often now)
     if (!option.hasLearnMoreCache && !option.metadata?.cachedEnhancement) {
-      fetchLearnMoreCache(optionId, option.title)
+      const allTitles = options.map(o => o.title)
+      fetchLearnMoreCache(optionId, option.title, allTitles)
     }
   }
 
@@ -209,11 +203,10 @@ export default function BuildYourOwnPage() {
     setOptions(newOptions)
     
     // Automatically trigger web searches for all extracted options
-    setTimeout(() => {
-      newOptions.forEach(option => {
-        fetchLearnMoreCache(option.id, option.title)
-      })
-    }, 100)
+    const allTitles = newOptions.map(o => o.title)
+    newOptions.forEach(option => {
+      fetchLearnMoreCache(option.id, option.title, allTitles)
+    })
   }
 
   const generateAiOptions = async () => {
@@ -254,11 +247,10 @@ export default function BuildYourOwnPage() {
       setAiDescription('')
       
       // Automatically trigger web searches for all generated options
-      setTimeout(() => {
-        newOptions.forEach(option => {
-          fetchLearnMoreCache(option.id, option.title)
-        })
-      }, 100)
+      const allTitles = newOptions.map(o => o.title)
+      newOptions.forEach(option => {
+        fetchLearnMoreCache(option.id, option.title, allTitles)
+      })
       
     } catch (err) {
       console.error('Error generating options:', err)
