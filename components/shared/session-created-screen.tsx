@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Copy, Share2 } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 
 interface SessionCreatedScreenProps {
   sessionId: string
@@ -18,13 +19,11 @@ export default function SessionCreatedScreen({
   categoryName = 'session'
 }: SessionCreatedScreenProps) {
   const [linkCopied, setLinkCopied] = useState(false)
-  const [hasShared, setHasShared] = useState(false)
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareLink)
       setLinkCopied(true)
-      setHasShared(true) // Mark as shared when copied
       setTimeout(() => setLinkCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy:', err)
@@ -39,8 +38,6 @@ export default function SessionCreatedScreen({
           text: `Help me decide - swipe together!`,
           url: shareLink,
         })
-        // Mark as shared when share sheet is opened (even if user cancels)
-        setHasShared(true)
       } catch (err) {
         // User cancelled or share failed
         if ((err as Error).name !== 'AbortError') {
@@ -65,18 +62,34 @@ export default function SessionCreatedScreen({
         <div className="space-y-2">
           <h1 className="text-3xl font-outfit font-bold text-white">Session Created!</h1>
           <p className="text-white/70 text-lg">
-            {!hasShared ? "First, share this link with your group" : "Great! Now join the session"}
+            Share this with your group
           </p>
         </div>
 
-        {/* Share buttons - prominent when not shared yet */}
-        <motion.div 
-          className="flex gap-3"
-          animate={{ 
-            scale: hasShared ? 0.95 : 1,
-            opacity: hasShared ? 0.7 : 1 
-          }}
+        {/* QR Code Display - Always visible */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-card p-6 space-y-3 flex flex-col items-center"
         >
+          <p className="text-sm text-white/70 text-center">
+            Scan to join the session
+          </p>
+          <div className="bg-white p-4 rounded-xl">
+            <QRCodeSVG 
+              value={shareLink} 
+              size={200}
+              level="H"
+              includeMargin={false}
+            />
+          </div>
+          <p className="text-xs text-white/50 text-center">
+            Anyone with a QR scanner can join!
+          </p>
+        </motion.div>
+
+        {/* Share buttons */}
+        <div className="flex gap-3">
           <button
             onClick={handleShare}
             className="flex-1 btn-gradient flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all"
@@ -96,35 +109,26 @@ export default function SessionCreatedScreen({
             <Copy className="h-5 w-5" />
             {linkCopied ? "Copied!" : "Copy"}
           </button>
-        </motion.div>
+        </div>
 
-        {/* Join button - only enabled after sharing */}
+        {/* Join button */}
         <motion.button
           onClick={onJoinSession}
-          disabled={!hasShared}
-          className={`w-full text-xl py-4 rounded-xl font-semibold transition-all ${
-            hasShared 
-              ? "btn-gradient-pink" 
-              : "bg-white/10 text-white/40 cursor-not-allowed"
-          }`}
-          animate={{ 
-            scale: hasShared ? 1.02 : 1,
-          }}
-          whileTap={hasShared ? { scale: 0.98 } : {}}
+          className="w-full text-xl py-4 rounded-xl font-semibold btn-gradient-pink transition-all"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          {hasShared ? "Join Session" : "Share link first to join"}
+          Join Session
         </motion.button>
         
         {/* Helper text */}
-        {!hasShared && (
-          <motion.p 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-white/50"
-          >
-            💡 You need at least 2 people to make a decision!
-          </motion.p>
-        )}
+        <motion.p 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-sm text-white/50"
+        >
+          💡 You need at least 2 people to make a decision!
+        </motion.p>
         
         <p className="text-xs text-white/30">choosing.sucks</p>
       </motion.div>
