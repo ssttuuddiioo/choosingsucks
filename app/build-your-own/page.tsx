@@ -583,7 +583,6 @@ export default function BuildYourOwnPage() {
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
               >
-                {/* @ts-expect-error React 19 JSX type mismatch with @dnd-kit */}
                 <SortableContext items={options.map(o => o.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-2 max-h-80 overflow-y-auto">
                     {options.map((option, index) => (
