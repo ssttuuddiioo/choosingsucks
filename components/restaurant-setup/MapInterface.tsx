@@ -4,10 +4,17 @@ import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardR
 import { Wrapper } from '@googlemaps/react-wrapper'
 import { env } from '@/lib/utils/env'
 
+export interface MapState {
+  center: { lat: number; lng: number }
+  zoom: number
+  radius: number
+}
+
 interface MapInterfaceProps {
   center: { lat: number; lng: number }
   className?: string
   theme?: 'dark' | 'warm'
+  onMapStateChange?: (state: MapState) => void
 }
 
 export interface MapInterfaceRef {
@@ -23,6 +30,7 @@ interface GoogleMapProps {
   style: React.CSSProperties
   onMapReady: (map: google.maps.Map) => void
   mapStyles?: google.maps.MapTypeStyle[]
+  onIdle?: (map: google.maps.Map) => void
 }
 
 const WARM_MAP_STYLES: google.maps.MapTypeStyle[] = [
@@ -42,10 +50,12 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
 ]
 
-function GoogleMapComponent({ center, style, onMapReady, mapStyles }: GoogleMapProps) {
+function GoogleMapComponent({ center, style, onMapReady, mapStyles, onIdle }: GoogleMapProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map>()
   const [isMobile, setIsMobile] = useState(false)
+  const onIdleRef = useRef(onIdle)
+  onIdleRef.current = onIdle
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -66,6 +76,9 @@ function GoogleMapComponent({ center, style, onMapReady, mapStyles }: GoogleMapP
         scrollwheel: true,
         isFractionalZoomEnabled: true,
         styles: mapStyles || DARK_MAP_STYLES,
+      })
+      newMap.addListener('idle', () => {
+        onIdleRef.current?.(newMap)
       })
       setMap(newMap)
       try { onMapReady(newMap) } catch (err) { console.error('[MapInterface] onMapReady error', err) }
@@ -88,6 +101,7 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
   center,
   className = '',
   theme = 'dark',
+  onMapStateChange,
 }, ref) => {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -112,6 +126,15 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
   const handleMapReady = useCallback((map: google.maps.Map) => {
     setMapInstance(map)
   }, [])
+
+  const handleIdle = useCallback((map: google.maps.Map) => {
+    if (!onMapStateChange) return
+    const c = map.getCenter()
+    const z = map.getZoom()
+    if (c && z !== undefined) {
+      onMapStateChange({ center: { lat: c.lat(), lng: c.lng() }, zoom: z, radius: zoomToRadius(z) })
+    }
+  }, [onMapStateChange])
 
   const render = useCallback((status: any) => {
     if (status === 'LOADING') {
@@ -158,6 +181,7 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
             center={center}
             style={{ width: '100%', height: '100%' }}
             onMapReady={handleMapReady}
+            onIdle={handleIdle}
             mapStyles={isWarm ? WARM_MAP_STYLES : DARK_MAP_STYLES}
           />
         </Wrapper>
