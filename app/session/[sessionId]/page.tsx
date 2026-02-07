@@ -20,6 +20,8 @@ import ExhaustedScreenTemplate from '@/components/shared/exhausted-screen-templa
 import InvalidSessionScreen from '@/components/session/invalid-session-screen'
 import NoMatchesScreen from '@/components/session/no-matches-screen'
 import GenericRockPaperScissors from '@/components/shared/rock-paper-scissors-template'
+import SoloResultsScreen from '@/components/shared/solo-results-screen'
+import MutualMatchesRPSFlow from '@/components/session/mutual-matches-rps-flow'
 
 type Session = Tables<'sessions'>
 type Participant = Tables<'participants'>
@@ -48,6 +50,8 @@ export default function SessionPage() {
   const [isJoining, setIsJoining] = useState(false) // Guard against concurrent joins
   const [rpsGameId, setRpsGameId] = useState<string | null>(null)
   const [pendingMove, setPendingMove] = useState<string | null>(null)
+  const [mutualMatches, setMutualMatches] = useState<Candidate[]>([])
+  const [showMutualMatchesFlow, setShowMutualMatchesFlow] = useState(false)
 
   const supabase = createBrowserClient()
 
@@ -65,6 +69,16 @@ export default function SessionPage() {
         } : null)
       } else if (payload.event === 'no_matches_detected') {
         setShowNoMatches(true)
+      } else if (payload.event === 'mutual_matches_found') {
+        // Other client detected mutual matches — enter the flow
+        const matchedIds: string[] = payload.payload.candidateIds
+        if (matchedIds && matchedIds.length >= 2) {
+          const matched = candidates.filter(c => matchedIds.includes(c.id))
+          if (matched.length >= 2) {
+            setMutualMatches(matched)
+            setShowMutualMatchesFlow(true)
+          }
+        }
       }
     },
   })
@@ -293,7 +307,7 @@ export default function SessionPage() {
     }
   }
 
-  async function handleSwipe(candidateId: string, vote: boolean) {
+  async function handleSwipe(candidateId: string, vote: boolean, durationMs?: number) {
     if (!participant) return
 
     try {
@@ -303,6 +317,7 @@ export default function SessionPage() {
         participant_id: participant.id,
         candidate_id: candidateId,
         vote: vote ? 1 : 0,
+        duration_ms: durationMs || null,
       }
       
       const { error: swipeError } = await (supabase as any)
@@ -320,8 +335,9 @@ export default function SessionPage() {
         analytics.swipe(sessionId, candidate.place_id, vote)
       }
 
-      // Check for match if this was a like
-      if (vote && candidate) {
+      // Check for match if this was a like (skip in solo mode)
+      const isSolo = (session as any)?.invite_count_hint === 1
+      if (vote && candidate && !isSolo) {
         console.log('❤️ Checking for match after like:', candidate.name)
         try {
           const matchResponse = await fetch('/api/check-match', {
@@ -390,7 +406,21 @@ export default function SessionPage() {
         // No matches found, show no-matches screen
         setShowNoMatches(true)
         broadcast('no_matches_detected', { sessionId: session.id })
+      } else if (matches.length >= 2) {
+        // Multiple mutual matches — enter the new flow
+        const matchedCandidateIds = matches.map((m: any) => m.candidate_id)
+        const matched = candidates.filter(c => matchedCandidateIds.includes(c.id))
+        if (matched.length >= 2) {
+          setMutualMatches(matched)
+          setShowMutualMatchesFlow(true)
+          broadcast('mutual_matches_found', {
+            sessionId: session.id,
+            candidateIds: matched.map(c => c.id),
+          })
+        }
       }
+      // If exactly 1 match, the existing check-match API during swiping
+      // already handles it via session.status = 'matched' + MatchScreen
     } catch (error) {
       console.error('Error checking for matches:', error)
       // If we can't check, assume no matches for now
@@ -496,10 +526,10 @@ export default function SessionPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-warm-cream flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading session...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-coral mx-auto"></div>
+          <p className="mt-4 text-warm-gray500">Loading session...</p>
         </div>
       </div>
     )
@@ -521,10 +551,10 @@ export default function SessionPage() {
     // For anonymous sessions, show loading while auto-joining
     if (session && !session.require_names) {
       return (
-        <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
+        <div className="min-h-screen bg-warm-cream flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white/30 mx-auto"></div>
-            <p className="mt-4 text-white/70">Joining session...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-coral mx-auto"></div>
+            <p className="mt-4 text-warm-gray500">Joining session...</p>
           </div>
         </div>
       )
@@ -540,6 +570,25 @@ export default function SessionPage() {
   }
 
   // remainingCandidates is already calculated above
+
+  // Mutual matches flow (2+ mutual likes)
+  if (showMutualMatchesFlow && participant && mutualMatches.length >= 2) {
+    return (
+      <MutualMatchesRPSFlow
+        session={session}
+        participant={participant}
+        mutualMatches={mutualMatches}
+        category={session.category || 'restaurants'}
+        onComplete={(chosen) => {
+          setSession((prev: any) => prev ? {
+            ...prev,
+            status: 'matched',
+            match_place_id: chosen.place_id,
+          } : null)
+        }}
+      />
+    )
+  }
 
   // Rock Paper Scissors game
   if (showRockPaperScissors && participant) {
@@ -571,8 +620,22 @@ export default function SessionPage() {
     )
   }
 
+  // Solo mode detection
+  const isSoloMode = (session as any).invite_count_hint === 1
+
   // Exhausted state
   if (remainingCandidates.length === 0 && candidates.length > 0) {
+    // Solo mode: show liked results instead of waiting screen
+    if (isSoloMode && participant) {
+      return (
+        <SoloResultsScreen
+          sessionId={sessionId}
+          participantId={participant.id}
+          category={session.category || 'restaurants'}
+        />
+      )
+    }
+
     return (
       <ExhaustedScreenTemplate
         session={session}
@@ -599,7 +662,7 @@ export default function SessionPage() {
 
   // Swipe interface
   return (
-    <div className="h-screen bg-gradient-primary flex flex-col">
+    <div className="h-screen bg-warm-cream flex flex-col">
       <SessionStatus
         session={session}
         sessionStatus={sessionStatus}

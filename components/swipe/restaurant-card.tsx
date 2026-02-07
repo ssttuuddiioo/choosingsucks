@@ -24,7 +24,7 @@ export default function RestaurantCard({ candidate, onLearnMore }: RestaurantCar
   return (
     <div className="h-full w-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
       {/* Image - Takes up remaining space */}
-      <div className="relative bg-gradient-to-br from-electric-purple/20 to-hot-pink/20 flex-1 min-h-0">
+      <div className="relative bg-gradient-to-br from-coral/10 to-warm-bg flex-1 min-h-0">
         {photoUrl && !imageError ? (
           <>
             <img
@@ -98,7 +98,7 @@ export default function RestaurantCard({ candidate, onLearnMore }: RestaurantCar
             {candidate.cuisines.slice(0, 3).map((cuisine: string, i: number) => (
               <span
                 key={i}
-                className="px-2 md:px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold whitespace-nowrap"
+                className="px-2 md:px-3 py-1 bg-coral/10 text-coral text-xs rounded-full font-semibold whitespace-nowrap"
               >
                 {cuisine.replace(/_/g, ' ')}
               </span>

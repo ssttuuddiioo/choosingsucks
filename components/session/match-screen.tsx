@@ -25,9 +25,9 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
 
   if (!candidate) {
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+      <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
         <div className="text-center">
-          <p className="text-white/70">Loading match details...</p>
+          <p className="text-warm-gray500">Loading match details...</p>
         </div>
       </div>
     )
@@ -53,7 +53,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
   const photoUrl = candidate.photo_ref ? getPhotoUrl(candidate.photo_ref) : null
 
   return (
-    <div className="min-h-screen bg-gradient-primary md:flex md:items-center md:justify-center md:p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-warm-cream md:flex md:items-center md:justify-center md:p-4 relative overflow-hidden">
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50">
@@ -77,8 +77,8 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
         className="md:bg-white/95 md:backdrop-blur-xl md:rounded-2xl md:shadow-2xl md:max-w-md w-full overflow-hidden min-h-screen md:min-h-0 flex flex-col"
       >
         {/* Success Header */}
-        <div className="bg-gradient-lime p-6 text-center">
-          <motion.h1 
+        <div className="bg-coral p-6 text-center">
+          <motion.h1
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -86,7 +86,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
           >
             Unanimous decision!
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -100,7 +100,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
 
         {/* Restaurant Image */}
         {photoUrl && (
-          <div className="relative h-48 bg-gradient-mesh animate-gradient">
+          <div className="relative h-48 bg-warm-bg">
             <img
               src={photoUrl}
               alt={candidate.name}
@@ -113,7 +113,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
         {/* Restaurant Details */}
         <div className="flex-1 p-6 space-y-4 flex flex-col">
           <div>
-            <h2 className="text-2xl font-outfit font-bold text-white md:text-gray-900">
+            <h2 className="text-2xl font-outfit font-bold text-warm-black">
               {candidate.name}
             </h2>
           </div>
@@ -153,7 +153,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
               {candidate.cuisines.map((cuisine: string, i: number) => (
                 <span
                   key={i}
-                  className="px-3 py-1 bg-gradient-electric text-white text-xs rounded-full font-semibold"
+                  className="px-3 py-1 bg-coral/10 text-coral text-xs rounded-full font-semibold"
                 >
                   {cuisine.replace(/_/g, ' ')}
                 </span>
@@ -167,7 +167,7 @@ export default function MatchScreen({ session, candidate }: MatchScreenProps) {
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(candidate.name)}&query_place_id=${candidate.place_id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-gradient-lime w-full flex items-center justify-center gap-2 text-lg"
+              className="btn-warm w-full flex items-center justify-center gap-2 text-lg"
             >
               <Navigation className="h-5 w-5" />
               Finally, let's eat

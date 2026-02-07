@@ -53,15 +53,15 @@ export default function SessionCreatedScreen({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+    <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="p-8 max-w-md w-full text-center space-y-6"
       >
         <div className="space-y-2">
-          <h1 className="text-3xl font-outfit font-bold text-white">Session Created!</h1>
-          <p className="text-white/70 text-lg">
+          <h1 className="text-3xl font-outfit font-bold text-warm-black">Session Created!</h1>
+          <p className="text-warm-gray500 text-lg">
             Share this with your group
           </p>
         </div>
@@ -70,9 +70,9 @@ export default function SessionCreatedScreen({
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="glass-card p-6 space-y-3 flex flex-col items-center"
+          className="bg-white rounded-2xl shadow-md border border-warm-gray100 p-6 space-y-3 flex flex-col items-center"
         >
-          <p className="text-sm text-white/70 text-center">
+          <p className="text-sm text-warm-gray500 text-center">
             Scan to join the session
           </p>
           <div className="bg-white p-4 rounded-xl">
@@ -83,7 +83,7 @@ export default function SessionCreatedScreen({
               includeMargin={false}
             />
           </div>
-          <p className="text-xs text-white/50 text-center">
+          <p className="text-xs text-warm-gray300 text-center">
             Anyone with a QR scanner can join!
           </p>
         </motion.div>
@@ -92,18 +92,18 @@ export default function SessionCreatedScreen({
         <div className="flex gap-3">
           <button
             onClick={handleShare}
-            className="flex-1 btn-gradient flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all"
+            className="flex-1 btn-warm flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all"
           >
             <Share2 className="h-5 w-5" />
             Share
           </button>
-          
+
           <button
             onClick={handleCopyLink}
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all ${
               linkCopied
-                ? "bg-gradient-lime text-white shadow-lg"
-                : "btn-gradient"
+                ? "bg-coral text-white shadow-lg"
+                : "bg-warm-gray100 text-warm-gray700 hover:bg-warm-gray200"
             }`}
           >
             <Copy className="h-5 w-5" />
@@ -114,7 +114,7 @@ export default function SessionCreatedScreen({
         {/* Join button */}
         <motion.button
           onClick={onJoinSession}
-          className="w-full text-xl py-4 rounded-xl font-semibold btn-gradient-pink transition-all"
+          className="w-full text-xl py-4 rounded-xl font-semibold btn-warm transition-all"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -125,12 +125,12 @@ export default function SessionCreatedScreen({
         <motion.p 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-white/50"
+          className="text-sm text-warm-gray500"
         >
-          💡 You need at least 2 people to make a decision!
+          You need at least 2 people to make a decision!
         </motion.p>
-        
-        <p className="text-xs text-white/30">choosing.sucks</p>
+
+        <p className="text-xs text-warm-gray300">choosing.sucks</p>
       </motion.div>
     </div>
   )

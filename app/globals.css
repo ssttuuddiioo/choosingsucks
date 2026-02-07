@@ -167,6 +167,25 @@ html, body {
     @apply bg-white/10 text-white/70 hover:bg-white/20;
   }
 
+  /* Warm theme buttons */
+  .btn-warm {
+    @apply bg-coral text-white font-semibold py-3 px-6 rounded-xl
+           transition-all duration-200 hover:bg-coral-dark active:scale-95;
+  }
+
+  /* Warm theme chips */
+  .chip-warm {
+    @apply px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 cursor-pointer;
+  }
+
+  .chip-warm-active {
+    @apply bg-coral text-white border-coral;
+  }
+
+  .chip-warm-inactive {
+    @apply bg-transparent text-warm-gray700 border-warm-gray200 hover:border-warm-gray300;
+  }
+
   /* Loading shimmer */
   .shimmer {
     @apply relative overflow-hidden;

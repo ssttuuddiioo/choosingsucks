@@ -32,8 +32,8 @@ export default function SortPreferenceSection({
             className={`
               flex-1 py-3 rounded-xl font-bold text-xl transition-all duration-300
               ${sortBy === option.value
-                ? 'bg-gradient-electric text-white shadow-lg' 
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                ? 'bg-coral text-white shadow-md'
+                : 'bg-warm-gray100 text-warm-gray700 hover:bg-warm-gray200'
               }
             `}
           >

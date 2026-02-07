@@ -110,7 +110,7 @@ export default function ExhaustedScreenTemplate({
   }
 
   return (
-    <div className="h-screen bg-gradient-primary flex flex-col justify-center items-center p-4" style={{ height: '100dvh' }}>
+    <div className="h-screen bg-warm-cream flex flex-col justify-center items-center p-4" style={{ height: '100dvh' }}>
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -124,18 +124,18 @@ export default function ExhaustedScreenTemplate({
             animate={{ rotate: [0, 10, -10, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
           >
-            <HandMetal className="w-20 h-20 text-white" />
+            <HandMetal className="w-20 h-20 text-coral" />
           </motion.div>
-          <h1 className="text-3xl font-outfit font-bold gradient-text">
+          <h1 className="text-3xl font-outfit font-bold text-warm-black">
             {config.title}
           </h1>
         </div>
 
         {/* Status card */}
         {waitingMessage && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 space-y-4">
-            <div className="text-white/70">
-              <p className="text-2xl font-outfit font-bold text-white">
+          <div className="bg-white rounded-2xl shadow-md border border-warm-gray100 p-6 space-y-4">
+            <div className="text-warm-gray500">
+              <p className="text-2xl font-outfit font-bold text-warm-black">
                 {waitingMessage.count}
               </p>
               <p className="text-sm mt-1">
@@ -147,17 +147,17 @@ export default function ExhaustedScreenTemplate({
             <div className="pt-4">
               <div className="flex items-center justify-center gap-8">
                 <div className="text-center">
-                  <motion.div className="text-4xl font-outfit font-bold gradient-text">
+                  <motion.div className="text-4xl font-outfit font-bold text-coral">
                     {rounded}
                   </motion.div>
-                  <div className="text-white/50 text-sm">Decided</div>
+                  <div className="text-warm-gray300 text-sm">Decided</div>
                 </div>
-                <div className="text-3xl text-white/20">/</div>
+                <div className="text-3xl text-warm-gray200">/</div>
                 <div className="text-center">
-                  <div className="text-4xl font-outfit font-bold text-white">
+                  <div className="text-4xl font-outfit font-bold text-warm-black">
                     {isMultiPerson ? joinedCount : 2}
                   </div>
-                  <div className="text-white/50 text-sm">Total</div>
+                  <div className="text-warm-gray300 text-sm">Total</div>
                 </div>
               </div>
             </div>
@@ -165,8 +165,8 @@ export default function ExhaustedScreenTemplate({
         )}
 
         {/* Encouraging message */}
-        <div className="bg-gradient-electric p-4 rounded-xl">
-          <p className="text-white text-sm font-medium">
+        <div className="bg-coral/10 p-4 rounded-xl">
+          <p className="text-coral text-sm font-medium">
             {waitingCount > 0 
               ? config.waiting
               : config.calculating
@@ -180,8 +180,8 @@ export default function ExhaustedScreenTemplate({
             onClick={handleShare}
             className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all ${
               copied
-                ? "bg-gradient-lime text-white shadow-lg"
-                : "bg-white/10 text-white hover:bg-white/20"
+                ? "bg-coral text-white shadow-lg"
+                : "bg-warm-gray100 text-warm-gray700 hover:bg-warm-gray200"
             }`}
           >
             <AnimatePresence mode="wait">

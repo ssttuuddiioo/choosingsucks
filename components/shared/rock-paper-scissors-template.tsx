@@ -22,6 +22,8 @@ interface GenericRPSProps {
   initialMove?: string | null
   gameId?: string | null
   winnerContent?: any[] // The content that the winner gets to choose from
+  onGameFinished?: (winnerId: string) => void
+  hideFinishScreen?: boolean
 }
 
 interface GameState {
@@ -96,10 +98,12 @@ export default function GenericRockPaperScissors({
   session, 
   participant, 
   category,
-  onBack, 
-  initialMove, 
+  onBack,
+  initialMove,
   gameId,
-  winnerContent = []
+  winnerContent = [],
+  onGameFinished,
+  hideFinishScreen = false
 }: GenericRPSProps) {
   
   const [gameState, setGameState] = useState<GameState>({
@@ -363,6 +367,11 @@ export default function GenericRockPaperScissors({
         winnerName: winnerData?.display_name || 'Anonymous',
       }))
 
+      // If an external handler is provided, call it with the winner ID
+      if (onGameFinished) {
+        onGameFinished(winnerId)
+      }
+
     } catch (error) {
       console.error('Error finishing game:', error)
     }
@@ -379,10 +388,15 @@ export default function GenericRockPaperScissors({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+      <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
         <CardLoader message="Setting up the game..." />
       </div>
     )
+  }
+
+  // Game finished - hide if external handler owns the UI
+  if (gameState.status === 'finished' && hideFinishScreen) {
+    return null
   }
 
   // Game finished - show winner
@@ -391,7 +405,7 @@ export default function GenericRockPaperScissors({
     const isWinner = gameState.winner === participant.id
 
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+      <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -399,20 +413,20 @@ export default function GenericRockPaperScissors({
         >
           <div className="space-y-4">
             <Trophy className="w-20 h-20 text-yellow-400 mx-auto" />
-            <h1 className="text-3xl font-outfit font-bold gradient-text">
+            <h1 className="text-3xl font-outfit font-bold text-coral">
               {messages.resultTitle}
             </h1>
-            <p className="text-white/80 text-lg">
+            <p className="text-warm-gray500 text-lg">
               {isWinner ? randomMessage : `${gameState.winnerName} wins!`}
             </p>
           </div>
 
           {isWinner && winnerContent.length > 0 && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 space-y-4">
-              <h2 className="text-lg font-semibold text-white">Your winning choices:</h2>
+            <div className="bg-white rounded-2xl shadow-sm border border-warm-gray100 p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-warm-black">Your winning choices:</h2>
               <div className="space-y-2">
                 {winnerContent.slice(0, 3).map((item, index) => (
-                  <div key={index} className="bg-white/20 rounded-xl p-3 text-white text-sm">
+                  <div key={index} className="bg-warm-bg rounded-xl p-3 text-warm-gray700 text-sm">
                     {typeof item === 'string' ? item : item.title || item.name}
                   </div>
                 ))}
@@ -422,7 +436,7 @@ export default function GenericRockPaperScissors({
 
           <Button 
             onClick={onBack}
-            className="w-full bg-gradient-electric text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
+            className="w-full bg-coral text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
           >
             Create New Session
           </Button>
@@ -441,14 +455,14 @@ export default function GenericRockPaperScissors({
     }))
 
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+      <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-md w-full text-center space-y-6"
         >
-          <h1 className="text-2xl font-outfit font-bold text-white">Results!</h1>
-          
+          <h1 className="text-2xl font-outfit font-bold text-warm-black">Results!</h1>
+
           <div className="grid grid-cols-2 gap-4">
             {moves.map((playerMove) => {
               const Icon = moveIcons[playerMove.move]
@@ -458,14 +472,14 @@ export default function GenericRockPaperScissors({
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className={`p-6 rounded-2xl text-center ${
-                    playerMove.isMe ? 'bg-gradient-electric' : 'bg-white/20'
+                    playerMove.isMe ? 'bg-coral' : 'bg-warm-gray100'
                   }`}
                 >
-                  <Icon className="w-16 h-16 text-white mx-auto mb-2" />
-                  <div className="text-white font-bold">
+                  <Icon className={`w-16 h-16 mx-auto mb-2 ${playerMove.isMe ? 'text-white' : 'text-warm-gray700'}`} />
+                  <div className={`font-bold ${playerMove.isMe ? 'text-white' : 'text-warm-black'}`}>
                     {playerMove.isMe ? 'You' : 'Opponent'}
                   </div>
-                  <div className="text-white/70 text-sm">
+                  <div className={`text-sm ${playerMove.isMe ? 'text-white/80' : 'text-warm-gray500'}`}>
                     {moveNames[playerMove.move]}
                   </div>
                 </motion.div>
@@ -483,25 +497,25 @@ export default function GenericRockPaperScissors({
     const waitingForOpponent = Object.keys(gameState.moves).length < 2
 
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+      <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-md w-full text-center space-y-6"
         >
           <div className="space-y-4">
-            <h1 className="text-2xl font-outfit font-bold text-white">
+            <h1 className="text-2xl font-outfit font-bold text-warm-black">
               {waitingForOpponent ? 'Waiting for opponent...' : 'Round Complete!'}
             </h1>
-            
-            <div className="bg-gradient-electric p-6 rounded-2xl">
+
+            <div className="bg-coral p-6 rounded-2xl">
               <MyIcon className="w-20 h-20 text-white mx-auto mb-2" />
               <div className="text-white font-bold text-lg">Your Move</div>
               <div className="text-white/80">{moveNames[myMove]}</div>
             </div>
 
             {waitingForOpponent && (
-              <p className="text-white/70">
+              <p className="text-warm-gray500">
                 Waiting for the other player to make their move...
               </p>
             )}
@@ -513,7 +527,7 @@ export default function GenericRockPaperScissors({
 
   // Main game interface - choose your move
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+    <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -521,17 +535,17 @@ export default function GenericRockPaperScissors({
       >
         {/* Main message */}
         <div className="space-y-3">
-          <FaHeartBroken className="text-6xl text-white mx-auto" />
-          <h1 className="text-2xl font-outfit font-bold gradient-text">No matches found!</h1>
-          <p className="text-white/70 text-lg">
+          <FaHeartBroken className="text-6xl text-coral mx-auto" />
+          <h1 className="text-2xl font-outfit font-bold text-coral">No matches found!</h1>
+          <p className="text-warm-gray500 text-lg">
             {messages.noMatches}
           </p>
         </div>
 
         {/* Rock Paper Scissors - Direct Play */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-white">{messages.weapon}</h2>
-          
+        <div className="bg-white rounded-2xl shadow-sm border border-warm-gray100 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-warm-black">{messages.weapon}</h2>
+
           {/* RPS Icons - Direct tap to play */}
           <div className="grid grid-cols-3 gap-4">
             {(['rock', 'paper', 'scissors'] as Move[]).map((move) => {
@@ -542,25 +556,25 @@ export default function GenericRockPaperScissors({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => makeMove(move)}
-                  className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 hover:bg-white/30 transition-colors group"
+                  className="bg-warm-gray100 rounded-2xl p-6 hover:bg-warm-gray200 transition-colors group"
                 >
-                  <Icon className="w-12 h-12 text-white mx-auto mb-2 group-hover:scale-110 transition-transform transform -rotate-90" />
-                  <div className="text-white font-medium text-sm">{moveNames[move]}</div>
+                  <Icon className="w-12 h-12 text-warm-gray700 mx-auto mb-2 group-hover:scale-110 transition-transform transform -rotate-90" />
+                  <div className="text-warm-gray700 font-medium text-sm">{moveNames[move]}</div>
                 </motion.button>
               )
             })}
           </div>
-          
-          <p className="text-white/60 text-sm">
+
+          <p className="text-warm-gray500 text-sm">
             {messages.winnerChooses}
           </p>
         </div>
 
         {/* Alternative options */}
-        <div className="pt-4 border-t border-white/10">
+        <div className="pt-4 border-t border-warm-gray100">
           <button
             onClick={onBack}
-            className="w-full bg-gradient-electric text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
+            className="w-full bg-coral text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
           >
             Create New Swipe Session
           </button>

@@ -45,18 +45,18 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-      <motion.div 
+    <div className="min-h-screen bg-warm-cream flex items-center justify-center p-4">
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        className="glass-card p-8 max-w-md w-full space-y-6"
+        className="bg-white rounded-2xl shadow-md border border-warm-gray100 p-8 max-w-md w-full space-y-6"
       >
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-outfit font-bold gradient-text">
+          <h1 className="text-4xl font-outfit font-bold text-coral">
             Help us choose
           </h1>
-          <p className="text-white/70">
+          <p className="text-warm-gray500">
             {tagline}
           </p>
         </div>
@@ -64,7 +64,7 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {session.require_names && (
             <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-white/90">
+              <label htmlFor="name" className="text-sm font-medium text-warm-gray700">
                 What should we call you?
               </label>
               <input
@@ -73,7 +73,7 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
                 placeholder="Enter your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="input-gradient w-full text-lg"
+                className="w-full text-lg px-4 py-3 bg-warm-bg border border-warm-gray200 rounded-xl text-warm-black placeholder-warm-gray300 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
                 autoFocus
               />
             </div>
@@ -81,10 +81,10 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
 
           {!session.require_names && (
             <div className="text-center py-4">
-              <p className="text-white/50 text-sm">
+              <p className="text-warm-gray300 text-sm">
                 This session is anonymous
               </p>
-              <p className="text-white/70 text-lg font-semibold mt-2">
+              <p className="text-warm-gray700 text-lg font-semibold mt-2">
                 Ready to help pick a place?
               </p>
             </div>
@@ -103,7 +103,7 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
           <button
             type="submit"
             disabled={loading || (!!session.require_names && !name.trim())}
-            className="btn-gradient-pink w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-105 active:scale-95"
+            className="btn-warm w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-105 active:scale-95"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -117,7 +117,7 @@ export default function JoinFlow({ session, onJoin }: JoinFlowProps) {
         </form>
 
         <div className="text-center">
-          <p className="text-xs text-white/30">
+          <p className="text-xs text-warm-gray300">
             Powered by choosing.sucks
           </p>
         </div>

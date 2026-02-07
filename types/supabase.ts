@@ -223,6 +223,7 @@ export type Database = {
           participant_id: string
           candidate_id: string
           vote: number
+          duration_ms: number | null
           created_at: string
         }
         Insert: {
@@ -231,6 +232,7 @@ export type Database = {
           participant_id: string
           candidate_id: string
           vote: number
+          duration_ms?: number | null
           created_at?: string
         }
         Update: {
@@ -239,6 +241,7 @@ export type Database = {
           participant_id?: string
           candidate_id?: string
           vote?: number
+          duration_ms?: number | null
           created_at?: string
         }
       }

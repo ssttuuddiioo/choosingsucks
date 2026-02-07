@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${env.supabase.serviceRoleKey}`,
+        'Authorization': `Bearer ${env.supabase.anonKey}`,
       },
       body: JSON.stringify({
         sessionId,

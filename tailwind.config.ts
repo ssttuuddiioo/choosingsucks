@@ -30,6 +30,21 @@ const config: Config = {
   				blue: '#1E40AF',
   				blueLight: '#3B82F6'
   			},
+  			warm: {
+  				cream: '#FAFAF8',
+  				bg: '#F5F5F0',
+  				gray100: '#EDEDEB',
+  				gray200: '#D4D4CF',
+  				gray300: '#A3A39E',
+  				gray500: '#6B6B66',
+  				gray700: '#3D3D3A',
+  				black: '#1A1A1A',
+  			},
+  			coral: {
+  				DEFAULT: '#E07A5F',
+  				light: '#E8967E',
+  				dark: '#C4654A',
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -78,6 +93,7 @@ const config: Config = {
   			'gradient-orange': 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
   			'gradient-blue': 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
   			'gradient-primary': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+  			'gradient-warm': 'linear-gradient(180deg, #FAFAF8 0%, #F5F5F0 100%)',
   			'gradient-card': 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
   			'gradient-radial': 'radial-gradient(circle at center, var(--tw-gradient-stops))',
   			'gradient-mesh': 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 25%, #F97316 50%, #84CC16 75%, #3B82F6 100%)'

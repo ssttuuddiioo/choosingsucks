@@ -41,8 +41,8 @@ export default function StreamingServicesSection({
               flex items-center justify-center
               min-h-[100px] cursor-pointer
               ${selectedServices.includes(service.id)
-                ? 'ring-4 ring-electric-purple/50 shadow-lg bg-gradient-to-br from-white to-gray-50' 
-                : 'hover:ring-2 hover:ring-white/30 bg-gradient-to-br from-gray-300 to-gray-400 filter grayscale opacity-40'
+                ? 'ring-4 ring-coral/40 shadow-lg bg-white'
+                : 'hover:ring-2 hover:ring-warm-gray200 bg-warm-gray100 filter grayscale opacity-50'
               }
               hover:scale-102
             `}

@@ -44,32 +44,32 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
   }
 
   return (
-    <div className="bg-black/20 backdrop-blur-md border-0 rounded-none px-4 py-4">
+    <div className="bg-white/90 backdrop-blur-md border-b border-warm-gray100 px-4 py-4">
       <div className="max-w-md mx-auto">
         {/* Logo Header */}
         <div className="mb-3">
-          <h1 className="text-lg font-outfit font-black leading-tight logo-chunky">
-            <span className="gradient-text">CHOOSING<br /></span>
-            <span className="text-white">
-              {session?.category === 'streaming' ? 'SHOWS' : 
-               session?.category === 'build-your-own' ? 'ANYTHING' : 
+          <h1 className="text-lg font-outfit font-black leading-tight">
+            <span className="text-coral">CHOOSING<br /></span>
+            <span className="text-warm-black">
+              {session?.category === 'streaming' ? 'SHOWS' :
+               session?.category === 'build-your-own' ? 'ANYTHING' :
                'RESTAURANTS'}
             </span>
-            <span className="gradient-text"> SUCKS</span>
+            <span className="text-coral"> SUCKS</span>
           </h1>
         </div>
 
-        {/* Status info - improved typography */}
-        <div className="flex items-center justify-between text-white">
+        {/* Status info */}
+        <div className="flex items-center justify-between text-warm-gray700">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-electric-purple" />
+              <Users className="h-5 w-5 text-coral" />
               <span className="font-bold text-base">{joinedCount} of {invitedCount}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className={cn(
                 "h-5 w-5",
-                submittedCount === joinedCount && joinedCount > 0 ? "text-lime-green" : "text-white/50"
+                submittedCount === joinedCount && joinedCount > 0 ? "text-coral" : "text-warm-gray300"
               )} />
               <span className="font-bold text-base">{submittedCount} matches</span>
             </div>
@@ -77,14 +77,14 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
 
           <div className="flex items-center gap-3">
             {remainingCount !== undefined && remainingCount > 0 && (
-              <div className="bg-gradient-orange text-white px-3 py-2 rounded-full font-bold text-sm">
+              <div className="bg-coral text-white px-3 py-2 rounded-full font-bold text-sm">
                 {remainingCount}
               </div>
             )}
-            
+
             <button
               onClick={handleShare}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all transform hover:scale-110 active:scale-95"
+              className="p-3 bg-warm-gray100 hover:bg-warm-gray200 rounded-xl transition-all transform hover:scale-110 active:scale-95"
               title="Copy session link"
             >
               <AnimatePresence mode="wait">
@@ -95,7 +95,7 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                   >
-                    <Check className="h-5 w-5 text-lime-green" />
+                    <Check className="h-5 w-5 text-coral" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -104,7 +104,7 @@ export default function SessionStatus({ session, sessionStatus, remainingCount }
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                   >
-                    <Clipboard className="h-5 w-5 text-white" />
+                    <Clipboard className="h-5 w-5 text-warm-gray700" />
                   </motion.div>
                 )}
               </AnimatePresence>

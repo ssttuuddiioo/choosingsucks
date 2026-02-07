@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 
-export type LocationState = 
+export type LocationState =
+  | 'idle'
   | 'loading'
   | 'granted'
   | 'denied'
@@ -22,8 +23,12 @@ interface UseLocationPermissionReturn {
   setManualLocation: (location: LocationData) => void
 }
 
-export function useLocationPermission(): UseLocationPermissionReturn {
-  const [state, setState] = useState<LocationState>('loading')
+interface UseLocationPermissionOptions {
+  autoRequest?: boolean
+}
+
+export function useLocationPermission({ autoRequest = true }: UseLocationPermissionOptions = {}): UseLocationPermissionReturn {
+  const [state, setState] = useState<LocationState>(autoRequest ? 'loading' : 'idle')
   const [location, setLocation] = useState<LocationData | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -89,7 +94,7 @@ export function useLocationPermission(): UseLocationPermissionReturn {
       }
     } catch (error) {
       let errorMessage = 'Failed to get location'
-      
+
       if (error instanceof GeolocationPositionError) {
         switch (error.code) {
           case error.PERMISSION_DENIED:
@@ -120,10 +125,12 @@ export function useLocationPermission(): UseLocationPermissionReturn {
     setError(null)
   }
 
-  // Auto-request location on mount
+  // Auto-request location on mount (only if autoRequest is true)
   useEffect(() => {
-    console.debug('[LocationPermission] Auto request on mount')
-    requestLocation()
+    if (autoRequest) {
+      console.debug('[LocationPermission] Auto request on mount')
+      requestLocation()
+    }
   }, [])
 
   return {

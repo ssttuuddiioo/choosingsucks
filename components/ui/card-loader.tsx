@@ -13,24 +13,24 @@ export default function CardLoader({ message = "Loading...", className = "" }: C
       <div className="relative flex justify-center items-center ml-[-70px] h-[120px]">
         <div className="relative h-[100px] w-[140px]">
           {/* Card 1 */}
-          <div className="card card-1 absolute top-0 h-[100px] w-[70px] border-3 border-gray-800 rounded-md bg-gradient-to-br from-purple-400 to-purple-600 flex justify-center items-center transition-transform duration-200 ease-out z-30 ml-5">
+          <div className="card card-1 absolute top-0 h-[100px] w-[70px] border-3 border-warm-gray200 rounded-md bg-gradient-to-br from-coral to-coral-dark flex justify-center items-center transition-transform duration-200 ease-out z-30 ml-5">
             <div className="w-12 h-12 bg-white/20 rounded-full"></div>
           </div>
           
           {/* Card 2 */}
-          <div className="card card-2 absolute top-0 h-[100px] w-[70px] border-3 border-gray-800 rounded-md bg-gradient-to-br from-blue-400 to-blue-600 flex justify-center items-center transition-transform duration-200 ease-out z-20 ml-2.5">
+          <div className="card card-2 absolute top-0 h-[100px] w-[70px] border-3 border-warm-gray200 rounded-md bg-gradient-to-br from-warm-gray200 to-warm-gray300 flex justify-center items-center transition-transform duration-200 ease-out z-20 ml-2.5">
             <div className="w-12 h-12 bg-white/20 rounded-full"></div>
           </div>
           
           {/* Card 3 */}
-          <div className="card card-3 absolute top-0 h-[100px] w-[70px] border-3 border-gray-800 rounded-md bg-gradient-to-br from-pink-400 to-pink-600 flex justify-center items-center transition-transform duration-200 ease-out z-10">
+          <div className="card card-3 absolute top-0 h-[100px] w-[70px] border-3 border-warm-gray200 rounded-md bg-gradient-to-br from-coral-light to-coral flex justify-center items-center transition-transform duration-200 ease-out z-10">
             <div className="w-12 h-12 bg-white/20 rounded-full"></div>
           </div>
         </div>
       </div>
       
       {message && (
-        <p className="text-white/70 font-medium text-lg">{message}</p>
+        <p className="text-warm-gray500 font-medium text-lg">{message}</p>
       )}
       
       <style jsx>{`

@@ -45,7 +45,7 @@ export default function StreamingSessionPage() {
   const [showRockPaperScissors, setShowRockPaperScissors] = useState(false)
   const [rpsGameId, setRpsGameId] = useState<string | null>(null)
   const [pendingMove, setPendingMove] = useState<string | null>(null)
-  const [swipeQueue, setSwipeQueue] = useState<Array<{candidateId: string, vote: boolean}>>([])
+  const [swipeQueue, setSwipeQueue] = useState<Array<{candidateId: string, vote: boolean, durationMs?: number}>>([])
   const [isProcessingSwipes, setIsProcessingSwipes] = useState(false)
   const [isRetrying, setIsRetrying] = useState(false)
 
@@ -117,6 +117,7 @@ export default function StreamingSessionPage() {
           participant_id: participant.id,
           candidate_id: swipe.candidateId,
           vote: 0,
+          duration_ms: swipe.durationMs || null,
         }))
 
         const { error: swipeError } = await (supabase as any)
@@ -334,7 +335,7 @@ export default function StreamingSessionPage() {
     }
   }
 
-  const handleSwipe = async (candidateId: string, vote: boolean) => {
+  const handleSwipe = async (candidateId: string, vote: boolean, durationMs?: number) => {
     if (!participant) return
 
     // 1. IMMEDIATE: Optimistic UI update - cards move instantly
@@ -353,6 +354,7 @@ export default function StreamingSessionPage() {
             participant_id: participant.id,
             candidate_id: candidateId,
             vote: 1,
+            duration_ms: durationMs || null,
           }
           
           const { error: swipeError } = await (supabase as any)
@@ -380,12 +382,12 @@ export default function StreamingSessionPage() {
         } catch (error) {
           console.error('Error in immediate match check:', error)
           // Fall back to queue system
-          setSwipeQueue(prev => [...prev, { candidateId, vote }])
+          setSwipeQueue(prev => [...prev, { candidateId, vote, durationMs }])
         }
       }
     } else {
       // 3. BATCHED: Queue "no" votes for batch processing (non-critical)
-      setSwipeQueue(prev => [...prev, { candidateId, vote }])
+      setSwipeQueue(prev => [...prev, { candidateId, vote, durationMs }])
     }
     
     // Track analytics immediately (lightweight)

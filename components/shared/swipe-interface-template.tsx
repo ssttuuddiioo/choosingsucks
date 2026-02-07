@@ -9,7 +9,7 @@ import CardLoader from '@/components/ui/card-loader'
 
 interface SwipeInterfaceTemplateProps {
   candidates: Tables<'candidates'>[]
-  onSwipe: (candidateId: string, vote: boolean) => void
+  onSwipe: (candidateId: string, vote: boolean, durationMs: number) => void
   renderCard: (candidate: Tables<'candidates'>, onLearnMore?: () => void) => React.ReactNode
   categoryName: string
   contextDescription?: string
@@ -28,6 +28,7 @@ export default function SwipeInterfaceTemplate({
   const [bottomBarHeight, setBottomBarHeight] = useState<number>(0)
   const [showLearnMore, setShowLearnMore] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState<Tables<'candidates'> | null>(null)
+  const cardShownAtRef = useRef<number>(Date.now())
 
   // Create refs for programmatic swiping (button clicks)
   const childRefs = useMemo(
@@ -74,6 +75,11 @@ export default function SwipeInterfaceTemplate({
     setCurrentIndex(candidates.length - 1)
   }, [candidates.length])
 
+  // Reset card shown timer when current card changes
+  useEffect(() => {
+    cardShownAtRef.current = Date.now()
+  }, [currentIndex])
+
   const handleSwipe = async (direction: string, candidateId: string, index: number) => {
     if (isAnimating) return
     
@@ -86,7 +92,8 @@ export default function SwipeInterfaceTemplate({
     }
 
     // Call the onSwipe callback (handles DB insert and match checking)
-    onSwipe(candidateId, vote)
+    const durationMs = Date.now() - cardShownAtRef.current
+    onSwipe(candidateId, vote, durationMs)
 
     setCurrentIndex(index - 1)
     
@@ -105,14 +112,14 @@ export default function SwipeInterfaceTemplate({
 
   if (candidates.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center p-6 bg-gradient-primary">
+      <div className="h-screen flex flex-col items-center justify-center p-6 bg-warm-cream">
         <CardLoader message="Finding great choices..." />
       </div>
     )
   }
 
   return (
-    <div className="h-full flex-1 flex flex-col bg-gradient-primary relative overflow-hidden">
+    <div className="h-full flex-1 flex flex-col bg-warm-cream relative overflow-hidden">
       {/* Card Stack - Fills available space */}
       <div 
         className="flex-1 flex items-center justify-center relative min-h-0"
@@ -158,7 +165,7 @@ export default function SwipeInterfaceTemplate({
       {/* Action Buttons - Fixed at bottom with safe area */}
       <div
         ref={buttonsRef}
-        className="sticky bottom-0 left-0 right-0 z-20 max-w-md mx-auto w-full flex-shrink-0 bg-gradient-primary/95 backdrop-blur p-4 pt-3"
+        className="sticky bottom-0 left-0 right-0 z-20 max-w-md mx-auto w-full flex-shrink-0 bg-warm-cream/95 backdrop-blur p-4 pt-3"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
       >
         <div className="flex gap-3">
@@ -166,28 +173,20 @@ export default function SwipeInterfaceTemplate({
             onClick={() => swipe('left')}
             disabled={isAnimating}
             aria-label="Reject this option"
-            className="flex-1 flex items-center justify-center gap-3 py-4 px-6 font-bold text-xl bg-gradient-to-r from-red-500 to-red-600 text-white transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 relative overflow-hidden shadow-lg focus:outline-none focus:ring-4 focus:ring-red-500/50"
-            style={{
-              borderRadius: '0.5rem 0.75rem 0.75rem 0.5rem',
-              clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 50%)'
-            }}
+            className="flex-1 flex items-center justify-center gap-3 py-4 px-6 font-bold text-xl bg-warm-gray200 text-warm-gray700 rounded-2xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm focus:outline-none"
           >
-            NAH
             <X className="h-6 w-6" />
+            NAH
           </button>
           
           <button
             onClick={() => swipe('right')}
             disabled={isAnimating}
             aria-label="Like this option"
-            className="flex-1 bg-gradient-lime text-white font-bold text-xl py-4 px-6 shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 relative overflow-hidden focus:outline-none focus:ring-4 focus:ring-lime-green/50"
-            style={{
-              borderRadius: '0.75rem 0.5rem 0.5rem 0.75rem',
-              clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)'
-            }}
+            className="flex-1 bg-coral text-white font-bold text-xl py-4 px-6 rounded-2xl shadow-md transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 focus:outline-none"
           >
-            <Heart className="h-6 w-6 fill-current" />
             YEA
+            <Heart className="h-6 w-6 fill-current" />
           </button>
         </div>
       </div>

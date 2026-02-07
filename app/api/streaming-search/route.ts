@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { WatchmodeClient } from '@/lib/utils/watchmode-client'
 import { StreamingPreferences } from '@/lib/constants/streaming'
 import { createServerClient } from '@/lib/utils/supabase-server'
 import { generateSessionId, generateShareToken } from '@/lib/utils/session'
-import { trackWatchmodeCall } from '@/lib/utils/api-tracker'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,13 +23,37 @@ interface BuildYourOwnRequest {
   }>
 }
 
+// Placeholder streaming content for development
+const PLACEHOLDER_TITLES = [
+  { id: 1001, title: 'The Grand Adventure', type: 'movie', year: 2024, genre_names: ['Action', 'Adventure'], user_rating: 8.2, poster: 'https://placehold.co/300x450/1a1a2e/e94560?text=Grand+Adventure', backdrop: null },
+  { id: 1002, title: 'Midnight Mysteries', type: 'tv_series', year: 2024, genre_names: ['Mystery', 'Thriller'], user_rating: 8.7, poster: 'https://placehold.co/300x450/16213e/0f3460?text=Midnight+Mysteries', backdrop: null },
+  { id: 1003, title: 'Love in Paris', type: 'movie', year: 2023, genre_names: ['Romance', 'Comedy'], user_rating: 7.1, poster: 'https://placehold.co/300x450/2d132c/c72c41?text=Love+in+Paris', backdrop: null },
+  { id: 1004, title: 'Galaxy Runners', type: 'movie', year: 2024, genre_names: ['Science Fiction', 'Action'], user_rating: 7.8, poster: 'https://placehold.co/300x450/1b1b2f/e43f5a?text=Galaxy+Runners', backdrop: null },
+  { id: 1005, title: 'The Haunting Hour', type: 'tv_series', year: 2023, genre_names: ['Horror', 'Mystery'], user_rating: 7.5, poster: 'https://placehold.co/300x450/0d0d0d/b80000?text=Haunting+Hour', backdrop: null },
+  { id: 1006, title: 'Chef\'s Table Reimagined', type: 'tv_series', year: 2024, genre_names: ['Documentary'], user_rating: 8.9, poster: 'https://placehold.co/300x450/3d0c02/ff6b35?text=Chefs+Table', backdrop: null },
+  { id: 1007, title: 'Code Zero', type: 'movie', year: 2024, genre_names: ['Thriller', 'Crime'], user_rating: 7.9, poster: 'https://placehold.co/300x450/0a1628/1f4068?text=Code+Zero', backdrop: null },
+  { id: 1008, title: 'Fantasia Kingdom', type: 'movie', year: 2023, genre_names: ['Fantasy', 'Animation'], user_rating: 8.0, poster: 'https://placehold.co/300x450/1a0533/7b2ff7?text=Fantasia+Kingdom', backdrop: null },
+  { id: 1009, title: 'War Stories', type: 'tv_miniseries', year: 2024, genre_names: ['War', 'Drama'], user_rating: 8.4, poster: 'https://placehold.co/300x450/2c2c34/ff4444?text=War+Stories', backdrop: null },
+  { id: 1010, title: 'Family Ties Forever', type: 'movie', year: 2024, genre_names: ['Family', 'Comedy'], user_rating: 6.8, poster: 'https://placehold.co/300x450/1a472a/2ecc71?text=Family+Ties', backdrop: null },
+  { id: 1011, title: 'Neon Nights', type: 'movie', year: 2024, genre_names: ['Action', 'Crime'], user_rating: 7.6, poster: 'https://placehold.co/300x450/1a0a2e/e040fb?text=Neon+Nights', backdrop: null },
+  { id: 1012, title: 'The Last Frontier', type: 'tv_series', year: 2023, genre_names: ['Western', 'Drama'], user_rating: 8.1, poster: 'https://placehold.co/300x450/3d2b1f/d4a574?text=Last+Frontier', backdrop: null },
+  { id: 1013, title: 'Ocean Deep', type: 'movie', year: 2024, genre_names: ['Adventure', 'Science Fiction'], user_rating: 7.3, poster: 'https://placehold.co/300x450/0a2351/1ca9c9?text=Ocean+Deep', backdrop: null },
+  { id: 1014, title: 'Stand Up Special', type: 'tv_special', year: 2024, genre_names: ['Comedy'], user_rating: 7.7, poster: 'https://placehold.co/300x450/2d2d2d/f5c518?text=Stand+Up', backdrop: null },
+  { id: 1015, title: 'Shadows of the Past', type: 'movie', year: 2023, genre_names: ['Drama', 'Mystery'], user_rating: 8.3, poster: 'https://placehold.co/300x450/1c1c1c/aaaaaa?text=Shadows', backdrop: null },
+  { id: 1016, title: 'Robot Revolution', type: 'movie', year: 2024, genre_names: ['Science Fiction', 'Animation'], user_rating: 7.4, poster: 'https://placehold.co/300x450/0d1b2a/00d4ff?text=Robot+Rev', backdrop: null },
+  { id: 1017, title: 'Heartstrings', type: 'tv_series', year: 2024, genre_names: ['Romance', 'Drama'], user_rating: 7.9, poster: 'https://placehold.co/300x450/2e0219/ff6b6b?text=Heartstrings', backdrop: null },
+  { id: 1018, title: 'True Crime Files', type: 'tv_series', year: 2023, genre_names: ['Crime', 'Documentary'], user_rating: 8.5, poster: 'https://placehold.co/300x450/1a1a1a/e74c3c?text=True+Crime', backdrop: null },
+  { id: 1019, title: 'Dragon\'s Peak', type: 'movie', year: 2024, genre_names: ['Fantasy', 'Adventure'], user_rating: 7.6, poster: 'https://placehold.co/300x450/1a0a00/ff6600?text=Dragons+Peak', backdrop: null },
+  { id: 1020, title: 'Laugh Track', type: 'tv_series', year: 2024, genre_names: ['Comedy', 'Family'], user_rating: 7.0, poster: 'https://placehold.co/300x450/2d2d00/f1c40f?text=Laugh+Track', backdrop: null },
+]
+
 async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
   const { sessionTitle, requireNames, customOptions } = body
-  
+
   // Respect multi-person feature flag
   const isMultiPersonEnabled = process.env.NEXT_PUBLIC_ENABLE_MULTI_PERSON === 'true'
   const inviteCount = isMultiPersonEnabled ? body.inviteCount : 2
-  
+
   // Validate required parameters
   if (!sessionTitle?.trim() || !customOptions || customOptions.length < 2) {
     return NextResponse.json(
@@ -68,13 +90,13 @@ async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
         contextDescription: body.contextDescription || null
       }
     }
-    
+
     const { data: sessionData, error: sessionError } = await (supabase as any)
       .from('sessions')
       .insert(sessionInsert)
       .select()
       .single()
-    
+
     if (sessionError) {
       console.error('❌ Error creating Build Your Own session:', sessionError)
       return NextResponse.json(
@@ -122,20 +144,6 @@ async function handleBuildYourOwnSession(body: BuildYourOwnRequest) {
 
     console.log(`✅ Stored ${candidatesData?.length || 0} candidates for session ${sessionId}`)
 
-    // Verify session and candidates exist
-    const { data: verifySession } = await supabase
-      .from('sessions')
-      .select('id, category, status')
-      .eq('id', sessionId)
-      .single()
-
-    const { data: verifyCandidates } = await supabase
-      .from('candidates')
-      .select('id')
-      .eq('session_id', sessionId)
-
-    console.log(`🔍 Verification - Session:`, verifySession, `Candidates:`, verifyCandidates?.length)
-
     return NextResponse.json({
       success: true,
       sessionId,
@@ -165,18 +173,18 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json()
-    
+
     // Handle Build Your Own category
     if (body.category === 'build-your-own') {
       return handleBuildYourOwnSession(body)
     }
-    
-    // Handle streaming category (existing logic)
-    const { sessionId, preferences }: { 
+
+    // Handle streaming category — uses placeholder data (no Watchmode API needed)
+    const { sessionId, preferences }: {
       sessionId: string
-      preferences: StreamingPreferences 
+      preferences: StreamingPreferences
     } = body
-    
+
     // Validate required parameters
     if (!sessionId || !preferences) {
       return NextResponse.json(
@@ -185,177 +193,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get Watchmode API key
-    const watchmodeApiKey = process.env.WATCHMODE_API_KEY
-    if (!watchmodeApiKey) {
-      return NextResponse.json(
-        { error: 'Watchmode API key not configured' },
-        { status: 500, headers: corsHeaders }
-      )
-    }
+    console.log(`🎬 Using placeholder streaming data for session ${sessionId}`)
 
-    // Initialize Watchmode client
-    const watchmode = new WatchmodeClient(watchmodeApiKey)
-
-    // Build search parameters based on user preference
-    const sortBy = preferences.sortBy === 'new_releases' ? 'release_date_desc' : 'popularity_desc'
-    const searchParams: any = {
-      sort_by: sortBy, // New releases or popular content
-      limit: 20, // Get exactly 20 titles - no need for over-fetching
-    }
-
-    // Set content types
-    if (preferences.contentTypes.length > 0) {
-      searchParams.types = preferences.contentTypes.join(',')
-    } else {
-      searchParams.types = 'movie,tv_series,tv_miniseries,tv_special' // Include all types
-    }
-
-    // Set streaming services
-    if (preferences.streamingServices.length > 0) {
-      searchParams.source_ids = preferences.streamingServices.join(',')
-    }
-
-    // Set genres (if any selected)
-    if (preferences.genres.length > 0) {
-      // Use genre IDs directly as Watchmode expects numbers
-      searchParams.genres = preferences.genres.join(',')
-    }
-
-    console.log(`🎬 Fetching ${preferences.sortBy === 'new_releases' ? 'new releases' : 'popular content'} with params:`, searchParams)
-
-    // Fetch content from Watchmode API with fallback logic
-    let searchResults
-    const searchStartTime = Date.now()
-    try {
-      searchResults = await watchmode.searchTitles(searchParams)
-      const searchDuration = Date.now() - searchStartTime
-      
-      // Track successful search
-      await trackWatchmodeCall(
-        'list_titles',
-        true,
-        searchDuration,
-        { sessionId, metadata: { params: searchParams } },
-        200
-      )
-    } catch (error) {
-      const searchDuration = Date.now() - searchStartTime
-      console.error('❌ Watchmode API error with genres, trying without genres:', error)
-      
-      // Track failed search
-      await trackWatchmodeCall(
-        'list_titles',
-        false,
-        searchDuration,
-        { sessionId, metadata: { params: searchParams } },
-        500,
-        error instanceof Error ? error.message : 'Unknown error'
-      )
-      
-      // Fallback: try without genres if genre filtering fails
-      if (searchParams.genres) {
-        console.log('🔄 Retrying without genre filters...')
-        const fallbackParams = { ...searchParams }
-        delete fallbackParams.genres
-        
-        const fallbackStartTime = Date.now()
-        try {
-          searchResults = await watchmode.searchTitles(fallbackParams)
-          console.log('✅ Fallback search successful')
-          
-          const fallbackDuration = Date.now() - fallbackStartTime
-          await trackWatchmodeCall(
-            'list_titles',
-            true,
-            fallbackDuration,
-            { sessionId, metadata: { params: fallbackParams, isFallback: true } },
-            200
-          )
-        } catch (fallbackError) {
-          console.error('❌ Fallback search also failed:', fallbackError)
-          const fallbackDuration = Date.now() - fallbackStartTime
-          await trackWatchmodeCall(
-            'list_titles',
-            false,
-            fallbackDuration,
-            { sessionId, metadata: { params: fallbackParams, isFallback: true } },
-            500,
-            fallbackError instanceof Error ? fallbackError.message : 'Unknown error'
-          )
-          throw error // Re-throw original error
-        }
-      } else {
-        throw error
+    // Filter placeholder titles based on user preferences
+    let filteredTitles = PLACEHOLDER_TITLES.filter(title => {
+      // Filter by content type
+      if (preferences.contentTypes.length > 0 && !preferences.contentTypes.includes(title.type as any)) {
+        return false
       }
+      return true
+    })
+
+    // Sort based on preference
+    if (preferences.sortBy === 'new_releases') {
+      filteredTitles.sort((a, b) => b.year - a.year)
+    } else {
+      filteredTitles.sort((a, b) => b.user_rating - a.user_rating)
     }
-    
-    if (!searchResults.titles || searchResults.titles.length === 0) {
-      return NextResponse.json(
-        { error: 'No content found matching your preferences' },
-        { status: 404, headers: corsHeaders }
-      )
-    }
 
-    console.log(`✅ Found ${searchResults.titles.length} titles`)
+    // Take up to 10
+    const candidates = filteredTitles.slice(0, 10)
 
-    // OPTIMIZATION: Store only basic data from list_titles (85% cost reduction!)
-    // Details (plot, runtime, etc.) fetched lazily when user clicks "Learn More"
-    console.log('📦 Storing basic title data (details fetched on-demand for cost efficiency)...')
-    
-    const basicCandidates = searchResults.titles.map((title: any) => ({
-      id: title.id,
-      title: title.title,
-      original_title: title.original_title || null,
-      type: title.type,
-      year: title.year || null,
-      poster: title.poster || null,
-      backdrop: title.backdrop || null,
-      // Basic data from list_titles (included in search response)
-      genre_names: title.genre_names || null,
-      user_rating: title.user_rating || null,
-      // Details will be null until "Learn More" clicked - lazy loaded
-      plot_overview: null,
-      runtime_minutes: null,
-      us_rating: null,
-      trailer: null,
-      critic_score: null,
-      sources: [],
-      session_id: sessionId,
-    }))
+    console.log(`✅ Selected ${candidates.length} placeholder titles`)
 
-    // Sort candidates by rating (best to worst)
-    const candidates = basicCandidates
-      .filter((candidate: any) => candidate.user_rating && candidate.user_rating > 0)
-      .slice(0, 20)
-
-    console.log(`✅ Prepared ${candidates.length} candidates (saved ${searchResults.titles.length} title_details API calls via lazy loading!)`)
-
-    // Store candidates in database for session
+    // Store in database
     const supabase = createServerClient()
-    
-    // First, create or verify the session exists
-    const { data: existingSession, error: sessionError } = await supabase
+
+    // Create or verify session
+    const { error: sessionCheckError } = await supabase
       .from('sessions')
       .select('id')
       .eq('id', sessionId)
       .single()
-    
-    if (sessionError && sessionError.code === 'PGRST116') {
+
+    if (sessionCheckError && sessionCheckError.code === 'PGRST116') {
       // Session doesn't exist, create it
       const streamingSessionInsert: any = {
         id: sessionId,
         status: 'active',
         category: 'streaming',
-        invite_count_hint: 2, // Default for streaming sessions
+        invite_count_hint: 2,
         require_names: false,
         preferences: preferences as any
       }
-      
+
       const { error: createSessionError } = await (supabase as any)
         .from('sessions')
         .insert(streamingSessionInsert)
-      
+
       if (createSessionError) {
         console.error('Error creating session:', createSessionError)
         return NextResponse.json(
@@ -363,8 +248,8 @@ export async function POST(request: NextRequest) {
           { status: 500, headers: corsHeaders }
         )
       }
-    } else if (sessionError) {
-      console.error('Error checking session:', sessionError)
+    } else if (sessionCheckError) {
+      console.error('Error checking session:', sessionCheckError)
       return NextResponse.json(
         { error: 'Failed to verify session' },
         { status: 500, headers: corsHeaders }
@@ -376,33 +261,22 @@ export async function POST(request: NextRequest) {
       session_id: sessionId,
       category: 'streaming',
       content_type: candidate.type as 'movie' | 'tv_series' | 'tv_miniseries' | 'tv_special',
-      place_id: candidate.id.toString(), // Use Watchmode ID as place_id
+      place_id: candidate.id.toString(),
       external_id: candidate.id.toString(),
       name: candidate.title,
       title: candidate.title,
-      original_title: candidate.original_title,
       year: candidate.year,
-      runtime_minutes: candidate.runtime_minutes,
-      plot_overview: candidate.plot_overview,
-      description: candidate.plot_overview,
       genre_names: candidate.genre_names,
       user_rating: candidate.user_rating,
-      critic_score: candidate.critic_score,
       poster: candidate.poster,
       image_url: candidate.poster,
       backdrop: candidate.backdrop,
-      trailer: candidate.trailer,
-      us_rating: candidate.us_rating,
-      sources: candidate.sources,
+      description: `A ${candidate.genre_names?.join(', ')} ${candidate.type === 'movie' ? 'film' : 'series'} from ${candidate.year}.`,
       metadata: {
-        sources: candidate.sources,
+        placeholder: true,
         backdrop: candidate.backdrop,
-        trailer: candidate.trailer,
-        us_rating: candidate.us_rating,
-        critic_score: candidate.critic_score
       },
       tags: candidate.genre_names,
-      // Required fields for compatibility (will be null for streaming)
       lat: 0,
       lng: 0
     }))
@@ -418,16 +292,15 @@ export async function POST(request: NextRequest) {
         { status: 500, headers: corsHeaders }
       )
     }
-    
-    console.log(`📺 Stored ${candidates.length} streaming candidates for session ${sessionId}`)
-    console.log(`🎬 Content: ${candidates.slice(0, 3).map(c => `${c.title} (${c.year})`).join(', ')}`)
+
+    console.log(`📺 Stored ${candidates.length} placeholder streaming candidates for session ${sessionId}`)
 
     return NextResponse.json({
       success: true,
       sessionId,
       candidatesAdded: candidates.length,
       message: `Found ${candidates.length} ${
-        preferences.contentTypes.length === 2 ? 'titles' : 
+        preferences.contentTypes.length === 2 ? 'titles' :
         preferences.contentTypes.includes('movie') ? 'movies' : 'TV shows'
       } to explore`,
     }, {
@@ -437,15 +310,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Streaming search error:', error)
-    
-    // Handle specific Watchmode API errors
-    if (error instanceof Error && error.message.includes('Watchmode API error')) {
-      return NextResponse.json(
-        { error: 'Failed to fetch content from streaming services' },
-        { status: 502, headers: corsHeaders }
-      )
-    }
-    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500, headers: corsHeaders }
