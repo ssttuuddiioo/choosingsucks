@@ -396,6 +396,34 @@ export default function SessionPage() {
     }
   }, [sessionStatus, session])
 
+  // Polling fallback: if stuck on "Calculating...", poll session status from DB
+  useEffect(() => {
+    const isSoloMode = (session as any)?.invite_count_hint === 1
+    if (isSoloMode) return
+    if (!session || session.status !== 'active') return
+    if (sessionStatus.submittedCount < sessionStatus.joinedCount) return
+    if (sessionStatus.joinedCount === 0) return
+
+    // Everyone submitted but session still active — poll for updates
+    const interval = setInterval(async () => {
+      const { data } = await (supabase as any)
+        .from('sessions')
+        .select('status, match_place_id')
+        .eq('id', session.id)
+        .single()
+
+      if (data && data.status === 'matched' && data.match_place_id) {
+        setSession((prev: any) => prev ? {
+          ...prev,
+          status: 'matched',
+          match_place_id: data.match_place_id,
+        } : null)
+      }
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [session?.status, session?.id, sessionStatus.submittedCount, sessionStatus.joinedCount])
+
   async function checkForNoMatches() {
     if (!session) return
 

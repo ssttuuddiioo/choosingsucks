@@ -19,35 +19,41 @@ export function useRealtime({
 }: UseRealtimeOptions) {
   const channelRef = useRef<RealtimeChannel | null>(null)
 
+  // Store callbacks in refs so channel subscription stays stable
+  const onMessageRef = useRef(onMessage)
+  const onPresenceSyncRef = useRef(onPresenceSync)
+  const onPresenceJoinRef = useRef(onPresenceJoin)
+  const onPresenceLeaveRef = useRef(onPresenceLeave)
+
+  // Keep refs up to date without triggering re-subscription
+  useEffect(() => { onMessageRef.current = onMessage }, [onMessage])
+  useEffect(() => { onPresenceSyncRef.current = onPresenceSync }, [onPresenceSync])
+  useEffect(() => { onPresenceJoinRef.current = onPresenceJoin }, [onPresenceJoin])
+  useEffect(() => { onPresenceLeaveRef.current = onPresenceLeave }, [onPresenceLeave])
+
   useEffect(() => {
     const supabase = createBrowserClient()
-    
+
     // Create channel
     const channel = supabase.channel(channelName)
 
-    // Set up event listeners
-    if (onMessage) {
-      channel.on('broadcast', { event: '*' }, onMessage)
-    }
+    // Set up event listeners using stable ref-based callbacks
+    channel.on('broadcast', { event: '*' }, (payload) => {
+      onMessageRef.current?.(payload)
+    })
 
-    if (onPresenceSync) {
-      channel.on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState()
-        onPresenceSync(state)
-      })
-    }
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState()
+      onPresenceSyncRef.current?.(state)
+    })
 
-    if (onPresenceJoin) {
-      channel.on('presence', { event: 'join' }, ({ key, currentPresences, newPresences }) => {
-        onPresenceJoin(key, currentPresences, newPresences)
-      })
-    }
+    channel.on('presence', { event: 'join' }, ({ key, currentPresences, newPresences }) => {
+      onPresenceJoinRef.current?.(key, currentPresences, newPresences)
+    })
 
-    if (onPresenceLeave) {
-      channel.on('presence', { event: 'leave' }, ({ key, currentPresences, leftPresences }) => {
-        onPresenceLeave(key, currentPresences, leftPresences)
-      })
-    }
+    channel.on('presence', { event: 'leave' }, ({ key, currentPresences, leftPresences }) => {
+      onPresenceLeaveRef.current?.(key, currentPresences, leftPresences)
+    })
 
     // Subscribe to channel
     channel.subscribe((status) => {
@@ -62,7 +68,7 @@ export function useRealtime({
     return () => {
       channel.unsubscribe()
     }
-  }, [channelName, onMessage, onPresenceSync, onPresenceJoin, onPresenceLeave])
+  }, [channelName]) // Only re-subscribe when channel name changes
 
   // Function to send broadcast message
   const broadcast = async (event: string, payload: any) => {
@@ -87,5 +93,3 @@ export function useRealtime({
     trackPresence,
   }
 }
-
-
