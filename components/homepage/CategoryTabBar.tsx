@@ -4,11 +4,11 @@ import { Utensils, Tv, Wrench, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 const TABS = [
-  { id: 'restaurants', label: 'Restaurants', icon: Utensils },
-  { id: 'streaming', label: 'Streaming', icon: Tv },
-  { id: 'build-your-own', label: 'Build Your Own', icon: Wrench },
-  { id: 'delivery', label: 'Delivery', icon: Truck, comingSoon: true },
-] as const
+  { id: 'restaurants' as const, label: 'Restaurants', icon: Utensils },
+  { id: 'streaming' as const, label: 'Streaming', icon: Tv },
+  { id: 'build-your-own' as const, label: 'Build Your Own', icon: Wrench },
+  { id: 'delivery' as const, label: 'Delivery', icon: Truck, comingSoon: true },
+]
 
 interface CategoryTabBarProps {
   activeTab: string
@@ -37,7 +37,7 @@ export default function CategoryTabBar({ activeTab, onTabChange }: CategoryTabBa
             >
               <div className="relative">
                 <Icon className="w-6 h-6" />
-                {tab.comingSoon && (
+                {'comingSoon' in tab && tab.comingSoon && (
                   <span className="absolute -top-1.5 -right-3 bg-orange-burst text-white text-[8px] font-bold px-1 py-0.5 rounded-full leading-none">
                     Soon
                   </span>
