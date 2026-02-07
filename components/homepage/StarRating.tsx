@@ -6,9 +6,10 @@ interface StarRatingProps {
   value: number
   onChange: (rating: number) => void
   size?: number
+  showValue?: boolean
 }
 
-export default function StarRating({ value, onChange, size = 32 }: StarRatingProps) {
+export default function StarRating({ value, onChange, size = 32, showValue = true }: StarRatingProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleStarClick = useCallback((e: React.MouseEvent<HTMLButtonElement>, starIndex: number) => {
@@ -67,7 +68,7 @@ export default function StarRating({ value, onChange, size = 32 }: StarRatingPro
         )
       })}
 
-      {value > 0 && (
+      {showValue && value > 0 && (
         <span className="ml-1.5 text-sm font-semibold text-warm-gray700 tabular-nums">
           {value.toFixed(1)}
         </span>

@@ -52,6 +52,7 @@ export default function SessionPage() {
   const [pendingMove, setPendingMove] = useState<string | null>(null)
   const [mutualMatches, setMutualMatches] = useState<Candidate[]>([])
   const [showMutualMatchesFlow, setShowMutualMatchesFlow] = useState(false)
+  const [candidateLoadFailed, setCandidateLoadFailed] = useState(false)
 
   const supabase = createBrowserClient()
 
@@ -101,6 +102,41 @@ export default function SessionPage() {
       })
     }
   }, [candidates, swipedCandidateIds, remainingCandidates.length, sessionId, participant?.id])
+
+  // Poll for candidates if we joined but have none yet (race condition with places-search)
+  useEffect(() => {
+    if (!participant || candidates.length > 0 || candidateLoadFailed) return
+
+    let attempts = 0
+    const maxAttempts = 6 // 6 attempts x 2.5s = 15s total
+    const pollInterval = 2500
+
+    const interval = setInterval(async () => {
+      attempts++
+      console.log(`🔄 Polling for candidates (attempt ${attempts}/${maxAttempts})`)
+
+      const { data } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true })
+
+      if (data && data.length > 0) {
+        console.log(`✅ Found ${data.length} candidates after polling`)
+        setCandidates(data as any)
+        clearInterval(interval)
+        return
+      }
+
+      if (attempts >= maxAttempts) {
+        console.warn('⚠️ No candidates found after polling timeout')
+        setCandidateLoadFailed(true)
+        clearInterval(interval)
+      }
+    }, pollInterval)
+
+    return () => clearInterval(interval)
+  }, [participant, candidates.length, candidateLoadFailed, sessionId])
 
   // Auto-join effect for anonymous sessions
   useEffect(() => {
@@ -731,6 +767,26 @@ export default function SessionPage() {
         sessionStatus={sessionStatus}
         category="restaurants"
       />
+    )
+  }
+
+  // No candidates loaded after timeout - show error instead of infinite spinner
+  if (candidates.length === 0 && candidateLoadFailed) {
+    return (
+      <div className="min-h-screen bg-warm-cream flex items-center justify-center p-6">
+        <div className="text-center space-y-4 max-w-sm">
+          <h2 className="text-xl font-bold text-warm-black">No restaurants found</h2>
+          <p className="text-warm-gray500 text-sm">
+            We couldn&apos;t find restaurants matching your criteria. Try expanding your search radius or adjusting your filters.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="bg-coral text-white font-bold py-3 px-6 rounded-2xl shadow-md"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
     )
   }
 

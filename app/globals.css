@@ -261,6 +261,10 @@ html, body {
     user-select: none;
   }
 
+  /* Hide scrollbar for horizontal scroll sections */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
   /* Line clamp utilities */
   .line-clamp-1 {
     overflow: hidden;

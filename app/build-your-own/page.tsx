@@ -583,23 +583,26 @@ export default function BuildYourOwnPage() {
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
               >
-                <SortableContext items={options.map(o => o.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-2 max-h-80 overflow-y-auto">
-                    {options.map((option, index) => (
-                      <SortableOption
-                        key={option.id}
-                        option={option}
-                        index={index}
-                        isReorderMode={isReorderMode}
-                        isEditing={editingOptionId === option.id}
-                        onRemove={removeOption}
-                        onEdit={setEditingOptionId}
-                        onUpdate={updateOption}
-                        onLearnMore={handleLearnMore}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
+                {
+                  // @ts-expect-error -- @dnd-kit types incompatible with React 19 JSX element types
+                  <SortableContext items={options.map(o => o.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                      {options.map((option, index) => (
+                        <SortableOption
+                          key={option.id}
+                          option={option}
+                          index={index}
+                          isReorderMode={isReorderMode}
+                          isEditing={editingOptionId === option.id}
+                          onRemove={removeOption}
+                          onEdit={setEditingOptionId}
+                          onUpdate={updateOption}
+                          onLearnMore={handleLearnMore}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                }
               </DndContext>
               
               {options.length < 2 && (

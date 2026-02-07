@@ -224,9 +224,15 @@ export default function HomePage() {
           <span className="text-warm-gray300">.</span>
           <span className="text-coral">SUCKS</span>
         </h1>
-        <p className="text-warm-gray500 text-xs text-center font-medium mt-0.5">
-          {tagline}
-        </p>
+        <div className="flex items-center justify-center gap-2 mt-0.5">
+          <p className="text-warm-gray500 text-xs font-medium">
+            {tagline}
+          </p>
+          <span className="text-warm-gray300 text-xs">·</span>
+          <a href="/more" className="text-coral text-xs font-medium hover:underline">
+            Discover more
+          </a>
+        </div>
       </header>
 
       {/* Main content */}

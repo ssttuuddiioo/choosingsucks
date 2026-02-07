@@ -9,11 +9,11 @@ function checkRateLimit(ip: string): boolean {
   const limit = rateLimitMap.get(ip)
   
   if (!limit || now > limit.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 300000 }) // 5 minute window
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 120000 }) // 2 minute window
     return true
   }
-  
-  if (limit.count >= 5) { // 5 searches per 5 minutes
+
+  if (limit.count >= 15) { // 15 searches per 2 minutes
     return false
   }
   
