@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Star, DollarSign, Navigation, Zap, Tv } from 'lucide-react'
+import { Star, DollarSign, Navigation, Zap, Tv, Shuffle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { createBrowserClient } from '@/lib/utils/supabase-client'
 import { env } from '@/lib/utils/env'
@@ -21,10 +21,13 @@ interface LikedCandidate extends Tables<'candidates'> {
 }
 
 export default function SoloResultsScreen({ sessionId, participantId, category }: SoloResultsScreenProps) {
+  const [allLiked, setAllLiked] = useState<LikedCandidate[]>([])
   const [topPick, setTopPick] = useState<LikedCandidate | null>(null)
   const [otherPicks, setOtherPicks] = useState<LikedCandidate[]>([])
   const [topPickIsFastYes, setTopPickIsFastYes] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [step, setStep] = useState<'vibe' | 'results'>('results')
+  const [vibes, setVibes] = useState<string[]>([])
 
   useEffect(() => {
     async function fetchLiked() {
@@ -57,35 +60,27 @@ export default function SoloResultsScreen({ sessionId, participantId, category }
             isFastYes: (durationMap.get(c.id) ?? Infinity) < FAST_SWIPE_MS,
           }))
 
-          const fastYeses = enriched.filter(c => c.isFastYes)
+          setAllLiked(enriched)
 
-          // Pick top pick
-          let pick: LikedCandidate
-          let isFast = false
-          if (fastYeses.length > 0) {
-            // Random from fast yeses
-            pick = fastYeses[Math.floor(Math.random() * fastYeses.length)]
-            isFast = true
-          } else {
-            // Highest rated
-            pick = [...enriched].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0]
-          }
-
-          // Sort remaining: fast yeses first (by speed), then by rating
-          const remaining = enriched
-            .filter(c => c.id !== pick.id)
-            .sort((a, b) => {
-              if (a.isFastYes && !b.isFastYes) return -1
-              if (!a.isFastYes && b.isFastYes) return 1
-              if (a.isFastYes && b.isFastYes) {
-                return (a.durationMs || 0) - (b.durationMs || 0)
+          // Extract unique vibes (cuisines) from liked restaurants
+          const cuisineSet = new Set<string>()
+          for (const c of enriched) {
+            if (c.cuisines && c.cuisines.length > 0) {
+              for (const cuisine of c.cuisines) {
+                cuisineSet.add(cuisine.replace(/_/g, ' '))
               }
-              return (b.rating || 0) - (a.rating || 0)
-            })
+            }
+          }
+          const uniqueVibes = Array.from(cuisineSet)
 
-          setTopPick(pick)
-          setTopPickIsFastYes(isFast)
-          setOtherPicks(remaining)
+          // If 2+ liked and 2+ distinct vibes, show vibe step
+          if (enriched.length >= 2 && uniqueVibes.length >= 2) {
+            setVibes(uniqueVibes)
+            setStep('vibe')
+          } else {
+            // Go straight to results
+            pickResults(enriched)
+          }
         }
       }
 
@@ -94,6 +89,52 @@ export default function SoloResultsScreen({ sessionId, participantId, category }
 
     fetchLiked()
   }, [sessionId, participantId])
+
+  function pickResults(candidates: LikedCandidate[]) {
+    if (candidates.length === 0) return
+
+    const fastYeses = candidates.filter(c => c.isFastYes)
+
+    let pick: LikedCandidate
+    let isFast = false
+    if (fastYeses.length > 0) {
+      pick = fastYeses[Math.floor(Math.random() * fastYeses.length)]
+      isFast = true
+    } else {
+      pick = [...candidates].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0]
+    }
+
+    const remaining = candidates
+      .filter(c => c.id !== pick.id)
+      .sort((a, b) => {
+        if (a.isFastYes && !b.isFastYes) return -1
+        if (!a.isFastYes && b.isFastYes) return 1
+        if (a.isFastYes && b.isFastYes) {
+          return (a.durationMs || 0) - (b.durationMs || 0)
+        }
+        return (b.rating || 0) - (a.rating || 0)
+      })
+
+    setTopPick(pick)
+    setTopPickIsFastYes(isFast)
+    setOtherPicks(remaining)
+    setStep('results')
+  }
+
+  function handleVibeSelect(vibe: string) {
+    const filtered = allLiked.filter(c =>
+      c.cuisines?.some(cuisine => cuisine.replace(/_/g, ' ') === vibe)
+    )
+    pickResults(filtered.length > 0 ? filtered : allLiked)
+  }
+
+  function handleSurpriseMe() {
+    const pick = allLiked[Math.floor(Math.random() * allLiked.length)]
+    setTopPick(pick)
+    setTopPickIsFastYes(pick.isFastYes)
+    setOtherPicks([])
+    setStep('results')
+  }
 
   const getPhotoUrl = (photoRef: string): string => {
     const apiKey = env.google.mapsApiKey
@@ -115,6 +156,56 @@ export default function SoloResultsScreen({ sessionId, participantId, category }
     )
   }
 
+  // Vibe selection step
+  if (step === 'vibe') {
+    return (
+      <div className="min-h-screen bg-warm-cream" style={{ minHeight: '100dvh' }}>
+        <div className="max-w-md mx-auto px-4 py-8 pb-24">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <p className="text-5xl mb-3">🍽️</p>
+            <h1 className="text-3xl font-outfit font-bold text-warm-black">
+              You liked {allLiked.length} spots!
+            </h1>
+            <p className="text-warm-gray500 mt-2">
+              What vibe are you feeling?
+            </p>
+          </motion.div>
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            {vibes.map((vibe, index) => (
+              <motion.button
+                key={vibe}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 + index * 0.05 }}
+                onClick={() => handleVibeSelect(vibe)}
+                className="px-5 py-3 bg-white border-2 border-warm-gray100 rounded-2xl text-warm-black font-semibold text-sm hover:border-coral hover:bg-coral/5 transition-all active:scale-95 capitalize"
+              >
+                {vibe}
+              </motion.button>
+            ))}
+          </div>
+
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 + vibes.length * 0.05 }}
+            onClick={handleSurpriseMe}
+            className="mt-6 mx-auto flex items-center gap-2 px-5 py-3 bg-coral text-white rounded-2xl font-semibold text-sm hover:bg-coral/90 transition-all active:scale-95"
+          >
+            <Shuffle className="w-4 h-4" />
+            Surprise me
+          </motion.button>
+        </div>
+      </div>
+    )
+  }
+
+  // Results step
   return (
     <div className="min-h-screen bg-warm-cream" style={{ minHeight: '100dvh' }}>
       <div className="max-w-md mx-auto px-4 py-8 pb-24">

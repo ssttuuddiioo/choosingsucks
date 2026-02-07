@@ -384,12 +384,14 @@ export default function SessionPage() {
     }
   }
 
-  // Check for no matches when everyone has finished swiping
+  // Check for no matches when everyone has finished swiping (duo/multi only)
   useEffect(() => {
-    if (session && sessionStatus.joinedCount > 0 && 
+    const isSoloMode = (session as any)?.invite_count_hint === 1
+    if (isSoloMode) return // Solo mode uses SoloResultsScreen instead
+
+    if (session && sessionStatus.joinedCount > 0 &&
         sessionStatus.submittedCount === sessionStatus.joinedCount &&
         session.status === 'active') {
-      // Everyone has finished swiping, check if there's a match
       checkForNoMatches()
     }
   }, [sessionStatus, session])

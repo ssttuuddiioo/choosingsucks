@@ -14,7 +14,7 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { sessionId, lat, lng, radius, maxPriceLevel, selectedPriceLevels, keywords } = await req.json()
+    const { sessionId, lat, lng, radius, maxPriceLevel, selectedPriceLevels, keywords, limit } = await req.json()
     
     // Validate required parameters
     if (!sessionId || !lat || !lng) {
@@ -231,12 +231,16 @@ serve(async (req) => {
       return ratingB - ratingA // Descending order (highest first)
     })
 
-    console.log(`⭐ Rating-sorted restaurants:`, sortedPlaces.slice(0, 5).map((place: any) => ({
+    // Limit to requested count (default 10)
+    const maxCandidates = limit || 10
+    const limitedPlaces = sortedPlaces.slice(0, maxCandidates)
+
+    console.log(`⭐ Top ${limitedPlaces.length} rating-sorted restaurants:`, limitedPlaces.slice(0, 5).map((place: any) => ({
       name: place.displayName?.text,
       rating: place.rating || 'no rating'
     })))
 
-    const candidates = sortedPlaces.map((place: any) => {
+    const candidates = limitedPlaces.map((place: any) => {
       // Convert price level string to number
       let priceLevel = null
       if (place.priceLevel) {

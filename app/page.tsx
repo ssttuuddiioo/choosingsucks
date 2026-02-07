@@ -100,7 +100,7 @@ export default function HomePage() {
           require_names: false,
           invite_count_hint: isSolo ? 1 : 2,
           match_requirement: 'all',
-          allow_multiple_matches: false,
+          allow_multiple_matches: !isSolo,
         })
         .select()
         .single()
