@@ -398,32 +398,91 @@ export default function SessionPage() {
     if (!session) return
 
     try {
-      // Check if there are any unanimous matches
-      const { data: matches } = await (supabase as any)
-        .rpc('find_session_matches', { p_session_id: session.id })
+      // Get all participants in this session
+      const { data: participants, error: pError } = await (supabase as any)
+        .from('participants')
+        .select('id')
+        .eq('session_id', session.id)
 
-      if (!matches || matches.length === 0) {
-        // No matches found, show no-matches screen
+      if (pError || !participants || participants.length === 0) {
+        console.error('Error fetching participants:', pError)
+        setShowNoMatches(true)
+        return
+      }
+
+      const totalParticipants = participants.length
+      const matchRequirement = (session as any).match_requirement || 'all'
+      const requiredLikes = matchRequirement === 'majority'
+        ? Math.ceil(totalParticipants / 2)
+        : totalParticipants
+
+      // Get all "yes" votes for this session
+      const { data: yesVotes, error: vError } = await (supabase as any)
+        .from('swipes')
+        .select('candidate_id, participant_id')
+        .eq('session_id', session.id)
+        .eq('vote', 1)
+
+      if (vError) {
+        console.error('Error fetching votes:', vError)
+        setShowNoMatches(true)
+        return
+      }
+
+      // Count yes votes per candidate
+      const voteCounts: Record<string, Set<string>> = {}
+      for (const vote of yesVotes || []) {
+        if (!voteCounts[vote.candidate_id]) {
+          voteCounts[vote.candidate_id] = new Set()
+        }
+        voteCounts[vote.candidate_id].add(vote.participant_id)
+      }
+
+      // Find candidates that meet the match threshold
+      const matchedCandidateIds = Object.entries(voteCounts)
+        .filter(([, voters]) => voters.size >= requiredLikes)
+        .map(([candidateId]) => candidateId)
+
+      const matched = candidates.filter(c => matchedCandidateIds.includes(c.id))
+
+      if (matched.length === 0) {
+        // No matches found
         setShowNoMatches(true)
         broadcast('no_matches_detected', { sessionId: session.id })
-      } else if (matches.length >= 2) {
-        // Multiple mutual matches — enter the new flow
-        const matchedCandidateIds = matches.map((m: any) => m.candidate_id)
-        const matched = candidates.filter(c => matchedCandidateIds.includes(c.id))
-        if (matched.length >= 2) {
-          setMutualMatches(matched)
-          setShowMutualMatchesFlow(true)
-          broadcast('mutual_matches_found', {
-            sessionId: session.id,
-            candidateIds: matched.map(c => c.id),
+      } else if (matched.length === 1) {
+        // Single match — update session and show winner
+        const winner = matched[0]
+        await (supabase as any)
+          .from('sessions')
+          .update({
+            status: 'matched',
+            match_place_id: winner.place_id,
+            match_reason: `All ${totalParticipants} participants liked this!`,
           })
-        }
+          .eq('id', session.id)
+
+        setSession((prev: any) => prev ? {
+          ...prev,
+          status: 'matched',
+          match_place_id: winner.place_id,
+        } : null)
+
+        broadcast('match_found', {
+          placeId: winner.place_id,
+          candidateId: winner.id,
+          restaurantName: winner.name,
+        })
+      } else {
+        // Multiple mutual matches — enter tiebreaker flow
+        setMutualMatches(matched)
+        setShowMutualMatchesFlow(true)
+        broadcast('mutual_matches_found', {
+          sessionId: session.id,
+          candidateIds: matched.map(c => c.id),
+        })
       }
-      // If exactly 1 match, the existing check-match API during swiping
-      // already handles it via session.status = 'matched' + MatchScreen
     } catch (error) {
       console.error('Error checking for matches:', error)
-      // If we can't check, assume no matches for now
       setShowNoMatches(true)
     }
   }
