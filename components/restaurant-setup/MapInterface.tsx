@@ -15,6 +15,7 @@ interface MapInterfaceProps {
   className?: string
   theme?: 'dark' | 'warm'
   onMapStateChange?: (state: MapState) => void
+  places?: { lat: number; lng: number }[]
 }
 
 export interface MapInterfaceRef {
@@ -68,7 +69,7 @@ function GoogleMapComponent({ center, style, onMapReady, mapStyles, onIdle }: Go
     if (ref.current && !map) {
       const newMap = new google.maps.Map(ref.current, {
         center,
-        zoom: 13,
+        zoom: 14,
         disableDefaultUI: true,
         zoomControl: !isMobile,
         gestureHandling: 'greedy',
@@ -93,8 +94,8 @@ function GoogleMapComponent({ center, style, onMapReady, mapStyles, onIdle }: Go
 }
 
 function zoomToRadius(zoom: number): number {
-  const radius = 20 / Math.pow(2, zoom - 10)
-  return Math.max(0.5, Math.min(10, Math.round(radius * 10) / 10))
+  const radius = 10 / Math.pow(2, zoom - 10)
+  return Math.max(0.5, Math.min(5, Math.round(radius * 10) / 10))
 }
 
 const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
@@ -102,9 +103,11 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
   className = '',
   theme = 'dark',
   onMapStateChange,
+  places,
 }, ref) => {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const markersRef = useRef<google.maps.Marker[]>([])
 
   const isWarm = theme === 'warm'
   const accentColor = isWarm ? '#E07A5F' : '#EC4899'
@@ -122,6 +125,35 @@ const MapInterface = forwardRef<MapInterfaceRef, MapInterfaceProps>(({
       }
     }
   }), [mapInstance])
+
+  // Place markers (small dots at 50% opacity)
+  useEffect(() => {
+    if (!mapInstance) return
+
+    // Clear old markers
+    markersRef.current.forEach((m) => m.setMap(null))
+    markersRef.current = []
+
+    if (!places?.length) return
+
+    const icon = {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 4,
+      fillColor: accentColor,
+      fillOpacity: 0.5,
+      strokeWeight: 0,
+    }
+
+    markersRef.current = places.map(
+      (p) =>
+        new google.maps.Marker({
+          position: { lat: p.lat, lng: p.lng },
+          map: mapInstance,
+          icon,
+          clickable: false,
+        })
+    )
+  }, [mapInstance, places, accentColor])
 
   const handleMapReady = useCallback((map: google.maps.Map) => {
     setMapInstance(map)

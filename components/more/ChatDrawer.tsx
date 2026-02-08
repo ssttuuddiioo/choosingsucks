@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, Loader2 } from 'lucide-react'
+import { Send, Loader2, Search } from 'lucide-react'
 import { motion } from 'framer-motion'
 import {
   Drawer,
@@ -106,9 +106,12 @@ export default function ChatDrawer({ open, onOpenChange, userLocation }: ChatDra
       if (data.content) {
         setMessages((prev) => [...prev, { role: 'assistant', type: 'text', content: data.content }])
       } else {
+        const friendlyError = data.error?.includes('unavailable') || data.error?.includes('configured')
+          ? "Chat is temporarily unavailable. Please try again later."
+          : "Something went wrong. Try again?"
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', type: 'text', content: data.error || "Something went wrong. Try again?" },
+          { role: 'assistant', type: 'text', content: friendlyError },
         ])
       }
     } catch {
@@ -252,7 +255,7 @@ export default function ChatDrawer({ open, onOpenChange, userLocation }: ChatDra
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="bg-warm-cream border-warm-gray200" style={{ maxHeight: '75dvh' }}>
+      <DrawerContent className="bg-warm-cream border-warm-gray200" style={{ height: '75dvh' }}>
         <DrawerHeader className="text-left pb-2">
           <DrawerTitle className="font-outfit text-warm-black">
             Let&apos;s talk about it
@@ -365,29 +368,39 @@ export default function ChatDrawer({ open, onOpenChange, userLocation }: ChatDra
           )}
         </div>
 
-        {/* Bottom bar: search CTA or input */}
-        <div className="flex-shrink-0 border-t border-warm-gray100">
-          {/* Persistent "Let's see what we can find" button */}
+        {/* Bottom bar: search CTA + input */}
+        <div className="flex-shrink-0 border-t border-warm-gray200">
+          {/* Zone A: Search CTA — shown after user has sent a message */}
           {hasUserSentMessage && !isTyping && !searchResults && !isSearching && (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="px-4 pt-2"
+              className="px-4 pt-3"
             >
               <button
                 onClick={handleSearch}
                 disabled={!userLocation}
-                className="w-full px-5 py-2.5 bg-coral text-white text-sm font-semibold rounded-full hover:bg-coral-dark active:scale-95 transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-coral text-white text-sm font-bold rounded-full hover:bg-coral-dark active:scale-[0.98] transition-all disabled:opacity-50 shadow-sm"
               >
-                Let&apos;s see what we can find
+                <Search className="w-4 h-4" />
+                Let&apos;s see what that can bring up
               </button>
             </motion.div>
           )}
 
-          {/* Input bar — hidden after results are shown */}
+          {/* Divider: "or keep chatting" — only when both zones are visible */}
+          {hasUserSentMessage && !isTyping && !searchResults && !isSearching && (
+            <div className="flex items-center gap-3 px-6 py-1.5">
+              <div className="flex-1 h-px bg-warm-gray200" />
+              <span className="text-xs text-warm-gray300">or keep chatting</span>
+              <div className="flex-1 h-px bg-warm-gray200" />
+            </div>
+          )}
+
+          {/* Zone B: Input bar — hidden after results are shown */}
           {!searchResults && (
             <div
-              className="flex items-center gap-2 px-4 py-3"
+              className="flex items-center gap-2 px-4 py-2"
               style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
             >
               <input
@@ -400,7 +413,7 @@ export default function ChatDrawer({ open, onOpenChange, userLocation }: ChatDra
                     handleSend(inputValue)
                   }
                 }}
-                placeholder="What sounds good?"
+                placeholder={hasUserSentMessage ? 'Tell me more...' : 'What sounds good?'}
                 className="flex-1 bg-white border border-warm-gray200 rounded-full px-4 py-2.5 text-sm text-warm-black placeholder:text-warm-gray300 focus:outline-none focus:border-coral transition-colors"
                 disabled={isTyping || isSearching}
               />

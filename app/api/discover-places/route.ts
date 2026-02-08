@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Google Maps API key not configured' }, { status: 500 })
     }
 
-    const radiusInMeters = (radius || 2.5) * 1609.34
+    const radiusInMeters = (radius || 1.5) * 1609.34
 
     // Build price levels filter
     const priceLevels: string[] = []

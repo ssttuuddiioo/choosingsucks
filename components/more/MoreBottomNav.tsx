@@ -1,13 +1,13 @@
 'use client'
 
-import { Compass, Star, User, Info } from 'lucide-react'
+import { Compass, MessageCircle, Star, User } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 const TABS = [
   { id: 'discover' as const, label: 'Discover', icon: Compass },
+  { id: 'chat' as const, label: 'Chat', icon: MessageCircle },
   { id: 'reviews' as const, label: 'Reviews', icon: Star },
   { id: 'profile' as const, label: 'Profile', icon: User },
-  { id: 'about' as const, label: 'About', icon: Info },
 ]
 
 export type MoreTab = (typeof TABS)[number]['id']

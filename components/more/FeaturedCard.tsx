@@ -48,8 +48,8 @@ export default function FeaturedCard({ place, className }: FeaturedCardProps) {
       )}
 
       {/* Info */}
-      <div className="p-3 space-y-1.5">
-        <h3 className="text-sm font-semibold text-warm-black line-clamp-1">{place.name}</h3>
+      <div className="relative p-3 space-y-1.5">
+        <h3 className="text-sm font-semibold text-warm-black line-clamp-1 pr-9">{place.name}</h3>
 
         <div className="flex items-center gap-2 text-[11px] text-warm-gray500">
           {place.rating && (
@@ -66,6 +66,20 @@ export default function FeaturedCard({ place, className }: FeaturedCardProps) {
             </span>
           )}
         </div>
+
+        {/* Go button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            window.open(
+              `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}&query_place_id=${place.placeId}`,
+              '_blank'
+            )
+          }}
+          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-coral text-white text-[10px] font-bold flex items-center justify-center shadow-sm hover:bg-coral-dark active:scale-95 transition-all"
+        >
+          Go
+        </button>
       </div>
     </div>
   )

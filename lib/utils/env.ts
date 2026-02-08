@@ -8,6 +8,9 @@ export const env = {
   google: {
     mapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '',
   },
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+  },
   resend: {
     apiKey: process.env.RESEND_API_KEY,
   },

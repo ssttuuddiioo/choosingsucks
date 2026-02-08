@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { env } from '@/lib/utils/env'
 
 // Rate limiting: 10 requests per minute per IP
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -38,9 +39,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = env.anthropic.apiKey
   if (!apiKey) {
-    return NextResponse.json({ error: 'Chat not configured' }, { status: 500 })
+    console.error('ANTHROPIC_API_KEY is not set in environment variables')
+    return NextResponse.json({ error: 'Chat is temporarily unavailable' }, { status: 500 })
   }
 
   try {

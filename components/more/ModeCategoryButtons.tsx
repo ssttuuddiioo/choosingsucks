@@ -17,7 +17,7 @@ interface ModeCategoryButtonsProps {
 
 export default function ModeCategoryButtons({ activeMode, onModeChange }: ModeCategoryButtonsProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
       {MODES.map((mode) => {
         const Icon = mode.icon
         const isActive = activeMode === mode.id
@@ -27,7 +27,7 @@ export default function ModeCategoryButtons({ activeMode, onModeChange }: ModeCa
             key={mode.id}
             onClick={() => onModeChange(mode.id)}
             className={cn(
-              'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors border',
+              'flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors border',
               isActive
                 ? 'bg-coral text-white border-coral'
                 : 'bg-warm-gray100 text-warm-gray700 border-warm-gray200 hover:border-warm-gray300'
